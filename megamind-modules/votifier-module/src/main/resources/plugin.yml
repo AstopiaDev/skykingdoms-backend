@@ -1,0 +1,4 @@
+name: Votifier
+author: Vihara
+version: 1.0
+main: net.skykingdoms.backend.votifier.VotifierModule

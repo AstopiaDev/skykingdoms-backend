@@ -1,0 +1,29 @@
+import com.github.jengelman.gradle.plugins.shadow.transformers.Log4j2PluginsCacheFileTransformer
+
+dependencies {
+    annotationProcessor project(":impl-loader")
+
+    api project(":base")
+    implementation 'mysql:mysql-connector-java:8.0.33' // 5.1.48
+
+    implementation 'com.github.simplix-softworks:simplixstorage:3.2.6'
+
+    api project(":protocol")
+
+    tasks {
+        shadowJar {
+            transform new Log4j2PluginsCacheFileTransformer()
+
+            def output = rootProject.ext.get('output')
+            destinationDirectory = file("$rootDir/$output")
+
+            archiveFileName = "BukkitStartupApp.jar"
+
+            manifest {
+                attributes(
+                        "Main-Class": "net.skykingdoms.backend.bukkit.startup.BukkitAgentBootstrapper"
+                )
+            }
+        }
+    }
+}

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="GradleMigrationSettings" migrationVersion="1" />
+  <component name="GradleSettings">
+    <option name="linkedExternalProjectsSettings">
+      <GradleProjectSettings>
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="gradleHome" value="$PROJECT_DIR$/../../../../ProgramData/chocolatey/lib/gradle/tools/gradle-8.3" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/base" />
+            <option value="$PROJECT_DIR$/bukkit-connector" />
+            <option value="$PROJECT_DIR$/bukkit-startup-app" />
+            <option value="$PROJECT_DIR$/impl-loader" />
+            <option value="$PROJECT_DIR$/megamind" />
+            <option value="$PROJECT_DIR$/megamind-modules" />
+            <option value="$PROJECT_DIR$/megamind-modules/luckperms-module" />
+            <option value="$PROJECT_DIR$/megamind-modules/neoprotect-module" />
+            <option value="$PROJECT_DIR$/megamind-modules/rest-api-module" />
+            <option value="$PROJECT_DIR$/megamind-modules/votifier-module" />
+            <option value="$PROJECT_DIR$/node-app" />
+            <option value="$PROJECT_DIR$/protocol" />
+            <option value="$PROJECT_DIR$/velocity-connector" />
+          </set>
+        </option>
+      </GradleProjectSettings>
+    </option>
+  </component>
+</project>

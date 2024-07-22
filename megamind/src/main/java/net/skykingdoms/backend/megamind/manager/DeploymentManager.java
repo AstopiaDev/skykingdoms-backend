@@ -1,0 +1,880 @@
+package net.skykingdoms.backend.megamind.manager;
+
+import com.google.common.collect.Streams;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
+import net.skykingdoms.backend.base.command.dependency.Dependency;
+import net.skykingdoms.backend.base.data.network.PersistentServerMeta;
+import net.skykingdoms.backend.base.util.collection.CollectionUtil;
+import net.skykingdoms.backend.megamind.MegamindApp;
+import net.skykingdoms.backend.megamind.connection.RemoteClientConnection;
+import net.skykingdoms.backend.megamind.event.network.ProxyDeployEvent;
+import net.skykingdoms.backend.megamind.manager.deployment.DeploymentResponse;
+import net.skykingdoms.backend.megamind.server.impl.*;
+import net.skykingdoms.backend.protocol.logging.Logging;
+import net.skykingdoms.backend.protocol.packet.ChannelProcessorContext;
+import net.skykingdoms.backend.protocol.packet.handshake.Handshake;
+import net.skykingdoms.backend.protocol.packet.play.*;
+import net.skykingdoms.backend.protocol.server.*;
+import net.skykingdoms.backend.protocol.server.deploy.IDeployRequest;
+import net.skykingdoms.backend.protocol.server.deploy.impl.BukkitDeployRequest;
+import net.skykingdoms.backend.protocol.server.deploy.impl.PersistentBukkitDeployRequest;
+import net.skykingdoms.backend.protocol.server.deploy.impl.ProxyDeployRequest;
+import net.skykingdoms.backend.protocol.server.impl.ScalableDataImpl;
+import net.skykingdoms.backend.protocol.type.RemoteConnectedType;
+import net.skykingdoms.backend.protocol.type.reconnect.impl.FluentBukkitDataImpl;
+import net.skykingdoms.backend.protocol.type.reconnect.impl.FluentNodeDataImpl;
+import net.skykingdoms.backend.protocol.type.reconnect.impl.FluentProxyDataImpl;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.net.InetSocketAddress;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Queue;
+import java.util.UUID;
+import java.util.concurrent.*;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
+/**
+ * Manager that corresponds to server deployment queue and handling
+ * unexpected occurrences during deploy process (failed deployments, invalid confs etc.)
+ */
+public final class DeploymentManager {
+
+    // ----------------------------------------------------------------------
+    @Dependency
+    public static final DeploymentManager INSTANCE = new DeploymentManager();
+    // ----------------------------------------------------------------------
+
+    // A set of sent non-confirmed deployments
+    Collection<PendingDeploymentRequest> pendingDeployments = CollectionUtil.createConcurrentSet();
+    Queue<WrappedPeristentDeployment> requests = new ConcurrentLinkedQueue<>();
+
+    /**
+     * Selects an optimal node and sends a deployment request on it
+     */
+    public void sendDeploymentRequest(final @NonNull IDeployRequest request,
+                                      final @NonNull ServerDeploy.DeploymentTarget target,
+                                      final boolean testFlow,
+                                      final @Nullable String testFlowName,
+                                      final int testFlowId,
+                                      final @Nullable Consumer<DeploymentResponse> resultConsumer) {
+        val nodes = NodeManager.INSTANCE.getRegisteredNodes();
+        val epoch = System.currentTimeMillis();
+
+        // TODO: NODES PRIORITY SISTEM
+
+        try {
+            val node = NodeManager.INSTANCE.getNodeServerFromAddress("5.9.150.40");
+
+            int testFlowPort;
+            try {
+                testFlowPort = TestFlowManager.INSTANCE.getTestFlow(testFlowName).getDebugPort();
+            } catch (NullPointerException exception) { testFlowPort = -1; }
+
+            node.getChannel().awaitPacket(new ServerDeploy.Request(target, request, testFlow, testFlowName, testFlowPort, testFlowId)).thenAcceptAsync(response -> {
+                val result = response.getDeploymentResult();
+
+                //Logging.IMP.info("[Deploy] Deployment request #{}, result: {}", request.getTransactionId().toString(), result.name());
+
+                if (result == ServerDeploy.DeploymentResult.ACCEPTED) {
+                    if (resultConsumer != null) {
+                        resultConsumer.accept(DeploymentResponse.successful(request.getTransactionId()));
+                    }
+
+                    /*Logging.IMP.info("[Deploy] Deployment request #{} accepted by node {}",
+                            request.getTransactionId().toString(),
+                            node.getName());*/
+                    pendingDeployments.add(new PendingDeploymentRequest(request, epoch, node, response.getEstimatedTimeout()));
+                } else if (resultConsumer != null) {
+                    resultConsumer.accept(DeploymentResponse.DENIED_BY_NODE);
+                }
+
+            }).get(1500, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException | TimeoutException e) {
+            /*Logging.IMP.info("[Deploy] Deployment request #{} failed due to timeout",
+                    request.getTransactionId().toString());*/
+            if (resultConsumer != null) {
+                resultConsumer.accept(DeploymentResponse.TRANSACTION_FAILED);
+            }
+        } catch (ExecutionException e) {
+            throw new RuntimeException(e); // unreachable
+        }
+    }
+
+    public void addPendingDeployment(PersistentServerMeta meta, NodeServer nodeServer) {
+        Logging.IMP.info(meta.getTransactionId().toString());
+        pendingDeployments.add(new DeploymentManager.PendingDeploymentRequest(
+                new BukkitDeployRequest(meta.getTransactionId(), meta.getGameMode().bakeData()),
+                -1,
+                nodeServer,
+                -1
+        ));
+    }
+
+    public boolean isTransactionExists(final @NonNull UUID transactionId) {
+        return getRequest(transactionId) != null;
+    }
+
+    public PendingDeploymentRequest getRequest(final @NonNull UUID transactionId) {
+        return pendingDeployments.stream()
+                .filter(pd -> pd.getRequest().getTransactionId().toString().equals(transactionId.toString()))
+                .findFirst()
+                .orElse(null);
+    }
+
+    private void _handleNodeHandshake(final @NonNull RemoteClientConnection rcc,
+                                      final @NonNull Handshake.Request handshake) {
+
+        if (handshake.isReconnect()) {
+            rcc.setConnectable(NodeManager.INSTANCE.registerNode(new NodeServer(((FluentNodeDataImpl) handshake.getFluentData()).getNodeName(), rcc)));
+            return;
+        }
+
+        val name = bakeNodeName();
+        _reserved.add(name); // reserving shit
+
+        val node = NodeManager.INSTANCE.registerNode(new NodeServer(name, rcc));
+        node.getChannel().sendPacket(new S04UpdateRemoteData(RemoteConnectedType.NODE, new FluentNodeDataImpl(name)));
+
+        _reserved.remove(name); // invalidation reservation record
+
+        rcc.setConnectable(node);
+
+        if (!requests.isEmpty()) {
+            for (WrappedPeristentDeployment deployment : requests) {
+                val fluentData = (FluentBukkitDataImpl) deployment.request.getFluentData();
+                if (node.getConnection().getHost().equalsIgnoreCase(fluentData.getHost())) {
+                    handleRemoteConnection(deployment.cc, deployment.request);
+                }
+            }
+        }
+    }
+
+    /**
+     * Invoked on handshake request packet with Transaction ID
+     */
+    public boolean validateConnection(final @NonNull Handshake.Request handshake) {
+        val transaction = handshake.getTransactionId();
+        val type = handshake.getType();
+
+/*
+        Logging.IMP.info("[Deploy/Info] {}, {}, {}, {}", handshake.getType(), handshake.getFluentData() instanceof FluentBukkitDataImpl ? " yes" : " no", handshake.hasData(), handshake.getFluentData().toString());
+*/
+
+
+        if (handshake.getFluentData() instanceof FluentBukkitDataImpl) {
+            FluentBukkitDataImpl data = (FluentBukkitDataImpl) handshake.getFluentData();
+            if (data.getServerScaleType() == ServerScaleType.PERSISTENT) {
+                NodeServer nodeServer = NodeManager.INSTANCE.getNodeServerFromAddress(data.getHost());
+                if (nodeServer == null) {
+                    return false;
+                }
+                if (isTransactionExists(transaction)) {
+                    return true;
+                } else {
+                    Logging.IMP.info("[Deploy] Declined invalid transaction #{} @ {} @ {}", transaction.toString(), type.name(), isTransactionExists(transaction));
+                    return false;
+                }
+            }
+        }
+
+        // Checks if NODE server that deployed this server also came online.
+        if (handshake.isReconnect()) {
+            if (handshake.getType() == RemoteConnectedType.PROXY
+                    && !NodeManager.INSTANCE.isNodeRegistered(((FluentProxyDataImpl) handshake.getFluentData()).getNodeName())) {
+                /*Logging.IMP.info("[Deploy] Denied: RCON: "
+                        + handshake.isReconnect()
+                        + ", T: "
+                        + handshake.getType().name()
+                        + ", N: "
+                        + ((FluentProxyDataImpl) handshake.getFluentData()).getNodeName()
+                        + ", TID: " + transaction.toString() + ", NREG: " + NodeManager.INSTANCE.isNodeRegistered(((FluentProxyDataImpl) handshake.getFluentData()).getNodeName()));*/
+                return false;
+            }
+        }
+
+        if (!isTransactionExists(transaction)
+                && type != RemoteConnectedType.NODE
+                && !handshake.isReconnect()) {
+            Logging.IMP.info("[Deploy] Declined invalid transaction #{} @ {} @ {}", transaction.toString(), type.name(), isTransactionExists(transaction));
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    private void _handleReconnecting(final @NonNull RemoteClientConnection rcc,
+                                     final @NonNull Handshake.Request handshake) {
+
+        val data = handshake.getFluentData();
+        val type = handshake.getType();
+        switch (type) {
+            case PROXY: {
+                val proxyData = (FluentProxyDataImpl) data;
+                val proxyName = proxyData.getProxyName();
+                val node = NodeManager.INSTANCE.getNodeServer(proxyData.getNodeName());
+                rcc.setConnectable(ProxyManager.INSTANCE.registerProxyServer(new ProxyServer(
+                        proxyName,
+                        node,
+                        rcc,
+                        InetSocketAddress.createUnresolved(proxyData.getHost(), proxyData.getPort())
+                )));
+                // todo: send renewed server instances
+                rcc.getConnectable().getChannel().sendPacket(new S28UpdateNetworkState(MegamindApp.INSTANCE.networkState().ordinal()));
+
+                // Notifying internal systems that we've got a proxy deployed
+                // it's required by NeoProtect module
+                MegamindApp.INSTANCE.pluginManager().callEvent(new ProxyDeployEvent((ProxyServer) rcc.getConnectable(), true));
+
+                Logging.IMP.info("[Deploy] Reconnected proxy {}", proxyName);
+                break;
+            }
+            case SERVER: {
+                val bukkitFluentData = (FluentBukkitDataImpl) data;
+
+/*                if (bukkitFluentData.getServerScaleType() == ServerScaleType.PERSISTENT) {
+                    return;
+                }*/
+
+                val bukkitName = bukkitFluentData.getServerName();
+                val node = NodeManager.INSTANCE.getNodeServer(((FluentBukkitDataImpl) data).getNodeName());
+                if (node == null) {
+                    Logging.IMP.debug("Server {} tried reconnecting to node {}, but its not loaded!",
+                            bukkitName, ((FluentBukkitDataImpl) data).getNodeName());
+                    return;
+                }
+
+                rcc.setConnectable(ServerManager.INSTANCE.registerBukkitServer(new BukkitServer(
+                        bukkitName,
+                        rcc,
+                        bukkitFluentData.getGameType(),
+                        bukkitFluentData.getServerScaleType(),
+                        node,
+                        InetSocketAddress.createUnresolved(bukkitFluentData.getHost(), bukkitFluentData.getPort())
+                )));
+
+                Logging.IMP.info("[Deploy] Reconnected bukkit instance {}", bukkitName);
+            }
+        }
+    }
+
+    /**
+     * Invoked when we receive C21RegisterGameInstance
+     */
+    public void handleGameCreate(final @NonNull C21RegisterGameInstance packet,
+                                 final @NonNull RemoteClientConnection rcc) {
+        val bukkitServer = (BukkitServer) rcc.getConnectable();
+        val gameId = packet.getArenaId();
+
+        // eg: mini12A / mega1E
+        val gameName = bukkitServer.getName() + getGameName(gameId);
+
+        val slots = packet.getSlots();
+        val map = packet.getMapName();
+        val data = packet.getData();
+
+        @SuppressWarnings("DataFlowIssue")
+        val gameServer = ServerManager.INSTANCE.registerGameServer(new GameServer(
+                gameName,
+                data.getGameMode(),
+                rcc,
+                bukkitServer,
+                map,
+                GameState.ENDING,
+                gameId));
+
+        gameServer.setJoinable(true);
+        gameServer.setSlots(slots);
+
+        Logging.IMP.info("[Deploy] Deployed game instance {} at {} with {} slots. Map: {}",
+                gameName, bukkitServer.getName(), slots, map);
+
+        // handling shit for testflow
+        TestFlowManager.INSTANCE.handleServerAction(TestFlowManager.ServerAction.ADD_GAME,
+                gameServer.getParentServer().getLinkedTestFlowId(), gameServer);
+    }
+
+    public String getGameName(int gameId) {
+        if (gameId < 1) {
+            throw new IllegalArgumentException("gameId must be greater than 0");
+        }
+
+        int base = 'Z' - 'A' + 1; // 26 letters in the alphabet
+        int index = gameId - 1;
+
+        StringBuilder name = new StringBuilder();
+
+        while (index >= base) {
+            int digit = index / base;
+            name.insert(0, (char) ('A' + index % base));
+            name.insert(0, digit);
+            index = digit - 1;
+        }
+
+        name.insert(0, (char) ('A' + index));
+
+        return name.toString();
+    }
+
+
+    /**
+     * Invoked when we receive RegisterPersistentInstance
+     */
+    public void handlePersistentCreate(final @NonNull C29RegisterPersistentInstance packet,
+                                       final @NonNull RemoteClientConnection rcc) {
+        val bukkitServer = (BukkitServer) rcc.getConnectable();
+
+        val data = packet.getData();
+        val slots = packet.getSlots();
+        val gameName = "p-" + bukkitServer.getName();
+
+        if (ServerManager.INSTANCE.isPersistentServerRegistered(gameName)) {
+            return;
+        }
+
+        @SuppressWarnings("DataFlowIssue")
+        val persistentServer = ServerManager.INSTANCE.registerPersistentServer(new PersistentServer(
+                gameName,
+                data.getGameMode(),
+                data.getGameType(),
+                rcc,
+                bukkitServer
+        ));
+
+        persistentServer.setJoinable(true);
+        persistentServer.setSlots(slots);
+
+        Logging.IMP.info("[Deploy] Deployed persistent instance {} at {} with {} slots. GameMode: {}",
+                gameName, bukkitServer.getName(), slots, data.getGameMode().name());
+    }
+
+    public void handleLobbyBoot(final @NonNull LobbyBoot.Request request,
+                                final @NonNull RemoteClientConnection rcc,
+                                final @NonNull ChannelProcessorContext ctx) {
+        val bukkitServer = (BukkitServer) rcc.getConnectable();
+        val gameType = bukkitServer.getGameType();
+
+        //Logging.IMP.info("I'M HERE " + gameType.name());
+
+        // if lobby reconnects it already has a name assigned
+        val lobbyName = request.getOldName() != null ? request.getOldName() : bakeLobbyName(gameType);
+
+        val lobbyServer = LobbyManager.INSTANCE.addLobbyServer(new LobbyServer(lobbyName, rcc, bukkitServer, request.getSlots()));
+        lobbyServer.setJoinable(true);
+        lobbyServer.setSlots(120); // hardcoded. todo: dynamic slots amount
+
+        Logging.IMP.info("[Deploy] Deployed lobby server {} at {} with {} slots",
+                lobbyName, bukkitServer.getName(), request.getSlots());
+
+        ctx.setResponse(new LobbyBoot.Response(lobbyName));
+
+        TestFlowManager.INSTANCE.handleServerAction(TestFlowManager.ServerAction.ADD_LOBBY,
+                lobbyServer.getParentServer().getLinkedTestFlowId(), lobbyServer);
+    }
+
+    public void handleRemoteConnection(final @NonNull RemoteClientConnection rcc,
+                                       final @NonNull Handshake.Request handshake) {
+
+        val type = handshake.getType();
+        if (type == RemoteConnectedType.NODE) {
+            _handleNodeHandshake(rcc, handshake);
+            return;
+        }
+
+        val transactionId = handshake.getTransactionId();
+
+        // Handling reconnecting remotely
+        if (handshake.isReconnect()) {
+            _handleReconnecting(rcc, handshake);
+            return;
+        }
+
+        val request = getRequest(transactionId);
+        var name = "undefined";
+
+        // proxy has no testflow thing
+        if (request != null && request.getRequest() instanceof ProxyDeployRequest) {
+            name = bakeProxyName();
+            if (!handshake.hasData()) {
+                Logging.IMP.error("!!! NO FLUENT DATA FROM PROXY SERVER #{} !!!", request.getRequest().getTransactionId());
+                return;
+            }
+
+            val data = (FluentProxyDataImpl) handshake.getFluentData();
+            data.setProxyName(name);
+            data.setNodeName(request.getTargetNode().getName());
+
+            rcc.setConnectable(ProxyManager.INSTANCE.registerProxyServer(
+                    new ProxyServer(name,
+                            request.getTargetNode(),
+                            rcc,
+                            InetSocketAddress.createUnresolved(data.getHost(), data.getPort())
+                    )
+            ));
+
+            rcc.getConnectable().getChannel().sendPacket(new S04UpdateRemoteData(
+                    RemoteConnectedType.PROXY, data
+            ));
+
+            val serverConnectionInfos = new java.util.ArrayList<>(ServerManager.INSTANCE.getRegisteredBukkitInstances().stream()
+                    .map(server -> new ServerConnectionInfo(
+                            server.getName(),
+                            server.getHost().getHostName(),
+                            server.getHost().getPort(),
+                            server.getScaleType(),
+                            server.getGameType())).toList());
+
+            serverConnectionInfos.addAll(
+                    ServerManager.INSTANCE.getPersistentServers().stream().map(
+                            server -> new ServerConnectionInfo(
+                                    server.getName(),
+                                    server.getParentServer().getHost().getHostName(),
+                                    server.getParentServer().getHost().getPort(),
+                                    server.getServerScale(),
+                                    server.getGameType()
+                            )).toList()
+            );
+
+            val serverConnectionInfoArray = serverConnectionInfos.toArray(ServerConnectionInfo[]::new);
+
+
+            rcc.getConnectable().getChannel().sendPacket(new S28UpdateNetworkState(MegamindApp.INSTANCE.networkState().ordinal()));
+            rcc.getConnectable().getChannel().sendPacket(new S06RegisterServers(serverConnectionInfoArray));
+
+            // Notifying internal systems that we've got a proxy deployed
+            // it's required by NeoProtect module
+            MegamindApp.INSTANCE.pluginManager().callEvent(new ProxyDeployEvent((ProxyServer) rcc.getConnectable(), false));
+
+            Logging.IMP.info("[Deploy] Registered new proxy server instance {} @ {}",
+                    data.getProxyName(),
+                    request.getTargetNode().getName());
+        }
+
+        if (request != null && request.getRequest() instanceof BukkitDeployRequest) {
+            val bukkitDeployRequest = (BukkitDeployRequest) request.getRequest();
+            if (!handshake.hasData()) {
+                Logging.IMP.error("!!! NO FLUENT DATA FROM BUKKIT SERVER #{} !!!", bukkitDeployRequest.getTransactionId());
+                return;
+            }
+
+            try {
+                name = bakeBukkitName(bukkitDeployRequest.getData().getServerScale());
+            } catch (Throwable throwable) {
+                throwable.printStackTrace();
+                return;
+            }
+
+            val fluentData = (FluentBukkitDataImpl) handshake.getFluentData();
+            fluentData.setNodeName(request.getTargetNode().getName());
+            fluentData.setServerName(name);
+
+            val bukkitServer = ServerManager.INSTANCE.registerBukkitServer(new BukkitServer(
+                    name,
+                    rcc,
+                    bukkitDeployRequest.getData().getGameType(),
+                    bukkitDeployRequest.getData().getServerScale(),
+                    request.getTargetNode(),
+                    InetSocketAddress.createUnresolved(fluentData.getHost(), fluentData.getPort())
+            ));
+
+            // yeah
+            bukkitServer.setLinkedTestFlowId(handshake.getTestFlowId());
+
+            rcc.setConnectable(bukkitServer);
+
+            rcc.sendPacket(new S04UpdateRemoteData(RemoteConnectedType.SERVER, fluentData));
+
+            TestFlowManager.INSTANCE.handleServerAction(TestFlowManager.ServerAction.ADD_BUKKIT,
+                    handshake.getTestFlowId(), bukkitServer);
+
+            Logging.IMP.info("[Deploy] Registered new bukkit server instance {} @ {} @ {} @ {}",
+                    name,
+                    request.getTargetNode().getName(),
+                    bukkitDeployRequest.getData().getServerScale().name(),
+                    bukkitDeployRequest.getData().getGameType().name());
+        }
+
+        if (request != null && request.getRequest() instanceof PersistentBukkitDeployRequest) {
+            val persistentBukkitDeployRequest = (PersistentBukkitDeployRequest) request.getRequest();
+            if (!handshake.hasData()) {
+                Logging.IMP.error("!!! NO FLUENT DATA FROM BUKKIT SERVER #{} !!!", persistentBukkitDeployRequest.getTransactionId());
+                return;
+            }
+
+            try {
+                name = persistentBukkitDeployRequest.getName();
+            } catch (Throwable throwable) {
+                throwable.printStackTrace();
+                return;
+            }
+
+            val fluentData = (FluentBukkitDataImpl) handshake.getFluentData();
+            NodeServer server = NodeManager.INSTANCE.getNodeServerFromAddress(fluentData.getHost());
+
+            if (server == null) {
+                requests.add(new WrappedPeristentDeployment(
+                        rcc,
+                        handshake
+                ));
+                return;
+            }
+
+            fluentData.setServerName(name);
+            fluentData.setNodeName(server.getName());
+
+            val bukkitServer = ServerManager.INSTANCE.registerBukkitServer(new BukkitServer(
+                    name,
+                    rcc,
+                    persistentBukkitDeployRequest.getData().getGameType(),
+                    persistentBukkitDeployRequest.getData().getServerScale(),
+                    server,
+                    InetSocketAddress.createUnresolved(fluentData.getHost(), fluentData.getPort())
+            ));
+
+            // yeah
+            bukkitServer.setLinkedTestFlowId(handshake.getTestFlowId());
+
+            rcc.setConnectable(bukkitServer);
+
+            rcc.sendPacket(new S04UpdateRemoteData(RemoteConnectedType.SERVER, fluentData));
+
+            TestFlowManager.INSTANCE.handleServerAction(TestFlowManager.ServerAction.ADD_BUKKIT,
+                    handshake.getTestFlowId(), bukkitServer);
+
+            Logging.IMP.info("[Deploy] Registered new persistent bukkit server instance {} @ {} @ {} @ {}",
+                    name,
+                    fluentData.getNodeName(),
+                    persistentBukkitDeployRequest.getData().getServerScale().name(),
+                    persistentBukkitDeployRequest.getData().getGameType().name());
+
+        }
+
+        if (request == null) {
+            val fluentData = (FluentBukkitDataImpl) handshake.getFluentData();
+            name = fluentData.getServerName();
+            val bukkitServer = ServerManager.INSTANCE.registerBukkitServer(new BukkitServer(
+                    name,
+                    rcc,
+                    fluentData.getGameType(),
+                    fluentData.getServerScaleType(),
+                    null,
+                    InetSocketAddress.createUnresolved(fluentData.getHost(), fluentData.getPort())
+            ));
+
+            // yeah
+            bukkitServer.setLinkedTestFlowId(handshake.getTestFlowId());
+
+            rcc.setConnectable(bukkitServer);
+
+            rcc.sendPacket(new S04UpdateRemoteData(RemoteConnectedType.SERVER, fluentData));
+
+            TestFlowManager.INSTANCE.handleServerAction(TestFlowManager.ServerAction.ADD_BUKKIT,
+                    handshake.getTestFlowId(), bukkitServer);
+
+            Logging.IMP.info("[Deploy] Registered new bukkit server instance {} @ {} @ {} @ {}",
+                    name,
+                    "none",
+                    fluentData.getServerScaleType().name(),
+                    fluentData.getGameType().name());
+        }
+
+        // removing pending deployment, because it's completed
+        pendingDeployments.removeIf(pd -> pd.getRequest().getTransactionId().toString().equals(transactionId.toString()) && !(pd.request instanceof PersistentBukkitDeployRequest));
+
+        if (request != null) {
+            Logging.IMP.info("[Deploy] Received transaction #{} - Name: {} - Node: {} - Elapsed: {}ms.",
+                    transactionId.toString(),
+                    name,
+                    request.getTargetNode() != null ? request.getTargetNode().getName() : "unknown",
+                    System.currentTimeMillis() - request.getSentDeploymentAt());
+        }
+
+        if (ServerManager.INSTANCE.getPendingGameDeployments().containsKey(transactionId)) {
+            Logging.IMP.info("[Deploy] Pending game deployments contain transaction for {}! Preparing shit ...", name);
+            ServerManager.INSTANCE.updateGameQueueInfo(transactionId, name);
+        }
+
+        // Basically we update any remote deployable server instance container's name
+        if (request != null && request.getTargetNode() != null) {
+            request.getTargetNode().getChannel().sendPacket(new S05UpdateNodeContainerInformation(
+                    transactionId, name
+            ));
+        }
+    }
+
+    /**
+     * Returns a distinct set of remote connected clients, including nodes.
+     */
+    public @NotNull Collection<@NotNull IConnectable> getAllDeployedInstances() {
+        return Streams.concat(
+                        ServerManager.INSTANCE.getPersistentServers().stream(),
+                        ServerManager.INSTANCE.getRegisteredBukkitInstances().stream(),
+                        ProxyManager.INSTANCE.getProxyServers().stream())
+                .collect(Collectors.toSet());
+    }
+
+    /**
+     * Sending a packet to multiple nodes (if force) or single node (if not forced endpoint)
+     *
+     * @param name              name of remote instance
+     * @param forceEndpoint     if we should send packet of destruction to all nodes (no server
+     *                          found by this name, but we know a container is running)
+     * @param gracefulShutdown  flag that is used for shutting server down gracefully (if not used - we destroy container)
+     * @param callback          consumer that is called when
+     */
+    public void sendInstanceRemoveCommand(final @NonNull String name,
+                                          final boolean forceEndpoint,
+                                          final boolean gracefulShutdown,
+                                          final Consumer<DestroyInstanceResult> callback) {
+
+        // We know that we get not a node, which means it is deployable :3
+        val remoteInstance = (IDeployable) getAllDeployedInstances().stream()
+                .filter(_instance -> _instance.getName().equalsIgnoreCase(name))
+                .findFirst()
+                .orElse(null);
+
+        if (remoteInstance == null && !forceEndpoint) {
+            callback.accept(DestroyInstanceResult.NO_FORCED_REMOTE);
+            return;
+        }
+
+        val packet = new ServerDestroy.Request(
+                name,
+                gracefulShutdown
+        );
+
+        // We found exact remote client, that exist in network
+        if (remoteInstance != null) {
+            val nodeServer = (NodeServer) remoteInstance.getNode();
+
+            nodeServer.getChannel().awaitPacket(packet).thenAccept(response -> {
+                if (response == null) return; // xd
+                callback.accept(response.isDestroyed()
+                        ? DestroyInstanceResult.DESTRUCTED_EXISTENT.ofNode(nodeServer)
+                        : DestroyInstanceResult.TRANSACTION_FAILED.ofNode(nodeServer));
+            });
+
+            return;
+        }
+
+        for (val node : NodeManager.INSTANCE.getRegisteredNodes()) {
+            node.getChannel().awaitPacket(packet).thenAccept(response -> {
+                if (response == null || !response.isDestroyed()) return; // xd
+                callback.accept(DestroyInstanceResult.FORCE_DESTRUCTED.ofNode(node));
+            });
+        }
+    }
+
+    public void addPersistentDeployment(String serverName, UUID tid, String address, int port, GameType gameType, GameMode gameMode) {
+        pendingDeployments.add(new PendingDeploymentRequest(
+                new PersistentBukkitDeployRequest(tid, new ScalableDataImpl(
+                        ServerScaleType.PERSISTENT,
+                        gameType,
+                        gameMode
+                ), serverName, address, port),
+                -1,
+                null,
+                -1
+        ));
+    }
+
+    /**
+     * Invoked once to run ticker task for {@link #pendingDeployments} collection.
+     */
+    public void postBootstrap() {
+        MegamindApp.INSTANCE.scheduler().scheduleAtFixedRate(() -> {
+            val pendingRemoval = new HashSet<PendingDeploymentRequest>();
+
+            for (val shit : pendingDeployments) {
+                val request = shit.getRequest();
+                if (shit.getSentDeploymentAt() == -1 || shit.getEstimatedTimeout() == -1) {
+                    continue;
+                }
+                if (System.currentTimeMillis() - shit.getSentDeploymentAt() > shit.getEstimatedTimeout()) {
+                    Logging.IMP.warn("[Deploy] Timeout raised for transaction #{} / Type: {}",
+                            request.getTransactionId().toString(),
+                            request.toString());
+                    pendingRemoval.add(shit);
+                }
+            }
+
+            pendingDeployments.removeAll(pendingRemoval);
+        }, 0, 1, TimeUnit.MILLISECONDS); // each second we validate pending transactions
+    }
+
+    // region server-naming
+
+    Collection<String> _reserved = CollectionUtil.createConcurrentSet();
+
+    // TODO: Rewrite this shitcode
+    // And find a better way to do dynamic name generation
+    private static final String PROXY_NAME_PATTERN = "proxy-cp-$";
+    private static final String NODE_NAME_PATTERN = "a-b-c-d";
+
+    private @NotNull String bakeNodeName() {
+        String ret;
+        do {
+            ret = NODE_NAME_PATTERN;
+            for (int i = 0; i < 4; i++) {
+                ret = ret.replace(String.valueOf((char) ('a' + i)), String.valueOf(ThreadLocalRandom.current().nextInt(1, 50)));
+            }
+        } while (NodeManager.INSTANCE.isNodeRegistered(ret) || _reserved.contains(ret));
+
+        return ret;
+    }
+
+    private @NotNull String bakeProxyName() {
+        for (int i = 1; ; i++) {
+            val proxyName = PROXY_NAME_PATTERN.replace("$", String.valueOf(i));
+            if (_reserved.contains(proxyName)) continue;
+            if (ProxyManager.INSTANCE.getProxy(proxyName) == null) return proxyName;
+        }
+    }
+
+    private @NotNull String bakeLobbyName(final @NonNull GameType gameType) {
+        val namePattern = gameType.name().toLowerCase() + "lobby$";
+        for (var i = 1; ; i++) {
+            val lobbyName = namePattern.replace("$", String.valueOf(i));
+
+            if (_reserved.contains(lobbyName)) continue;
+
+            if (LobbyManager.INSTANCE.getLobbyServer(lobbyName) == null) return lobbyName;
+        }
+    }
+
+    private @NotNull String bakeBukkitName(final @NonNull ServerScaleType scaleType) {
+        if (scaleType == ServerScaleType.LOBBY) {
+            val namePattern = "dynamiclobby#$";
+            char maxDynamicChar = 'D';
+            for (var i = 1; ; i++) {
+                var dynamicLobbyName = namePattern.replace("#", String.valueOf(i));
+                for (var c = 'A'; c < maxDynamicChar; c++) {
+                    dynamicLobbyName = dynamicLobbyName.replace('$', c);
+                    if (ServerManager.INSTANCE.getBukkitServer(dynamicLobbyName) == null) {
+                        return dynamicLobbyName;
+                    }
+                }
+            }
+        }
+
+        if (scaleType == ServerScaleType.UNDEFINED) {
+            return "dynamicinstance" + ThreadLocalRandom.current().nextInt(0, 100) + ('A' + ThreadLocalRandom.current().nextInt(0, 25));
+        }
+
+        if (scaleType == ServerScaleType.MEGA || scaleType == ServerScaleType.MINI) {
+            String ret;
+            int i = 1;
+            do {
+                ret = scaleType.name().toLowerCase() + i;   // doing +1 since if there are nos servers it will return 0,
+                // and we will generate name like: mini0/mega0
+                i++;
+            } while (ServerManager.INSTANCE.isBukkitServerRegistered(ret) || _reserved.contains(ret));
+
+            return ret;
+        }
+
+        if (scaleType == ServerScaleType.PERSISTENT) {
+            String ret;
+            int i = 1;
+            do {
+                ret = "P" + i;   // doing +1 since if there are nos servers it will return 0,
+                // and we will generate name like: mini0/mega0
+                i++;
+            } while (ServerManager.INSTANCE.isBukkitServerRegistered(ret) || _reserved.contains(ret));
+
+            return ret;
+        }
+
+        return "undefined";
+    }
+
+    // endregion
+
+    /**
+     * Basic data class that represents a "sent" deployment request
+     * that is not yet being confirmed
+     */
+    @FieldDefaults(level = AccessLevel.PRIVATE)
+    @AllArgsConstructor
+    @Data
+    private static final class PendingDeploymentRequest {
+
+        /**
+         * Request instance
+         */
+        IDeployRequest request;
+
+        /**
+         * Sent request at (epoch ms)
+         */
+        long sentDeploymentAt;
+
+        /**
+         * To which node we sent this request
+         */
+        NodeServer targetNode;
+
+        /**
+         * If timeout is reached we mark deployment as failed
+         */
+        long estimatedTimeout;
+
+    }
+
+    /**
+     * Used in callback for server destroy method
+     */
+    @FieldDefaults(level = AccessLevel.PRIVATE)
+    @Getter
+    public enum DestroyInstanceResult {
+
+        /**
+         * We sent requests to every node, but none of them confirmed container destruction
+         */
+        NO_FORCED_REMOTE,
+
+        /**
+         * Force flag wasn't used, and we couldn't find remote instance by name
+         */
+        NO_UNFORCED_REMOTE,
+
+        /**
+         * Some node sent us a response that container destruction is confirmed
+         */
+        FORCE_DESTRUCTED,
+
+        /**
+         * A specified node sent us response confirming that we destructed a container instance
+         */
+        DESTRUCTED_EXISTENT,
+
+        /**
+         * Couldn't transmit a destruction request packet to remote node
+         * OR if there's an exception on node driver (it can't shut shit down for some reason)
+         */
+        TRANSACTION_FAILED
+
+        ;
+
+        NodeServer server;
+
+        /**
+         * Builder-like method to provide addition information to callback
+         */
+        public @NonNull DestroyInstanceResult ofNode(final @NonNull NodeServer server) {
+            this.server = server;
+            return this;
+        }
+
+    }
+
+    @AllArgsConstructor
+    @Getter
+    private final class WrappedPeristentDeployment {
+        RemoteClientConnection cc;
+        Handshake.Request request;
+    }
+
+}

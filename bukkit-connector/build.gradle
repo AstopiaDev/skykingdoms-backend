@@ -1,0 +1,35 @@
+dependencies {
+    compileOnly "net.mexish:paper:1.8.8"
+
+    annotationProcessor project(":impl-loader")
+
+    api(project(":base")) {
+        exclude group: "mysql", module: "mysql-connector-java"
+        exclude group: "com.google.guava", module: "guava"
+
+        exclude group: "io.netty", module: "netty-handler"
+        exclude group: "io.netty", module: "netty-transport-native-epoll"
+        exclude group: "io.netty", module: "netty-codec"
+        exclude group: "com.maxmind.geoip2", module: "geoip2"
+        exclude group: "javatar", module: "javatar"
+    }
+
+    implementation('org.yaml:snakeyaml:2.0')
+    implementation 'com.google.code.gson:gson:2.11.0'
+
+    api project(':protocol')
+}
+
+repositories {
+    mavenCentral()
+}
+
+tasks {
+    shadowJar {
+        relocate("org.yaml", "net.skykingdoms.yaml")
+        relocate("com.google.gson", "net.skykingdoms.gson")
+        def output = rootProject.ext.get('output')
+        destinationDirectory = file("$rootDir/$output")
+        archiveFileName = "BukkitConnector.jar"
+    }
+}

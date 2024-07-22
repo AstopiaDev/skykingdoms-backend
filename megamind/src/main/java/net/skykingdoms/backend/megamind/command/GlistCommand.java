@@ -1,0 +1,56 @@
+package net.skykingdoms.backend.megamind.command;
+
+import net.skykingdoms.backend.base.command.NamedCommand;
+import net.skykingdoms.backend.base.command.WithAlias;
+import net.skykingdoms.backend.base.command.WithMultipleAliases;
+import net.skykingdoms.backend.base.command.condition.WithCondition;
+import net.skykingdoms.backend.base.command.execution.Executor;
+import net.skykingdoms.backend.megamind.api.command.CoreExecutionSession;
+import net.skykingdoms.backend.megamind.data.gamer.Gamer;
+import net.skykingdoms.backend.megamind.manager.ServerManager;
+import net.skykingdoms.backend.megamind.server.AbstractPlayerHolder;
+import net.skykingdoms.backend.megamind.server.AbstractScalable;
+import net.skykingdoms.backend.megamind.server.impl.BukkitServer;
+import net.skykingdoms.backend.megamind.server.impl.LobbyServer;
+import net.skykingdoms.backend.protocol.server.GameType;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+@WithMultipleAliases({
+        @WithAlias("globallist"),
+        @WithAlias("hackers"),
+        @WithAlias("people"),
+        @WithAlias("gamers"),
+        @WithAlias("minecrafters")
+})
+@NamedCommand("glist")
+public class GlistCommand {
+    @Executor
+    @WithCondition("group: admin")
+    public static void execute(CoreExecutionSession session) {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("§e§lMinecrafters are better than Gamers\n");
+        stringBuilder.append("§7§oPlayers online: ").append(Gamer.getGamers().size()).append("\n");
+
+        Map<AbstractPlayerHolder, List<String>> servers = new HashMap<>();
+        Gamer.getGamers().forEach(gamer -> {
+            AbstractPlayerHolder server = gamer.getCurrentServer();
+            if (server == null) {
+                return;
+            }
+            servers.computeIfAbsent(server, k -> new ArrayList<>()).add(gamer.getName());
+        });
+        for (AbstractPlayerHolder server : servers.keySet()) {
+            stringBuilder.append("§f§l").append(server.getName()).append(": ");
+            for (String name : servers.get(server)) {
+                stringBuilder.append("§7").append(name).append(", ");
+            }
+            stringBuilder.append("\n");
+        }
+
+        session.sendMessage(stringBuilder.toString());
+    }
+}

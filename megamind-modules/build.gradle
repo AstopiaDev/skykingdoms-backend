@@ -1,0 +1,12 @@
+subprojects {
+    dependencies {
+        compileOnly project(":megamind")
+    }
+
+    tasks {
+        shadowJar {
+            def output = rootProject.ext.get('output')
+            destinationDirectory = file("$rootDir/$output")
+        }
+    }
+}

@@ -1,0 +1,29 @@
+dependencies {
+    // Libraries related to MySQL database API
+    api 'net.luckperms:rest-api-client:0.1-SNAPSHOT'
+    api 'com.zaxxer:HikariCP:5.0.1'
+    api 'mysql:mysql-connector-java:8.0.33'
+
+    api 'org.apache.httpcomponents:httpclient:4.5.14'
+
+    // Google commons
+    api 'com.google.guava:guava:33.2.1-jre'
+
+    // todo: migrate completely to FastUtil
+    implementation 'it.unimi.dsi:fastutil:8.1.0'
+
+    // YAML and JSON controller
+    api 'org.yaml:snakeyaml:2.0'
+    implementation 'com.google.code.gson:gson:2.11.0'
+
+    // Bytecode library
+    api 'org.ow2.asm:asm:9.4'
+
+    api project(":impl-loader")
+    implementation project(path: ':protocol')
+    annotationProcessor project(":impl-loader")
+}
+
+repositories {
+    mavenCentral()
+}

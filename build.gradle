@@ -1,0 +1,115 @@
+plugins {
+    id "com.github.johnrengelman.shadow" version "7.0.0" apply false
+}
+
+def user = findProperty("repo.mexish.user")
+def pass = findProperty("repo.mexish.pass")
+
+allprojects {
+    group = 'net.skykingdoms.backend'
+    version = '0.0.1-SNAPSHOT'
+}
+
+ext.set('output', findProperty("gradle.output") ?: "./output/")
+
+configure(subprojects) {
+    apply plugin: "java"
+    apply plugin: "java-library"
+    apply plugin: "maven-publish"
+    apply plugin: "com.github.johnrengelman.shadow"
+
+    repositories {
+        mavenCentral()
+
+        maven {
+            url = "https://repo.mexish.net/repository/maven-releases/"
+
+            credentials {
+                username = user
+                password = pass
+            }
+
+            mavenContent {
+                releasesOnly()
+            }
+        }
+
+        maven {
+            url = "https://repo.mexish.net/repository/maven-snapshots/"
+
+            credentials {
+                username = user
+                password = pass
+            }
+
+            mavenContent {
+                snapshotsOnly()
+            }
+        }
+
+        maven { url = "https://jitpack.io" }
+    }
+
+    tasks {
+        shadowJar {
+            exclude 'META-INF/DEPENDENCIES'
+            exclude 'META-INF/LICENSE'
+            exclude 'META-INF/LICENSE.txt'
+            exclude 'META-INF/NOTICE'
+            exclude 'META-INF/NOTICE.txt'
+            exclude 'META-INF/maven/**'
+
+            mergeServiceFiles {
+                include 'META-INF/impl/**'
+            }
+        }
+
+        // !!! Minimal runtime version required is 17 !!!
+        compileJava {
+            targetCompatibility = JavaVersion.VERSION_11
+            sourceCompatibility = JavaVersion.VERSION_11
+            options.encoding = "UTF-8"
+        }
+
+        build {
+            dependsOn(shadowJar)
+        }
+
+        jar {
+            // If it's coordinated with other devs, and you wish to publish
+            // all possible artifacts, change this to "publish"
+            finalizedBy(publish)
+        }
+    }
+
+/*    publishing {
+
+        repositories {
+            maven {
+                credentials {
+                    username = user
+                    password = pass
+                }
+
+                if (project.version.endsWith("-SNAPSHOT")) {
+                    url = "https://repo.mexish.net/repository/maven-snapshots/"
+                } else {
+                    url = "https://repo.mexish.net/repository/maven-releases/"
+                }
+            }
+        }
+
+        publications {
+            mavenJava(MavenPublication) {
+                from components.java
+            }
+        }
+    }*/
+
+    dependencies {
+        compileOnly "org.projectlombok:lombok:1.18.30"
+        annotationProcessor "org.projectlombok:lombok:1.18.30"
+
+        implementation 'org.jetbrains:annotations:24.0.1'
+    }
+}

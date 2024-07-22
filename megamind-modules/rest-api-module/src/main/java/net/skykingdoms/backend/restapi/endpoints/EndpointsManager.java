@@ -1,0 +1,86 @@
+package net.skykingdoms.backend.restapi.endpoints;
+
+import lombok.val;
+import net.skykingdoms.backend.base.util.collection.CollectionUtil;
+import net.skykingdoms.backend.megamind.MegamindApp;
+import net.skykingdoms.backend.protocol.logging.Logging;
+import net.skykingdoms.backend.restapi.endpoints.impl.*;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+import java.util.Collection;
+
+import static spark.Spark.*;
+
+/**
+ * Temporal solution, actually :nerd:
+ */
+public final class EndpointsManager {
+
+    // --------------------------------------------------------------------
+    public static final EndpointsManager INSTANCE = new EndpointsManager();
+    // --------------------------------------------------------------------
+
+    Collection<IEndpoint> endpoints = CollectionUtil.createConcurrentWeakSet();
+
+    public void initialize() {
+        registerEndpoints();
+
+        for (val processor : endpoints) {
+            if (!processor.getClass().isAnnotationPresent(Endpoint.class)) {
+                Logging.IMP.warn("[RestAPI] No Endpoint annotation present for processor {}", processor.getClass().getName());
+                continue;
+            }
+
+            if (!processor.getClass().isAnnotationPresent(ApiMethod.class)) {
+                Logging.IMP.warn("[RestAPI] No api method annotation present for processor {}", processor.getClass().getName());
+                continue;
+            }
+
+            val endpointName = processor.getClass().getAnnotation(Endpoint.class).value();
+            val type = processor.getClass().getAnnotation(ApiMethod.class).value();
+            val needAuth = processor.getClass().isAnnotationPresent(AuthorizedOnly.class);
+            if (needAuth) {
+                before((req, res) -> { // global lambda expression, so we verify for names
+                    if (req.raw().getRequestURI().contains(endpointName)) {
+                        val authHeader = req.headers("Authorization");
+                        if (authHeader == null || !authHeader.startsWith("Basic ")) {
+                            halt(400); // bad request
+                        }
+
+                        String credentials = authHeader.substring("Basic ".length());
+                        byte[] decodedBytes = Base64.getDecoder().decode(credentials);
+                        String decodedCredentials = new String(decodedBytes, StandardCharsets.UTF_8);
+
+                        if (!MegamindApp.INSTANCE.secret().equals(decodedCredentials)) {
+                            Logging.IMP.warn("[RestAPI] Unauthorized access from {} : {}", req.host(), req.userAgent());
+                            res.header("WWW-Authenticate", "Basic realm=\"Restricted\"");
+                            res.body("Unauthorized");
+                            halt(401);
+                        }
+                    }
+                });
+            }
+
+            Logging.IMP.info("[RestAPI] Registered {} {} endpoint {} @ {}",
+                    needAuth ? "authorized" : "unauthorized",
+                    type, "/api/" + endpointName, Integer.toHexString(processor.hashCode()));
+
+            if (type == RequestType.GET) {
+                get("/api/" + endpointName, processor);
+            } else {
+                post("/api/" + endpointName, processor);
+            }
+        }
+    }
+
+    private void registerEndpoints() {
+        endpoints.add(new PingEndpoint());
+        endpoints.add(new TestflowEndpoint());
+        endpoints.add(new ReturnAddressEndpoint());
+        endpoints.add(new StashEndpoint());
+        endpoints.add(new PlayerDataEndpoint());
+        endpoints.add(new PlayerStatusEndpoint());
+        endpoints.add(new StatsEndpoint());
+    }
+}

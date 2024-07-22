@@ -1,0 +1,627 @@
+package net.skykingdoms.backend.megamind.data.gamer;
+
+
+import lombok.*;
+import lombok.experimental.FieldDefaults;
+import net.skykingdoms.backend.base.data.network.NetworkSqlHandler;
+import net.skykingdoms.backend.base.data.property.PropertySqlHandler;
+import net.skykingdoms.backend.base.data.settings.Setting;
+import net.skykingdoms.backend.base.data.settings.SettingType;
+import net.skykingdoms.backend.base.data.settings.SettingsSqlHandler;
+import net.skykingdoms.backend.base.gamer.AbstractGamer;
+import net.skykingdoms.backend.base.gamer.IGamer;
+import net.skykingdoms.backend.megamind.MegamindApp;
+import net.skykingdoms.backend.megamind.api.command.CommandSender;
+import net.skykingdoms.backend.megamind.data.party.Party;
+import net.skykingdoms.backend.megamind.event.gamer.*;
+import net.skykingdoms.backend.megamind.lookup.LookupManager;
+import net.skykingdoms.backend.megamind.server.AbstractPlayerHolder;
+import net.skykingdoms.backend.megamind.server.AbstractScalable;
+import net.skykingdoms.backend.megamind.server.impl.*;
+import net.skykingdoms.backend.protocol.logging.Logging;
+import net.skykingdoms.backend.protocol.packet.Packet;
+import net.skykingdoms.backend.protocol.packet.play.*;
+import net.skykingdoms.backend.protocol.server.IPlayableBukkitServer;
+import net.skykingdoms.backend.protocol.type.PropertyType;
+import net.skykingdoms.backend.protocol.type.connect.ConnectStatus;
+import org.jetbrains.annotations.Nullable;
+
+import java.net.InetAddress;
+import java.time.LocalDateTime;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
+@Getter
+@FieldDefaults(level = AccessLevel.PRIVATE)
+public final class Gamer extends AbstractGamer implements CommandSender, IGamer {
+
+    /**
+     * Which hostname user used to connect to le server
+     */
+    @Setter
+    String domain;
+
+    /**
+     * Login date
+     */
+    @Getter @Setter
+    LocalDateTime firstLogin;
+    @Getter @Setter
+    LocalDateTime lastLogin;
+
+    /**
+     * Current gamer's party
+     */
+    @Getter @Setter
+    Party party;
+
+    /**
+     * If the player is online
+     */
+    @Getter @Setter boolean online;
+
+    /**
+     * The proxy which player is connected to
+     */
+    @Getter @Setter ProxyServer proxyServer;
+
+    /**
+     * The game instance server player is connected to
+     */
+    @Getter @Setter BukkitServer bukkitServer;
+
+    /**
+     * Current game instance server (null if not on game server)
+     */
+    @Getter @Setter GameServer gameServer;
+
+    /**
+     * Current lobby server (null if not in lobby)
+     */
+    @Getter @Setter LobbyServer lobbyServer;
+
+    /**
+     * Current persistent server (null if not in a persistent server)
+     */
+    @Getter @Setter PersistentServer persistentServer;
+
+    /**
+     * A field used to indicate to which server we are currently trying to connect.
+     * When not connecting, it equals to NULL :3
+     */
+    @Getter @Setter IPlayableBukkitServer currentlyConnectingTo;
+
+    /**
+     * A flag that indicates that player just joined the network
+     */
+    @Getter @Setter
+    boolean justJoined = true;
+
+    public Gamer(final @NonNull UUID playerUniqueId) {
+        super(playerUniqueId);
+    }
+
+    private Gamer(final @NonNull String username) {
+        super(username);
+    }
+
+    // tab
+
+    public void updateServer(AbstractScalable serverInstance) {
+
+
+        val oldServer = getCurrentServer();
+        if (oldServer == serverInstance) {
+            return;
+        }
+
+        if (serverInstance != null && serverInstance == currentlyConnectingTo) {
+            currentlyConnectingTo = null;
+            Logging.IMP.info(serverInstance.getName());
+        }
+
+        if (oldServer != null) {
+            oldServer.removePlayer(this);
+        }
+
+        if (serverInstance == null) {
+            setGameServer(null);
+            setLobbyServer(null);
+            setBukkitServer(null);
+            return;
+        }
+
+        // Player just joined
+        if (oldServer == null) {
+            lastLogin = LocalDateTime.now();
+        }
+
+        if (serverInstance instanceof BukkitServer) {
+            val bs = ((BukkitServer) serverInstance);
+            setBukkitServer(bs);
+            setGameServer(null);
+            setLobbyServer(null);
+
+            bs.addPlayer(this);
+        }
+
+        if (serverInstance instanceof GameServer) {
+            val gs = (GameServer) serverInstance;
+            setBukkitServer(gs.getParentServer());
+            setGameServer(gs);
+            setLobbyServer(null);
+
+            gs.addPlayer(this);
+
+            val gameRedirectEvent = MegamindApp.INSTANCE.pluginManager().callEvent(new PlayerGameRedirectEvent(this));
+            for (val addition : gameRedirectEvent.getAdditionalGamerList()) {
+                addition.sendTo(gs);
+            }
+        }
+
+        if (serverInstance instanceof LobbyServer) {
+            val ls = (LobbyServer) serverInstance;
+            setBukkitServer(ls.getParentServer());
+            setLobbyServer(ls);
+            setGameServer(null);
+
+            ls.addPlayer(this);
+        }
+
+        if (serverInstance instanceof PersistentServer) {
+            val ps = (PersistentServer) serverInstance;
+            setBukkitServer(ps.getParentServer());
+            setPersistentServer(ps);
+            setGameServer(null);
+            setLobbyServer(null);
+
+            ps.addPlayer(this);
+        }
+
+        updateTablist();
+    }
+
+    public void updateTablist() {
+        String header = language.getMessage(isModern(), "tab_header", "%server_name%", getBukkitServer().getName());
+        String footer = language.getMessage(isModern(), "tab_footer");
+
+        sendToProxy(new S14SetPlayerTablist(gamerId, header, footer));
+    }
+
+    // endregion
+
+    // region ranks
+
+    public synchronized ConnectStatus sendTo(final @NonNull AbstractPlayerHolder server) {
+        // any bukkit/virtualized instance, but not a PROXY lol
+        assert server instanceof IPlayableBukkitServer;
+
+        if (!server.canJoin()) {
+            sendLocalizedMessage(isModern(), "server_loading");
+            return ConnectStatus.SERVER_LOADING;
+        }
+
+        if (getCurrentServer() == server) {
+            sendLocalizedMessage(isModern(), "server_already_connected");
+            return ConnectStatus.ALREADY_CONNECTED;
+        }
+
+/*        if (server instanceof GameServer && isVanished() && !ranks.canApply(Group.HELPER)) {
+            sendLocalizedMessage(isModern(), "core_vanish_noserver");
+            return ConnectStatus.REJECTED_BY_DESTINATION; // todo: write different state enum
+        }*/
+
+        if (server instanceof GameServer && getCurrentServer() instanceof GameServer) {
+            val oldGame = (GameServer) getCurrentServer();
+            val newGame = (GameServer) server;
+            if (oldGame.getParentServer().getName().equals(newGame.getParentServer().getName())) {
+                sendToServer(new S26UpdatePlayerGameServer(gamerId, newGame.getGameId()));
+            }
+        }
+
+        this.currentlyConnectingTo = (IPlayableBukkitServer) server;
+
+        sendToProxy(new S18SendPlayer(gamerId, currentlyConnectingTo.getName()));
+
+        sendLocalizedMessage(isModern(), "server_teleportation_started", "%server%",
+                server.getName());
+
+        return ConnectStatus.SUCCESS;
+    }
+
+    // endregion
+
+    public AbstractPlayerHolder getCurrentServer() {
+        if (gameServer != null) return gameServer;
+        if (lobbyServer != null) return lobbyServer;
+        if (persistentServer != null) return persistentServer;
+        return bukkitServer;
+    }
+
+    // region settings
+
+    @Override
+    public void setSetting(final @NonNull SettingType settingType,
+                           final @NonNull Setting<?, ?> value) {
+
+        updateSetting(settingType, value);
+        sendSettingChange(settingType, value);
+    }
+
+    public void updateSetting(final @NonNull SettingType settingType,
+                              final @NonNull Setting<?, ?> value) {
+        if (gamerId < 0 || settings == null || settings.isEmpty()) {
+            return;
+        }
+
+        Logging.IMP.info("REPLACE CALLED {} -> {}", settingType, value);
+        settings.replace(settingType, value);
+
+        SettingsSqlHandler.INSTANCE.updateSettings(gamerId,
+                settings);
+    }
+
+    private void sendSettingChange(final @NonNull SettingType settingType,
+                                   final @NonNull Setting<?, ?> value) {
+        val packet = new B109UpdateSetting(gamerId, settingType.name(), String.valueOf(value.serialize()));
+        sendToServer(packet);
+        sendToProxy(packet);
+    }
+
+    public int getFriendLimit() {
+        return 100;
+    }
+
+    // endregion
+
+    // region properties
+
+    @Override
+    public void addProperty(@NonNull PropertyType property, int value) {
+        int oldValue = getProperty(property);
+        int newValue = oldValue + value;
+
+        updateProperty(property, newValue);
+        sendPropertyChange(property, newValue);
+    }
+
+    @Override
+    public void setProperty(final @NonNull PropertyType property,
+                            final int value) {
+        updateProperty(property, value);
+        sendPropertyChange(property, value);
+    }
+
+    private void sendPropertyChange(final @NonNull PropertyType property,
+                                    final int value) {
+        Packet<?> packet = new B102SetProperty(gamerId, property, value);
+        sendToServer(packet);
+        sendToProxy(packet);
+    }
+
+    public void updateProperty(final @NonNull PropertyType key,
+                               final int value) {
+        if (gamerId < 0 || properties == null) {
+            return;
+        }
+
+        properties.put(key, value);
+
+        PropertySqlHandler.INSTANCE.setPropertyValue(gamerId, key, value);
+    }
+
+    @Override
+    public void removeProperty(final @NonNull PropertyType key) {
+        if (gamerId < 0 || properties == null) {
+            return;
+        }
+
+        dropProperty(key);
+
+        B103RemoveProperty packet = new B103RemoveProperty(gamerId, key);
+        sendToProxy(packet);
+        sendToServer(packet);
+    }
+
+    @Override
+    public void dropProperty(final @NonNull PropertyType key) {
+        if (gamerId < 0 || properties == null) {
+            return;
+        }
+
+        properties.remove(key);
+
+        PropertySqlHandler.INSTANCE.removeProperty(gamerId, key);
+    }
+
+    // endregion
+
+    /**
+     * Basically sends a packet to proxy that player is connected to.
+     */
+    @Override
+    public void sendToProxy(final @NonNull Packet<?> packet) {
+        if (online && proxyServer != null) {
+            proxyServer.getChannel().sendPacket(packet);
+        }
+    }
+
+    /**
+     * Sends a packet to the server the player is connected to
+     */
+    @Override
+    public void sendToServer(final @NonNull Packet<?> packet) {
+        if (online && bukkitServer != null) {
+            bukkitServer.getChannel().sendPacket(packet);
+        }
+    }
+
+    /**
+     * Called when a player disconnects from proxy
+     */
+    @Override
+    public void quit() {
+        this.online = false;
+
+        // TODO: Update tab, playtime etc.
+        updateServer(null);
+
+        MegamindApp.INSTANCE.pluginManager().callEvent(new GamerQuitEvent(this));
+        Gamer.removeGamer(this);
+    }
+
+    @Override
+    public void load() {
+        super.load();
+        // todo: add more ...
+    }
+
+    @Override
+    public void sendTitle(@NonNull String title, @NonNull String subtitle, int fadeIn, int stay, int fadeOut) {
+        sendToProxy(new S13SendTitle(gamerId, title, subtitle, fadeIn, stay, fadeOut));
+    }
+
+    @Override
+    public void disconnect(@NonNull String reason) {
+        sendToProxy(new B107ProxyKick(gamerId, reason));
+    }
+
+
+    @Override
+    public void sendRawMessage(String message) {
+        sendToProxy(new B106Chat(gamerId, message, true));
+    }
+
+    @Override
+    public void sendMessage(@NonNull String message) {
+        sendToProxy(new B106Chat(gamerId, message, false));
+    }
+
+
+    // region vanish
+    public boolean setVanished(final boolean vanished) {
+        boolean oldValue = isVanished();
+
+        // nothing changed
+        if (oldValue == vanished) {
+            return false;
+        }
+
+        // all shit validated, so we send vanish packet to server
+        setProperty(PropertyType.VANISHED, vanished ? 1 : 0);
+
+        val server = getCurrentServer();
+
+        if (server != null) {
+            LookupManager.INSTANCE.handleOnlineChange((AbstractScalable) server);
+        }
+
+        return true;
+    }
+
+    public boolean setBuildMode(final boolean buildMode) {
+        boolean oldValue = hasBuildMode();
+
+        // nothing changed
+        if (oldValue == buildMode) {
+            return false;
+        }
+
+        // all shit validated, so we send vanish packet to server
+        setProperty(PropertyType.BUILD_MODE, buildMode ? 1 : 0);
+
+        val server = getCurrentServer();
+
+        if (server != null) {
+            LookupManager.INSTANCE.handleOnlineChange((AbstractScalable) server);
+        }
+
+        return true;
+    }
+
+    public void sendLocalizedMessage(@NonNull String key, Object... objects) {
+        super.sendLocalizedMessage(isModern(), key, objects);
+    }
+
+    public boolean canSeeVanish() {
+        return false;
+    }
+
+    // region data loaders
+
+    // relay
+    public static Gamer getGamer(final @NonNull String name) {
+        return AbstractGamer.getGamer(name);
+    }
+
+    // non-relay
+    public static Gamer getOfflineGamer(final @NonNull String name,
+                                        final @Nullable Consumer<Gamer> consumer) {
+        val onlineGamer = getGamer(name);
+
+        if (onlineGamer != null) {
+            return onlineGamer;
+        }
+
+        var offlineGamer = getOfflineGamer(name);
+
+        boolean isNull = offlineGamer == null;
+
+        if (isNull) {
+            offlineGamer = new Gamer(name);
+            offlineGamer.loadPlayerId();
+
+            if (offlineGamer.getGamerId() < 0) {
+                return null;
+            }
+
+            // loading name in normal case
+            offlineGamer.loadPlayerName();
+
+            synchronized (OFFLINE_GAMERS) {
+                OFFLINE_GAMERS.store(offlineGamer);
+            }
+        }
+
+        // invoking loader
+        if (consumer != null) consumer.accept(offlineGamer);
+
+        if (isNull) {
+            MegamindApp.INSTANCE.pluginManager().callEvent(new OfflineGamerLoadedEvent(offlineGamer));
+        }
+
+        return offlineGamer;
+    }
+
+    // non-relay
+    public static Gamer getOfflineGamer(final int playerId,
+                                        final @NonNull Consumer<Gamer> loader) {
+        val onlineGamer = getGamer(playerId);
+
+        if (onlineGamer != null) {
+            return onlineGamer;
+        }
+
+        val uuid = NetworkSqlHandler.INSTANCE.getUniqueId(playerId);
+
+        if (uuid == null) {
+            return null;
+        }
+
+        val offlineGamer = new Gamer(uuid);
+        offlineGamer.setGamerId(playerId);
+
+        // loading name in normal case
+        offlineGamer.loadPlayerName();
+
+        synchronized (OFFLINE_GAMERS) {
+            OFFLINE_GAMERS.store(offlineGamer);
+        }
+
+        loader.accept(offlineGamer);
+
+        return offlineGamer;
+    }
+
+    // relay
+    public static Gamer getOfflineGamer(final @NonNull String name) {
+        return AbstractGamer.getOfflineGamer(name);
+    }
+
+    // relay
+    public static Gamer getOfflineGamer(final @NonNull UUID uuid) {
+        return AbstractGamer.getOfflineGamer(uuid);
+    }
+
+    // relay
+    public static Gamer getOfflineGamer(final int playerId) {
+        return AbstractGamer.getOfflineGamer(playerId);
+    }
+
+    // relay
+    public static Gamer getGamer(final int playerId) {
+        return AbstractGamer.getGamer(playerId);
+    }
+
+    // relay
+    public static void kickAll() {
+        AbstractGamer.kickAll();
+    }
+
+    // relay
+    public static Collection<Gamer> getGamers() {
+        return AbstractGamer.getGamers();
+    }
+
+    public static List<IGamer> getGamersByIp(final @NonNull InetAddress address) {
+        synchronized (GAMERS) {
+            return GAMERS.values().stream()
+                    .filter(player -> ((AbstractGamer) player).getAddress().equals(address))
+                    .collect(Collectors.toList());
+        }
+    }
+
+    public List<Gamer> getOnlineFriends() {
+        if (friends == null) {
+            return Collections.emptyList();
+        }
+
+        return IntStream.of(friends.stream().mapToInt(f -> f.getFriendIdFor(gamerId)).toArray())
+                .mapToObj(Gamer::getGamer)
+                .filter(gamer -> gamer != null && gamer.getCurrentServer() != null)
+                .collect(Collectors.toList());
+    }
+/*
+    public static List<IGamer> getGamersByGroup(final @NonNull Group group) {
+        synchronized (GAMERS) {
+            return GAMERS.values().stream()
+                    .filter(player -> player.getRanks().canApply(group))
+                    .collect(Collectors.toList());
+        }
+    }*/
+
+    // relay
+    public static void addGamer(final @NonNull Gamer gamer) {
+        Logging.IMP.info("[DEBUG] Added {}/{}", gamer.getName(), gamer.getGamerId());
+        AbstractGamer.addGamer(gamer);
+        LookupManager.INSTANCE.handleGlobalOnlineChange(getTotalOnline());
+    }
+
+    // non-relay
+    public static void removeGamer(final @NonNull Gamer gamer) {
+        gamer.updateServer(null);
+
+        if (gamer.getProxyServer() != null) {
+            gamer.getProxyServer().removePlayer(gamer);
+            gamer.setProxyServer(null);
+        }
+
+        synchronized (OFFLINE_GAMERS) {
+            OFFLINE_GAMERS.remove(gamer);
+        }
+
+        synchronized (GAMERS) {
+            GAMERS.remove(gamer);
+        }
+
+        LookupManager.INSTANCE.handleGlobalOnlineChange(getTotalOnline());
+        Logging.IMP.info("[DEBUG] Removed {}/{}", gamer.getName(), gamer.getGamerId());
+    }
+
+    // relay
+    public static void invalidateOfflinePlayer(final @NonNull Gamer gamer) {
+        AbstractGamer.invalidateOfflinePlayer(gamer);
+    }
+
+    // relay
+    public static int getTotalOnline() {
+        return AbstractGamer.getTotalOnline();
+    }
+    // endregion
+}

@@ -1,0 +1,44 @@
+dependencies {
+    compileOnly group: 'net.mexish', name: 'velocity-native', version: '3.3.2'
+    compileOnly group: 'net.mexish', name: 'authmevelocity', version: '4.1.1'
+
+    annotationProcessor group: 'net.mexish', name: 'velocity-native', version: '3.3.2'
+    annotationProcessor project(":impl-loader")
+
+    api(project(":base")) {
+        exclude group: "com.google.guava", module: "guava"
+        exclude group: "org.yaml", module: "snakeyaml"
+
+        exclude group: "io.netty", module: "netty-handler"
+        exclude group: "io.netty", module: "netty-transport-native-epoll"
+        exclude group: "io.netty", module: "netty-codec"
+        exclude group: "com.maxmind.geoip2", module: "geoip2"
+        exclude group: "javatar", module: "javatar"
+    }
+
+    api(project(":protocol")) {
+        exclude group: "io.netty", module: "netty-handler"
+        exclude group: "io.netty", module: "netty-transport-native-epoll"
+        exclude group: "io.netty", module: "netty-codec"
+    }
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
+
+tasks {
+    shadowJar {
+        def output = rootProject.ext.get('output')
+        destinationDirectory = file("$rootDir/$output")
+        archiveFileName = "VelocityConnector.jar"
+    }
+
+    compileJava {
+        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_17
+        options.encoding = "UTF-8"
+    }
+}
