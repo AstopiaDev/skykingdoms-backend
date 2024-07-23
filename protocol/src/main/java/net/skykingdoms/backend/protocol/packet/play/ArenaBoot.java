@@ -2,10 +2,7 @@ package net.skykingdoms.backend.protocol.packet.play;
 
 
 import io.netty.buffer.ByteBuf;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import net.skykingdoms.backend.protocol.packet.ChannelProcessorContext;
 import net.skykingdoms.backend.protocol.packet.Packet;
 import net.skykingdoms.backend.protocol.packet.PacketProcessor;
@@ -14,6 +11,7 @@ import net.skykingdoms.backend.protocol.packet.play.processor.PlayClientProcesso
 import net.skykingdoms.backend.protocol.packet.play.processor.PlayServerProcessor;
 import net.skykingdoms.backend.protocol.server.GameMode;
 import net.skykingdoms.backend.protocol.type.GameBootResponse;
+import net.skykingdoms.backend.protocol.type.duel.FluentDuelRequestData;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -22,10 +20,12 @@ import org.jetbrains.annotations.NotNull;
 public final class ArenaBoot {
 
     @Data
+    @AllArgsConstructor
     @NoArgsConstructor
     @EqualsAndHashCode(callSuper = true)
     public static class Request extends Packet.Request<PlayServerProcessor, Response> {
         GameMode gameMode;
+        FluentDuelRequestData data;
 
         @Override
         public boolean isProcessor(PacketProcessor processor) {
@@ -35,11 +35,13 @@ public final class ArenaBoot {
         @Override
         public void read0(@NotNull ByteBuf buf) throws Exception {
             this.gameMode = GameMode.valueOf(PacketUtils.readString(buf));
+            this.data = FluentDuelRequestData.deserialize(gameMode, buf);
         }
 
         @Override
         public void write0(@NotNull ByteBuf buf) throws Exception {
             PacketUtils.writeEnum(buf, gameMode);
+            data.serialize(buf);
         }
 
         @Override

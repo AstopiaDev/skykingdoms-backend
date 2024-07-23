@@ -147,4 +147,8 @@ public interface PlayServerProcessor extends PlayProcessor {
     default void process(S35BestGameServerByMap packet, ChannelProcessorContext ctx) {
         // override me
     }
+
+    default void process(S37BestDuelServer packet, ChannelProcessorContext ctx) {
+        // override me
+    }
 }

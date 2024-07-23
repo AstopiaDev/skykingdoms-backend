@@ -3,7 +3,6 @@ package net.skykingdoms.backend.megamind.connection;
 import io.netty.channel.socket.SocketChannel;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import lombok.extern.java.Log;
 import net.skykingdoms.backend.base.data.network.NetworkSqlHandler;
 import net.skykingdoms.backend.base.data.settings.SettingType;
 import net.skykingdoms.backend.base.data.settings.impl.BooleanSetting;
@@ -44,6 +43,7 @@ import java.net.InetAddress;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 
@@ -914,6 +914,10 @@ public final class RemoteClientConnection extends AbstractRemoteClientChannel {
 
             GameBootResponse response = new GameBootResponse(packet.getData().getGameMode(), 1);
 
+            if (ServerManager.INSTANCE.getBestByOnline(packet.getData().getGameType(), false) != null) {
+                awaitPacket(new ArenaBoot.Request());
+            }
+
             DeploymentManager.INSTANCE.sendDeploymentRequest(new BukkitDeployRequest(response.getGameMode().bakeData()),
                     ServerDeploy.DeploymentTarget.BUKKIT, false, null, -1,
                     (result) -> {
@@ -931,5 +935,49 @@ public final class RemoteClientConnection extends AbstractRemoteClientChannel {
         }
 
         ctx.setResponse(new S35BestGameServerByMap(server == null ? null : server.getName()));
+    }
+
+    @Override
+    public void process(C34GetBestDuelServer packet, ChannelProcessorContext ctx) {
+        // TODO: CALL MEGAMIND EVENT
+
+        ctx.addLatch();
+        val server = ServerManager.INSTANCE.getBestGameServerByOnlineAndMap(Gamer.getGamer(packet.getName()), packet.getData(), packet.getMap(), true);
+        String serverName = null;
+
+        try {
+            if (server == null) {
+                Logging.IMP.info("No server found for {} with map {}", packet.getName(), packet.getMap());
+                Logging.IMP.info("Deploying new server for {} with map {}", packet.getName(), packet.getMap());
+
+                GameBootResponse response = new GameBootResponse(packet.getData().getGameMode(), 1);
+
+                val duelServer = ServerManager.INSTANCE.getBestByOnline(packet.getData().getGameType(), false);
+
+                if (duelServer != null) {
+                    serverName = duelServer.getConnection().awaitPacket(new ArenaBoot.Request(packet.getData().getGameMode(), packet.getDuelData())).join().getName();
+                }
+
+                DeploymentManager.INSTANCE.sendDeploymentRequest(new BukkitDeployRequest(response.getGameMode().bakeData()),
+                        ServerDeploy.DeploymentTarget.BUKKIT, false, null, -1,
+                        (result) -> {
+                            if (result == DeploymentResponse.DENIED_BY_NODE
+                                    || result == DeploymentResponse.DEPLOYMENT_TIMEOUT
+                                    || result == DeploymentResponse.TRANSACTION_FAILED) {
+                                Logging.IMP.error("Transaction failed! (" + result.name() + ") / (#" + result.transactionId() + ")");
+                            } else {
+                                ServerManager.INSTANCE.queueGameInstanceBoot(result.transactionId(), new GameBootResponse[]{response});
+                                Logging.IMP.info("Queued deployment of game instances!");
+                            }
+                        });
+            } else {
+                serverName = server.getName();
+            }
+        } catch (Exception e) {
+            Logging.IMP.error("An error occurred while processing the packet: {}", e.getMessage());
+        } finally {
+            ctx.setResponse(new S37BestDuelServer(serverName));
+            ctx.removeLatch();
+        }
     }
 }

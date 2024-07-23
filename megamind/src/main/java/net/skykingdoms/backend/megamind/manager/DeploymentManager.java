@@ -25,6 +25,7 @@ import net.skykingdoms.backend.protocol.type.RemoteConnectedType;
 import net.skykingdoms.backend.protocol.type.reconnect.impl.FluentBukkitDataImpl;
 import net.skykingdoms.backend.protocol.type.reconnect.impl.FluentNodeDataImpl;
 import net.skykingdoms.backend.protocol.type.reconnect.impl.FluentProxyDataImpl;
+import net.skykingdoms.backend.protocol.util.TextFormat;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -263,13 +264,13 @@ public final class DeploymentManager {
     /**
      * Invoked when we receive C21RegisterGameInstance
      */
-    public void handleGameCreate(final @NonNull C21RegisterGameInstance packet,
+    public String handleGameCreate(final @NonNull C21RegisterGameInstance packet,
                                  final @NonNull RemoteClientConnection rcc) {
         val bukkitServer = (BukkitServer) rcc.getConnectable();
         val gameId = packet.getArenaId();
 
         // eg: mini12A / mega1E
-        val gameName = bukkitServer.getName() + getGameName(gameId);
+        val gameName = getGameServerName(bukkitServer.getName(), gameId);
 
         val slots = packet.getSlots();
         val map = packet.getMapName();
@@ -294,28 +295,44 @@ public final class DeploymentManager {
         // handling shit for testflow
         TestFlowManager.INSTANCE.handleServerAction(TestFlowManager.ServerAction.ADD_GAME,
                 gameServer.getParentServer().getLinkedTestFlowId(), gameServer);
+
+        return gameName;
     }
 
-    public String getGameName(int gameId) {
-        if (gameId < 1) {
-            throw new IllegalArgumentException("gameId must be greater than 0");
+    private String getGameServerName(String serverName, int gameId) {
+        String name;
+
+        if (gameId < 27) {
+            // For gameId from 1 to 26: Single letter A-Z
+            return TextFormat.formatText("{}{}", serverName, (char) ('A' + gameId - 1));
+        } else {
+            // For gameId 27 and above
+            int remainingNumber = gameId - 26; // Calculate remaining number after Z
+            int romanValue = getRomanValue(remainingNumber);
+            int adjustedNumber = remainingNumber - romanValue;
+            String romanLetter = getRomanLetter(romanValue);
+
+            // Format the name
+            return TextFormat.formatText("{}{}{}", serverName, adjustedNumber < 1 ? "" : adjustedNumber, romanLetter + "Z");
         }
+    }
 
-        int base = 'Z' - 'A' + 1; // 26 letters in the alphabet
-        int index = gameId - 1;
+    private int getRomanValue(int number) {
+        // Get the highest Roman numeral value that is <= number
+        if (number >= 50) return 50;
+        if (number >= 10) return 10;
+        if (number >= 5) return 5;
+        if (number >= 1) return 1;
+        return 0; // Default case
+    }
 
-        StringBuilder name = new StringBuilder();
-
-        while (index >= base) {
-            int digit = index / base;
-            name.insert(0, (char) ('A' + index % base));
-            name.insert(0, digit);
-            index = digit - 1;
-        }
-
-        name.insert(0, (char) ('A' + index));
-
-        return name.toString();
+    private String getRomanLetter(int value) {
+        // Convert Roman numeral value to Roman numeral letter
+        if (value == 50) return "L";
+        if (value == 10) return "X";
+        if (value == 5) return "V";
+        if (value == 1) return "I";
+        return ""; // Default case
     }
 
 

@@ -58,6 +58,7 @@ public enum PacketProtocol {
             toClient(34, DuelData.Response.class, DuelData.Response::new);
             toClient(35, S35BestGameServerByMap.class, S35BestGameServerByMap::new);
             toClient(36, ArenaBoot.Request.class, ArenaBoot.Request::new);
+            toClient(37, S37BestDuelServer.class, S37BestDuelServer::new);
 
             toServer(1, C0PlayerConnected.class, C0PlayerConnected::new);
             toServer(2, Tabcomplete.Request.class, Tabcomplete.Request::new);
@@ -90,6 +91,7 @@ public enum PacketProtocol {
             toServer(31, C31CreateDuel.class, C31CreateDuel::new);
             toServer(32, C32GetBestGameServerByMap.class, C32GetBestGameServerByMap::new);
             toServer(33, ArenaBoot.Response.class, ArenaBoot.Response::new);
+            toServer(34, C34GetBestDuelServer.class, C34GetBestDuelServer::new);
         }
     };
 
