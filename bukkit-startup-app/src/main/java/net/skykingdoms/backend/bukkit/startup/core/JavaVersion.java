@@ -16,6 +16,7 @@ public enum JavaVersion {
     GRAALVM_17("/usr/lib/jvm/graal17/bin/java"),
     OPENJDK_20("/usr/lib/jvm/java-20-openjdk/bin/java")
  */
+    NORMAL_17("java"),
     GRAALVM_11("java"),
     GRAALVM_17("/usr/lib/jvm/temurin-17-jdk-amd64/bin/java"),
     OPENJDK_20("java"),

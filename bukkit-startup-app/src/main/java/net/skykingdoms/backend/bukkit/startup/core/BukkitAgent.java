@@ -190,7 +190,7 @@ public final class BukkitAgent {
         command.add("-Xmx" + maxHeapSizeMB + "m");
         command.add(debugPort > 0 ? "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:" + debugPort : "-Dvoid=0");
 
-        if (javaVersion != null && javaVersion == JavaVersion.GRAALVM_17 || javaVersion == JavaVersion.OPENJDK_21) {
+        if (javaVersion != null && javaVersion == JavaVersion.GRAALVM_17 || javaVersion == JavaVersion.NORMAL_17 || javaVersion == JavaVersion.OPENJDK_21) {
             command.add("--add-opens=java.base/java.lang=ALL-UNNAMED");
             command.add("--add-opens=java.base/java.lang.invoke=ALL-UNNAMED");
             command.add("--add-opens=java.base/jdk.internal.misc=ALL-UNNAMED");
