@@ -20,6 +20,11 @@ public interface PlayClientProcessor extends PlayProcessor {
     default void process(GameBoot.Request packet, ChannelProcessorContext ctx) {
         // override me
     }
+
+    default void process(ArenaBoot.Response packet, ChannelProcessorContext ctx) {
+        // override me
+    }
+
     default void process(C22UpdateGameState packet, ChannelProcessorContext ctx) {
         // override me
     }

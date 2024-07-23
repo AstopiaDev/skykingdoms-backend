@@ -30,6 +30,10 @@ public interface PlayServerProcessor extends PlayProcessor {
         // override me
     }
 
+    default void process(ArenaBoot.Request packet, ChannelProcessorContext ctx) {
+        // override me
+    }
+
     default void process(S26UpdatePlayerGameServer packet, ChannelProcessorContext ctx) {
         // override me
     }

@@ -26,7 +26,7 @@ public enum DuelManager {
     public void postBootstrap() {
         AsyncExecution.INSTANCE.runTimer(() -> {
             for (DuelRequest request : requests.values()) {
-                if (System.currentTimeMillis() - request.getCreatedAt() > 30000) {
+                if (System.currentTimeMillis() - request.getCreatedAt() > (((60000) * 3))) {
                     Gamer sender = Gamer.getOfflineGamer(request.getSenderId(), ($) -> {
                         $.loadPlayerName();
                         $.loadGroups();
