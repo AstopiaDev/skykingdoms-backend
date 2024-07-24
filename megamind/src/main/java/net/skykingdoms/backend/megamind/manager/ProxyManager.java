@@ -44,7 +44,7 @@ public final class ProxyManager {
      */
     public void postBootstrap() {
         Logging.IMP.info("Scheduled proxy bootstrap process");
-        Logging.IMP.info("If any proxy connects to coordinator in next 10 seconds");
+        Logging.IMP.info("If any proxy connects to coordinator in next 20 seconds");
         Logging.IMP.info("The process aborts it's scheduling");
         Logging.IMP.info("");
 
@@ -54,7 +54,7 @@ public final class ProxyManager {
             Logging.IMP.info("No proxy server came online! Bootstrapping cluster of proxy servers ...");
 
             DeploymentManager.INSTANCE.sendDeploymentRequest(new ProxyDeployRequest(), ServerDeploy.DeploymentTarget.PROXY, false, null, 0, $ -> {});
-        }, 10, TimeUnit.SECONDS);
+        }, 20, TimeUnit.SECONDS);
     }
 
     public ProxyServer getProxy(final @NonNull String name) {

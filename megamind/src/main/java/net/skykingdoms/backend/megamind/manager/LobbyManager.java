@@ -75,7 +75,7 @@ public final class LobbyManager {
                             });
                 }
             }
-        }, 15, TimeUnit.SECONDS);
+        }, 60, TimeUnit.SECONDS);
     }
 
     /**
