@@ -10,7 +10,7 @@ public class SimpleFluentDuelRequestData extends FluentDuelRequestData {
     }
 
     public SimpleFluentDuelRequestData() {
-        super(null);
+        super("");
     }
 
     @Override

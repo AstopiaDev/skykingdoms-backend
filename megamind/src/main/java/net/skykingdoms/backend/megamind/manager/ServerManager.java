@@ -264,6 +264,17 @@ public final class ServerManager {
         }
     }
 
+    public boolean existsServer(final @NonNull GameType type) {
+        return getServers().stream().anyMatch(s -> s.getGameType() == type);
+    }
+
+    public AbstractPlayerHolder getServerByType(final @NonNull GameType type, int maxPlayers) {
+        return getServers().stream()
+                .filter(s -> s.getGameType() == type && s.getPlayerIds().length < maxPlayers)
+                .findFirst()
+                .orElse(null);
+    }
+
     public AbstractPlayerHolder getBestGameServerByOnlineAndMap(final @Nullable Gamer gamer,
                                                 final @NonNull ScalableDataImpl type,
                                                 String map,

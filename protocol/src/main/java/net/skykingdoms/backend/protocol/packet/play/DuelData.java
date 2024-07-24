@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import net.skykingdoms.backend.protocol.logging.Logging;
 import net.skykingdoms.backend.protocol.packet.ChannelProcessorContext;
 import net.skykingdoms.backend.protocol.packet.Packet;
 import net.skykingdoms.backend.protocol.packet.PacketProcessor;
@@ -80,15 +81,16 @@ public final class DuelData {
         public void read0(@NotNull ByteBuf buf) throws Exception {
             this.senderId = buf.readInt();
             this.targetId = buf.readInt();
-            this.mode = PacketUtils.readEnum(buf, GameMode.class);
+            this.mode = PacketUtils.readEnum(buf, GameMode.class, true);
             this.data = FluentDuelRequestData.deserialize(mode, buf);
         }
 
         @Override
         public void write0(@NotNull ByteBuf buf) throws Exception {
             buf.writeInt(senderId);
-            PacketUtils.writeVarInt(buf, targetId);
-            PacketUtils.writeEnum(buf, mode);
+            buf.writeInt(targetId);
+            Logging.IMP.info("Writing mode: " + mode);
+            PacketUtils.writeEnum(buf, mode, true);
             data.serialize(buf);
         }
     }

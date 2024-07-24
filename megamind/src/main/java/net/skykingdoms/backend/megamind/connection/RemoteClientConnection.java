@@ -898,6 +898,7 @@ public final class RemoteClientConnection extends AbstractRemoteClientChannel {
         val duel = DuelManager.INSTANCE.getRequest(packet.getGamerId());
 
         if (duel != null) {
+            Logging.IMP.info("DuelData Response: " + duel.getMode().name());
             ctx.setResponse(new DuelData.Response(duel.getSenderId(), duel.getTargetId(), duel.getMode(), duel.getData()));
         }
     }
@@ -952,10 +953,12 @@ public final class RemoteClientConnection extends AbstractRemoteClientChannel {
 
                 GameBootResponse response = new GameBootResponse(packet.getData().getGameMode(), 1);
 
-                val duelServer = ServerManager.INSTANCE.getBestByOnline(packet.getData().getGameType(), false);
+                Logging.IMP.info(packet.getData().getGameType().name());
 
+                val duelServer = ServerManager.INSTANCE.getServerByType(GameType.DUELS, 60);
                 if (duelServer != null) {
-                    serverName = duelServer.getConnection().awaitPacket(new ArenaBoot.Request(packet.getData().getGameMode(), packet.getDuelData())).join().getName();
+                    Logging.IMP.info("Found best server for duel: {}", duelServer.getName());
+                    serverName = duelServer.getChannel().awaitPacket(new ArenaBoot.Request(packet.getData().getGameMode(), packet.getDuelData())).join().getName();
                 }
 
                 DeploymentManager.INSTANCE.sendDeploymentRequest(new BukkitDeployRequest(response.getGameMode().bakeData()),
