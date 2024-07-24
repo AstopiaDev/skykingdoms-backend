@@ -9,7 +9,7 @@ import net.skykingdoms.backend.protocol.packet.PacketUtils;
 @Getter
 @Setter
 public class KitFluentRequestData extends SimpleFluentDuelRequestData {
-    String kit;
+    String kit = "";
 
     public KitFluentRequestData(String map, String kit) {
         super(map);
@@ -17,7 +17,7 @@ public class KitFluentRequestData extends SimpleFluentDuelRequestData {
     }
 
     public KitFluentRequestData() {
-        super(null);
+        super("");
     }
 
     @Override

@@ -4,6 +4,7 @@ import io.netty.buffer.ByteBuf;
 import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldDefaults;
+import net.skykingdoms.backend.protocol.logging.Logging;
 import net.skykingdoms.backend.protocol.packet.serialize.Serializable;
 import net.skykingdoms.backend.protocol.server.GameMode;
 
@@ -13,7 +14,7 @@ import net.skykingdoms.backend.protocol.server.GameMode;
 @Getter
 @Setter
 public abstract class FluentDuelRequestData implements Serializable<FluentDuelRequestData> {
-    String map;
+    String map = "";
 
     public static <T extends FluentDuelRequestData> T deserialize(final @NonNull GameMode mode,
                                                 final @NonNull ByteBuf buf) {
@@ -22,6 +23,8 @@ public abstract class FluentDuelRequestData implements Serializable<FluentDuelRe
             TODO: Later implement some kind of GameMode duels realization and then check if the duel
              requires a kit or not, etc.
          */
+
+        Logging.IMP.info("Deserializing data for mode: " + mode);
 
         if (mode == GameMode.DUELS_SKYPVP_DUEL) {
             return (T) new KitFluentRequestData().deserialize(buf);
