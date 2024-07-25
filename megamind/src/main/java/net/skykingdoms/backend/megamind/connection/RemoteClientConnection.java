@@ -959,20 +959,20 @@ public final class RemoteClientConnection extends AbstractRemoteClientChannel {
                 if (duelServer != null) {
                     Logging.IMP.info("Found best server for duel: {}", duelServer.getName());
                     serverName = duelServer.getChannel().awaitPacket(new ArenaBoot.Request(packet.getData().getGameMode(), packet.getDuelData())).join().getName();
+                } else {
+                    DeploymentManager.INSTANCE.sendDeploymentRequest(new BukkitDeployRequest(response.getGameMode().bakeData()),
+                            ServerDeploy.DeploymentTarget.BUKKIT, false, null, -1,
+                            (result) -> {
+                                if (result == DeploymentResponse.DENIED_BY_NODE
+                                        || result == DeploymentResponse.DEPLOYMENT_TIMEOUT
+                                        || result == DeploymentResponse.TRANSACTION_FAILED) {
+                                    Logging.IMP.error("Transaction failed! (" + result.name() + ") / (#" + result.transactionId() + ")");
+                                } else {
+                                    ServerManager.INSTANCE.queueGameInstanceBoot(result.transactionId(), new GameBootResponse[]{response});
+                                    Logging.IMP.info("Queued deployment of game instances!");
+                                }
+                            });
                 }
-
-                DeploymentManager.INSTANCE.sendDeploymentRequest(new BukkitDeployRequest(response.getGameMode().bakeData()),
-                        ServerDeploy.DeploymentTarget.BUKKIT, false, null, -1,
-                        (result) -> {
-                            if (result == DeploymentResponse.DENIED_BY_NODE
-                                    || result == DeploymentResponse.DEPLOYMENT_TIMEOUT
-                                    || result == DeploymentResponse.TRANSACTION_FAILED) {
-                                Logging.IMP.error("Transaction failed! (" + result.name() + ") / (#" + result.transactionId() + ")");
-                            } else {
-                                ServerManager.INSTANCE.queueGameInstanceBoot(result.transactionId(), new GameBootResponse[]{response});
-                                Logging.IMP.info("Queued deployment of game instances!");
-                            }
-                        });
             } else {
                 serverName = server.getName();
             }
