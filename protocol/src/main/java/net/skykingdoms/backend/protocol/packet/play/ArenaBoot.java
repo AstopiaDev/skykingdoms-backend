@@ -34,7 +34,7 @@ public final class ArenaBoot {
 
         @Override
         public void read0(@NotNull ByteBuf buf) throws Exception {
-            this.gameMode = GameMode.valueOf(PacketUtils.readString(buf));
+            this.gameMode = PacketUtils.readEnum(buf, GameMode.class);
             this.data = FluentDuelRequestData.deserialize(gameMode, buf);
         }
 
