@@ -557,5 +557,13 @@ public abstract class AbstractGamer implements IGamer {
         }
     }
 
+    /**
+     * Get amount of player points this gamer has
+     * @return integer of amount of player points
+     */
+    public int getPlayerPoints() {
+        return this.getProperty(PropertyType.PLAYER_POINTS);
+    }
+
     // endregion
 }
