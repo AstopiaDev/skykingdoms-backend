@@ -40,6 +40,7 @@ public enum GameMode {
     SURVIVAL_BEES("Survival Bees", ServerScaleType.PERSISTENT, true),
     SKYPVP("SkyPvP", ServerScaleType.PERSISTENT, true),
     BUILD("Build", ServerScaleType.PERSISTENT, true),
+    DEV("Dev", ServerScaleType.PERSISTENT, true),
 
     // DUELS
     DUELS_SKYPVP_DUEL("SkyPvP Duel")

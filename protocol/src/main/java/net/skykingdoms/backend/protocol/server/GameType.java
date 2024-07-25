@@ -51,7 +51,10 @@ public enum GameType {
     ), false, "Duels", "duels"),
     BUILD(List.of(
             GameMode.BUILD
-    ), false, "Build", "build")
+    ), false, "Build", "build"),
+    DEV(List.of(
+            GameMode.DEV
+    ), false, "Secret Game", "dev");
 
 /*    *//**
      * BedWars
