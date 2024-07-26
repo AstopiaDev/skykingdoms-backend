@@ -22,6 +22,7 @@ import net.skykingdoms.backend.protocol.logging.Logging;
 import net.skykingdoms.backend.protocol.packet.Packet;
 import net.skykingdoms.backend.protocol.packet.play.*;
 import net.skykingdoms.backend.protocol.server.IPlayableBukkitServer;
+import net.skykingdoms.backend.protocol.server.ServerScaleType;
 import net.skykingdoms.backend.protocol.type.PropertyType;
 import net.skykingdoms.backend.protocol.type.connect.ConnectStatus;
 import org.jetbrains.annotations.Nullable;
@@ -358,6 +359,12 @@ public final class Gamer extends AbstractGamer implements CommandSender, IGamer 
     @Override
     public void sendToServer(final @NonNull Packet<?> packet) {
         if (online && bukkitServer != null) {
+            if (bukkitServer.getServerScale() == ServerScaleType.PERSISTENT) {
+                if (persistentServer != null) {
+                    persistentServer.getChannel().sendPacket(packet);
+                    return;
+                }
+            }
             bukkitServer.getChannel().sendPacket(packet);
         }
     }
