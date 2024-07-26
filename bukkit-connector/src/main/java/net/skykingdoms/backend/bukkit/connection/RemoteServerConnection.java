@@ -29,8 +29,7 @@ import org.bukkit.Bukkit;
  * @author Vihara
  */
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public final class RemoteServerConnection extends AbstractRemoteServerChannel {
-    public RemoteServerConnection(final @NonNull BukkitLocalClientConnection local, final @NonNull SocketChannel channel) {
+public final class RemoteServerConnection extends AbstractRemoteServerChannel { public RemoteServerConnection(final @NonNull BukkitLocalClientConnection local, final @NonNull SocketChannel channel) {
         super(local, channel);
     }
 

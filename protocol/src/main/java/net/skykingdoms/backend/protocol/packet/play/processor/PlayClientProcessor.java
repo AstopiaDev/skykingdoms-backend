@@ -131,4 +131,8 @@ public interface PlayClientProcessor extends PlayProcessor {
     default void process(C34GetBestDuelServer packet, ChannelProcessorContext ctx) {
         // override me
     }
+
+    default void process(C35RemoveDuelRequest packet, ChannelProcessorContext ctx) {
+        // override me
+    }
 }

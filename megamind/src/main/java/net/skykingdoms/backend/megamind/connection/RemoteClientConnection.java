@@ -983,4 +983,10 @@ public final class RemoteClientConnection extends AbstractRemoteClientChannel {
             ctx.removeLatch();
         }
     }
+
+    @Override
+    public void process(C35RemoveDuelRequest packet, ChannelProcessorContext ctx) {
+        DuelManager.INSTANCE.removeRequest(packet.getSenderId());
+        Logging.IMP.info("[DuelManager/R] " + packet.getSenderId() + " removed");
+    }
 }
