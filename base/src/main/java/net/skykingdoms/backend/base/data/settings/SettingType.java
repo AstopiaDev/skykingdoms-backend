@@ -70,13 +70,17 @@ public enum SettingType {
      */
 
     ONLINE_STATUS(new EnumSetting<>(OnlineStatus.ONLINE)),
-    PM_PRIVACY(new EnumSetting<>(PmPrivacy.MEDIUM)),
-    FRIEND_REQUEST(new EnumSetting<>(Privacy.MEDIUM)),
+    PM_PRIVACY(new EnumSetting<>(PmPrivacy.NONE)),
+    FRIEND_REQUEST(new EnumSetting<>(Privacy.NONE)),
     FRIEND_NOTIFICATIONS(new EnumSetting<>(Notifications.ALL)),
-    DUEL_INVITE_PRIVACY(new EnumSetting<>(Privacy.MEDIUM)),
-    PARTY_INVITE_PRIVACY(new EnumSetting<>(Privacy.MEDIUM)),
-    GUILD_INVITE_PRIVACY(new EnumSetting<>(Privacy.MEDIUM)),
+    DUEL_INVITE_PRIVACY(new EnumSetting<>(Privacy.NONE)),
+    PARTY_INVITE_PRIVACY(new EnumSetting<>(Privacy.NONE)),
+    GUILD_INVITE_PRIVACY(new EnumSetting<>(Privacy.NONE)),
 
+    /*
+     * Staff settings
+     */
+    VANISH_ON_JOIN(new BooleanSetting(false))
     ;
 
     public static final SettingType[] VALUES = values();
