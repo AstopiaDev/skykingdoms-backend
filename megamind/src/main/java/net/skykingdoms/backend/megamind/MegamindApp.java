@@ -408,6 +408,7 @@ public enum MegamindApp {
 /*
         commandManager.addCommand(BuildModeCommand.class);
 */
+        commandManager.addCommand(ShutdownCommand.class);
         commandManager.addCommand(DeployLobbyCommand.class);
         commandManager.addCommand(DeployGameInstancesCommand.class);
         commandManager.addCommand(PortCommand.class);
