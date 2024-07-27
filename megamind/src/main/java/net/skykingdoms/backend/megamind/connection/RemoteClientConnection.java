@@ -22,6 +22,7 @@ import net.skykingdoms.backend.megamind.server.AbstractPlayerHolder;
 import net.skykingdoms.backend.megamind.server.AbstractScalable;
 import net.skykingdoms.backend.megamind.server.impl.BukkitServer;
 import net.skykingdoms.backend.megamind.server.impl.NodeServer;
+import net.skykingdoms.backend.megamind.server.impl.PersistentServer;
 import net.skykingdoms.backend.megamind.server.impl.ProxyServer;
 import net.skykingdoms.backend.protocol.channel.AbstractRemoteClientChannel;
 import net.skykingdoms.backend.protocol.logging.Logging;
@@ -88,6 +89,11 @@ public final class RemoteClientConnection extends AbstractRemoteClientChannel {
        /*     Logging.IMP.info("IT'S A BUKKIT SERVER");*/
             val bs = (BukkitServer) connectable;
             ServerManager.INSTANCE.removeBukkitServer(bs.getName(), bs.getScaleType() != ServerScaleType.PERSISTENT);
+        }
+
+        if (connectable instanceof PersistentServer) {
+            val ps = (PersistentServer) connectable;
+            ServerManager.INSTANCE.removePersistentServer(ps);
         }
 
         Logging.IMP.info("[RCC/DEBUG] Disconnected {}:{}:{}", getDisplayName(), host, port);

@@ -448,6 +448,14 @@ public final class ServerManager {
         LookupManager.INSTANCE.handleServerRemove(gameServer);
     }
 
+    public void removePersistentServer(final @NonNull PersistentServer persistentServer) {
+        persistentServers.remove(persistentServer);
+
+        Logging.IMP.info("[PersistentServer] Removed {} persistent server with {} players on it", persistentServer.getName(), persistentServer.getPlayerIds().length);
+
+        LookupManager.INSTANCE.handleServerRemove(persistentServer);
+    }
+
     public void removeBukkitServer(final @NonNull String serverName, boolean sendToProxies) {
         val pending = getBukkitServer(serverName);
 
@@ -498,9 +506,9 @@ public final class ServerManager {
                     LobbyManager.INSTANCE.removeLobbyServer((LobbyServer) m);
                 }
 
-/*                if (m instanceof PersistentServer) {
+                if (m instanceof PersistentServer) {
                     removePersistentServer((PersistentServer) m);
-                }*/
+                }
             }
 
             // todo: route gamers to fallback

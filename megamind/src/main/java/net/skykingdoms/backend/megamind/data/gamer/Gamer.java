@@ -359,12 +359,13 @@ public final class Gamer extends AbstractGamer implements CommandSender, IGamer 
     @Override
     public void sendToServer(final @NonNull Packet<?> packet) {
         if (online && bukkitServer != null) {
-            if (bukkitServer.getServerScale() == ServerScaleType.PERSISTENT) {
+/*            if (bukkitServer.getServerScale() == ServerScaleType.PERSISTENT) {
                 if (persistentServer != null) {
                     persistentServer.getChannel().sendPacket(packet);
                     return;
                 }
-            }
+            }*/
+            //Logging.IMP.info("SENDING TO SERVER {} | {}", bukkitServer.getName(), packet.toString());
             bukkitServer.getChannel().sendPacket(packet);
         }
     }
