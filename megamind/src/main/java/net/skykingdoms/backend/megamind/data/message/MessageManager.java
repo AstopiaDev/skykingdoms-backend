@@ -7,10 +7,14 @@ import lombok.val;
 import net.skykingdoms.backend.base.data.settings.SettingType;
 import net.skykingdoms.backend.base.data.settings.enums.PmPrivacy;
 import net.skykingdoms.backend.base.language.Language;
+import net.skykingdoms.backend.base.language.LanguageContext;
 import net.skykingdoms.backend.megamind.api.event.EventHandler;
 import net.skykingdoms.backend.megamind.api.plugin.Listener;
 import net.skykingdoms.backend.megamind.data.gamer.Gamer;
 import net.skykingdoms.backend.megamind.event.gamer.GamerQuitEvent;
+import net.skykingdoms.backend.megamind.manager.StaffChatManager;
+import net.skykingdoms.backend.protocol.logging.Logging;
+import net.skykingdoms.backend.protocol.type.PropertyType;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -122,6 +126,20 @@ public final class MessageManager implements Listener {
 
         to.sendRawMessage(getMessage(to.getLanguage(),
                 from.getName(), from.getDisplayName(), "Me", false, msg));
+
+        for (Gamer gamer : Gamer.getGamers()) {
+            if (gamer.getGamerId() == to.getGamerId() || gamer.getGamerId() == from.getGamerId()) {
+                continue;
+            }
+
+            if (!gamer.isStaff()) {
+                continue;
+            }
+
+            if (gamer.getProperty(PropertyType.SOCIAL_SPY_PM) == 1) {
+                gamer.sendMessage("§7[SocialSpy/PM] " + from.getName() + " §7-> " + to.getName() + " §7" + msg);
+            }
+        }
     }
 
 }
