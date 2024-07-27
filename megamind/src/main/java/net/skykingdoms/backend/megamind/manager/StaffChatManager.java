@@ -52,7 +52,7 @@ public final class StaffChatManager {
         }
 
         // Runnung webhook on separate thread
-        MegamindApp.INSTANCE.executor().submit(() -> new DiscordWebhook(DiscordWebhook.STAFFCHAT_WEBHOOK).setContent("[STAFF] " + ChatColor.stripColor(message.format(Language.DEFAULT))).execute());
+       // MegamindApp.INSTANCE.executor().submit(() -> new DiscordWebhook(DiscordWebhook.STAFFCHAT_WEBHOOK).setContent("[STAFF] " + ChatColor.stripColor(message.format(Language.DEFAULT))).execute());
 
         ConsoleCommandSender.INSTANCE.sendMessage(ChatColor.AQUA + "[STAFF] " + message.format(Language.DEFAULT));
     }
