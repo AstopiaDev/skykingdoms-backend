@@ -14,9 +14,9 @@ public enum SettingsSqlHandler {
 
     private static final String LOAD_SETTINGS = "SELECT * FROM `PlayerData`.`UserSettings` WHERE `Id` = ?;";
     private static final String UPDATE_SETTINGS = "INSERT INTO `PlayerData`.`Settings` " +
-            "(`Id`, `PLAYERS_VISIBILITY`, `PET_VISIBILITY`, `AUTO_SPAWN_PET`, `LOBBY_DARK_MODE`, `API_ONLINE_STATUS`, `API_RECENT_GAMES`, `API_WINSTREAKS`, `GUILD_NOTIFICATIONS`, `GUILD_SHOW_ONLINE_ONLY`, `PARTICLE_QUALITY`, `CHAT_VISIBILITY`, `GUILD_CHAT_VISIBILITY`, `LOBBY_JOIN_MESSAGE`, `PUBLIC_CHAT_FILTER`, `PARTY_CHAT_FILTER`, `GUILD_CHAT_FILTER`, `PM_CHAT_FILTER`, `PARTY_MESSAGE_SOUNDS`, `GUILD_MESSAGE_SOUNDS`, `PM_SOUNDS`, `CHAT_ALERTS`, `ONLINE_STATUS`, `PM_PRIVACY`, `FRIEND_REQUEST`, `FRIEND_NOTIFICATIONS`, `DUEL_INVITE_PRIVACY`, `PARTY_INVITE_PRIVACY`, `GUILD_INVITE_PRIVACY`, `LEGACY`, `VANISH_ON_JOIN`) " +
-            "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE" +
-            "? = ?, ? = ?, ? = ?, ? = ?, ? = ?, ? = ?, ? = ?, ? = ?, ? = ?, ? = ?, ? = ?, ? = ?, ? = ?, ? = ?, ? = ?, ? = ?, ? = ?, ? = ?, ? = ?, ? = ?, ? = ?, ? = ?, ? = ?, ? = ?, ? = ?, ? = ?, ? = ?, ? = ?, ? = ?, ? = ?, ? = ?, ? = ?;";
+            "(`Id`, `PLAYERS_VISIBILITY`, `PET_VISIBILITY`, `AUTO_SPAWN_PET`, `LOBBY_DARK_MODE`, `API_ONLINE_STATUS`, `API_RECENT_GAMES`, `API_WINSTREAKS`, `GUILD_NOTIFICATIONS`, `GUILD_SHOW_ONLINE_ONLY`, `PARTICLE_QUALITY`, `CHAT_VISIBILITY`, `GUILD_CHAT_VISIBILITY`, `LOBBY_JOIN_MESSAGE`, `PUBLIC_CHAT_FILTER`, `PARTY_CHAT_FILTER`, `GUILD_CHAT_FILTER`, `PM_CHAT_FILTER`, `PARTY_MESSAGE_SOUNDS`, `GUILD_MESSAGE_SOUNDS`, `PM_SOUNDS`, `CHAT_ALERTS`, `ONLINE_STATUS`, `PM_PRIVACY`, `FRIEND_REQUEST`, `FRIEND_NOTIFICATIONS`, `DUEL_INVITE_PRIVACY`, `PARTY_INVITE_PRIVACY`, `GUILD_INVITE_PRIVACY`, `LEGACY`, `VANISH_ON_JOIN`, `VANISH_ITEM_PICKUP`) " +
+            "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE" +
+            "? = ?, ? = ?, ? = ?, ? = ?, ? = ?, ? = ?, ? = ?, ? = ?, ? = ?, ? = ?, ? = ?, ? = ?, ? = ?, ? = ?, ? = ?, ? = ?, ? = ?, ? = ?, ? = ?, ? = ?, ? = ?, ? = ?, ? = ?, ? = ?, ? = ?, ? = ?, ? = ?, ? = ?, ? = ?, ? = ?, ? = ?, ? = ?, ? = ?;";
 
     private final MySQL database = new MySQL(DatabaseCredentials.MAIN.withDatabase("PlayerData"));
 

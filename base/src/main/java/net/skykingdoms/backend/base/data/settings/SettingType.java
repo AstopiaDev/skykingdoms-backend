@@ -80,7 +80,8 @@ public enum SettingType {
     /*
      * Staff settings
      */
-    VANISH_ON_JOIN(new BooleanSetting(false))
+    VANISH_ON_JOIN(new BooleanSetting(false)),
+    VANISH_ITEM_PICKUP(new BooleanSetting(false))
     ;
 
     public static final SettingType[] VALUES = values();
