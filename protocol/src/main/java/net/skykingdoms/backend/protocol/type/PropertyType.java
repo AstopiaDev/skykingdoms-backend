@@ -51,6 +51,7 @@ public enum PropertyType {
     SkyPvP
      */
     SPVP_PRESTIGE,
+    SPVP_COINS,
     ;
 
     public static PropertyType valueOf(final @NonNull String string,
