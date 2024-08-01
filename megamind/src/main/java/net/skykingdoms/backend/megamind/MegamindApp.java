@@ -419,6 +419,7 @@ public enum MegamindApp {
         commandManager.addCommand(DebugCommand.class);
         commandManager.addCommand(RequestNodeSnapshotCommand.class);
         commandManager.addCommand(ProxyCommand.class);
+        commandManager.addCommand(DuelInternalCommand.class);
 /*        commandManager.addCommand(PointsCommand.class);*/
         commandManager.addCommand(FindCommand.class);
         commandManager.addCommand(GlistCommand.class);

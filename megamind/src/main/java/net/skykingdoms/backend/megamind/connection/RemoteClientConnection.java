@@ -882,6 +882,9 @@ public final class RemoteClientConnection extends AbstractRemoteClientChannel {
     @Override
     public void process(C21RegisterGameInstance packet, ChannelProcessorContext ctx) {
         DeploymentManager.INSTANCE.handleGameCreate(packet, this);
+        if (packet.getData().getGameType() == GameType.DUELS) {
+            DuelManager.INSTANCE.serverDeployed(true);
+        }
     }
 
     @Override
@@ -993,6 +996,5 @@ public final class RemoteClientConnection extends AbstractRemoteClientChannel {
     @Override
     public void process(C35RemoveDuelRequest packet, ChannelProcessorContext ctx) {
         DuelManager.INSTANCE.removeRequest(packet.getSenderId());
-        Logging.IMP.info("[DuelManager/R] " + packet.getSenderId() + " removed");
     }
 }
