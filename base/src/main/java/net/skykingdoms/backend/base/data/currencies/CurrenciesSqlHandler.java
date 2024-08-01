@@ -1,11 +1,15 @@
 package net.skykingdoms.backend.base.data.currencies;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import lombok.NonNull;
 import lombok.val;
 import net.skykingdoms.backend.base.mysql.Database;
 import net.skykingdoms.backend.base.mysql.DatabaseCredentials;
 import net.skykingdoms.backend.base.mysql.impl.MySQL;
 import net.skykingdoms.backend.protocol.server.GameType;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Vihara
@@ -18,12 +22,15 @@ public final class CurrenciesSqlHandler {
 
     String LOAD_ALL_CURRENCIES = "SELECT * FROM `PlayerData`.`GameCurrencies` WHERE `Id` = ?;";
     String UPDATE_CURRENCIES = "INSERT INTO `PlayerData`.`GameCurrencies` " +
-            "(`Id`, `sc_tokens`, `sc_coins`) " +
-            "VALUES(?, ?, ?, ?) " +
+            "(`Id`, `spvp_coins`) " +
+            "VALUES(?, ?, ?) " +
             "ON DUPLICATE KEY UPDATE " +
-            "`sc_tokens` = ?, `sc_coins` = ?;";
+            "`spvp_coins` = ?";
 
     Database database = new MySQL(DatabaseCredentials.MAIN.withDatabase("PlayerData"));
+    Cache<Integer, GameCurrenciesHolder> currencyHolders = CacheBuilder.newBuilder()
+            .expireAfterWrite(10, TimeUnit.MINUTES)
+            .build();
 
     // name to amount map
     public GameCurrenciesHolder loadBalance(final int gamerId) {
@@ -37,9 +44,6 @@ public final class CurrenciesSqlHandler {
             for (val gameType : GameType.VALUES) {
                 if (gameType == GameType.MAIN) continue;
 
- /*               if (gameType == GameType.SKYCLASH) {
-                    holder.setTokens(row.getInt("sc_tokens").orElse(0));
-                }*/
 
                 val name = gameType.getCode() + "_coins";
                 holder.setCoins(gameType, row.getInt(name).orElse(0));
@@ -50,8 +54,7 @@ public final class CurrenciesSqlHandler {
     }
 
     public void updateBalances(final @NonNull GameCurrenciesHolder holder) {
-/*        database.executeUpdate(UPDATE_CURRENCIES, holder.getGamerId(),
-                holder.getTokens(), holder.getCoins(GameType.SKYCLASH),
-                holder.getTokens(), holder.getCoins(GameType.SKYCLASH));*/
+        database.executeUpdate(UPDATE_CURRENCIES, holder.getGamerId(), holder.getCoins(GameType.SKYPVP),
+                holder.getCoins(GameType.SKYPVP));
     }
 }

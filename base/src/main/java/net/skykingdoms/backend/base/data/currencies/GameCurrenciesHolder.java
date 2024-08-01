@@ -60,7 +60,7 @@ public final class GameCurrenciesHolder {
 
     // region SW tokens
 
-    public int getTokens() {
+  /*  public int getTokens() {
         return balances.getOrDefault("sw_tokens", 0);
     }
 
@@ -80,5 +80,5 @@ public final class GameCurrenciesHolder {
     public void takeTokens(final int amount) {
         val value = getTokens();
         setTokens(value - amount);
-    }
+    }*/
 }
