@@ -4,12 +4,13 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.minecrell.terminalconsole.SimpleTerminalConsole;
 import net.skykingdoms.backend.megamind.api.command.ConsoleCommandSender;
-import net.skykingdoms.backend.protocol.logging.Logging;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
 
 @RequiredArgsConstructor
 public final class MegamindConsole extends SimpleTerminalConsole {
+    LineReader lineReader;
+
     @Override
     protected boolean isRunning() {
         return MegamindApp.INSTANCE.running();
@@ -18,6 +19,11 @@ public final class MegamindConsole extends SimpleTerminalConsole {
     @Override
     protected void runCommand(final @NonNull String line) {
         MegamindApp.INSTANCE.executeCommand(ConsoleCommandSender.INSTANCE, "/" + line);
+        lineReader.printAbove("");
+/*        lineReader.callWidget(LineReader.CLEAR);
+        lineReader.callWidget(LineReader.REDRAW_LINE);
+        lineReader.callWidget(LineReader.REDISPLAY);
+        lineReader.getTerminal().writer().flush();*/
     }
 
     @Override
@@ -27,9 +33,11 @@ public final class MegamindConsole extends SimpleTerminalConsole {
 
     @Override
     protected LineReader buildReader(final @NonNull LineReaderBuilder builder) {
-        return super.buildReader(builder
+        lineReader = builder
                 .appName("Megamind")
-                .completer(new MegamindConsoleCompleter()));
+                .completer(new MegamindConsoleCompleter())
+                .build();
+        return lineReader;
     }
 
 }

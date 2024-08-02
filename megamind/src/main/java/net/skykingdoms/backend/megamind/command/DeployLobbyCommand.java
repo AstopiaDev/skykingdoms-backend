@@ -22,7 +22,6 @@ import java.util.stream.Collectors;
 public final class DeployLobbyCommand {
 
     @WithCondition("group: admin")
-    
     @WithCondition("minArgs: 1")
     @Executor
     public static void execute(CoreExecutionSession session) throws CommandMessageException {

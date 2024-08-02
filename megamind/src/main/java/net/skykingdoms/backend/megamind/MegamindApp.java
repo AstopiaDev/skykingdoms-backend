@@ -251,23 +251,25 @@ public enum MegamindApp {
     }
 
     public List<String> tabComplete(@NonNull CommandSender sender, @NonNull String line) {
-        String[] params = line.substring(1).split(" +", -1);
-        ICommand command = getCommand(params[0]);
+        if (line.startsWith("/")) {
+            line = line.substring(1);
+        }
 
+        String[] params = line.split(" +", -1);
+        if (params.length == 0) {
+            return Collections.emptyList();
+        }
+
+        ICommand command = getCommand(params[0]);
         if (command == null) {
-            return null;
+            return Collections.emptyList();
         }
 
         try {
             List<String> suggests = command.tabcomplete(sender, Arrays.copyOfRange(params, 1, params.length));
-
-            if (suggests == null) {
-                suggests = Collections.emptyList();
-            }
-
-            return suggests;
-        } catch (final IndexOutOfBoundsException ioobe) {
-            return null;
+            return suggests != null ? suggests : Collections.emptyList();
+        } catch (IndexOutOfBoundsException e) {
+            return Collections.emptyList();
         }
     }
 

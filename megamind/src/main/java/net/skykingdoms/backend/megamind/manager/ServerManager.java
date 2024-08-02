@@ -456,10 +456,15 @@ public final class ServerManager {
         LookupManager.INSTANCE.handleServerRemove(persistentServer);
     }
 
-    public void removeBukkitServer(final @NonNull String serverName, boolean sendToProxies) {
+    public void removeBukkitServer(final @NonNull String serverName, boolean sendToProxies, boolean force) {
         val pending = getBukkitServer(serverName);
 
         if (pending == null) {
+            if (force) {
+                if (sendToProxies) {
+                    ProxyManager.INSTANCE.sendToProxies(new S07UnregisterServer(serverName));
+                }
+            }
             return;
         }
 

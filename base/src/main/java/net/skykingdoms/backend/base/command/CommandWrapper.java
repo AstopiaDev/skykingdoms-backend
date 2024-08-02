@@ -217,17 +217,14 @@ public class CommandWrapper implements ICommand {
             }
         }
 
-        if (tabcompleters == null) {
+        if (tabcompleters == null || args.length - offset > tabcompleters.length) {
             return Collections.emptyList();
         }
 
-        if (args.length - offset > tabcompleters.length) {
-            return Collections.emptyList();
-        }
+        int argIndex = args.length - 1;
+        List<String> result = tabcompleters[argIndex - offset].complete(sender, args[argIndex]);
 
-        int arg = args.length - 1;
-        List<String> result = tabcompleters[arg - offset].complete(sender, args[arg]);
-
-        return result == null ? Collections.emptyList() : result;
+        return result != null ? result : Collections.emptyList();
     }
+
 }

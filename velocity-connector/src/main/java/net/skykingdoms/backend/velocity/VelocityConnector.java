@@ -100,7 +100,9 @@ public enum VelocityConnector {
         server.getEventManager().register(boot, new TabCompleteListener());
         server.getEventManager().register(boot, new KickListener());
 
+/*
         BungeeSecurityManager.INSTANCE.postBootstrap();
+*/
     }
 
     public void reloadConfiguration() {

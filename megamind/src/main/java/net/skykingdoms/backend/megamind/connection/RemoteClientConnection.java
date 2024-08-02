@@ -88,7 +88,7 @@ public final class RemoteClientConnection extends AbstractRemoteClientChannel {
         if (connectable instanceof BukkitServer) {
        /*     Logging.IMP.info("IT'S A BUKKIT SERVER");*/
             val bs = (BukkitServer) connectable;
-            ServerManager.INSTANCE.removeBukkitServer(bs.getName(), bs.getScaleType() != ServerScaleType.PERSISTENT);
+            ServerManager.INSTANCE.removeBukkitServer(bs.getName(), bs.getScaleType() != ServerScaleType.PERSISTENT, false);
         }
 
         if (connectable instanceof PersistentServer) {
