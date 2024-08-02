@@ -52,10 +52,12 @@ public class DuelInternalCommand {
             var map = session.getArgument(2);
             var kit = session.getArgument(3);
 
-            if (!gamer.getRanks().canApply(Group.INFINITY)) {
-                gamer.sendMessage("§cOnly players with §5Infinity§c or higher can select maps.");
-                return;
-            }
+/*            if (!map.equals("null")) {
+                if (!gamer.getRanks().canApply(Group.INFINITY)) {
+                    gamer.sendMessage("§cOnly players with §5Infinity§c or higher can select maps.");
+                    return;
+                }
+            }*/
 
             GameMode gameMode = GameMode.valueOf(duel.toUpperCase(), null);
 
