@@ -10,10 +10,7 @@ import net.skykingdoms.backend.megamind.AsyncExecution;
 import net.skykingdoms.backend.megamind.data.gamer.Gamer;
 import net.skykingdoms.backend.megamind.manager.deployment.DeploymentResponse;
 import net.skykingdoms.backend.protocol.logging.Logging;
-import net.skykingdoms.backend.protocol.packet.play.ArenaBoot;
-import net.skykingdoms.backend.protocol.packet.play.DuelData;
-import net.skykingdoms.backend.protocol.packet.play.S37BestDuelServer;
-import net.skykingdoms.backend.protocol.packet.play.ServerDeploy;
+import net.skykingdoms.backend.protocol.packet.play.*;
 import net.skykingdoms.backend.protocol.server.GameMode;
 import net.skykingdoms.backend.protocol.server.GameType;
 import net.skykingdoms.backend.protocol.server.deploy.impl.BukkitDeployRequest;
@@ -122,6 +119,7 @@ public enum DuelManager {
                 serverDeployed = true;
             }
         } else {
+            server.getChannel().sendPacket(new S38UpdateDuelData(serverName, gameMode, data));
             serverName = server.getName();
         }
 
