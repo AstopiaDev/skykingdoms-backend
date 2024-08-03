@@ -59,6 +59,7 @@ public enum PacketProtocol {
             toClient(35, S35BestGameServerByMap.class, S35BestGameServerByMap::new);
             toClient(36, ArenaBoot.Request.class, ArenaBoot.Request::new);
             toClient(37, S37BestDuelServer.class, S37BestDuelServer::new);
+            toClient(38, S38UpdateDuelData.class, S38UpdateDuelData::new);
 
             toServer(1, C0PlayerConnected.class, C0PlayerConnected::new);
             toServer(2, Tabcomplete.Request.class, Tabcomplete.Request::new);
