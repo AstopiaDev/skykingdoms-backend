@@ -53,7 +53,9 @@ public enum GameType {
             GameMode.BUILD
     ), false, "Build", "build"),
     DEV(List.of(
-            GameMode.DEV
+            GameMode.DEV,
+            GameMode.SKYPVP_MOB_ARENA_ONE,
+            GameMode.SKYPVP_MOB_ARENA_MORE
     ), false, "Secret Game", "dev");
 
 /*    *//**

@@ -42,8 +42,13 @@ public enum GameMode {
     BUILD("Build", ServerScaleType.PERSISTENT, true),
     DEV("Dev", ServerScaleType.PERSISTENT, true),
 
+    // SKYPVP
+    SKYPVP_MOB_ARENA_ONE("SkyPvP Mob Arena"),
+    SKYPVP_MOB_ARENA_MORE("SkyPvP Mob Arena"),
+
     // DUELS
-    DUELS_SKYPVP_DUEL("SkyPvP Duel")
+    DUELS_SKYPVP_DUEL("SkyPvP Duel"),
+    DUELS_CLASSIC_DUEL("Classic Duel")
     //SURVIVAL_COMPETITIVE("Competitive Survival", ServerScaleType.PERSISTENT, true),
     //SURVIVAL_VANILLA("Vanilla Survival", ServerScaleType.PERSISTENT, true),
     ;
