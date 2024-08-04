@@ -20,7 +20,7 @@ public enum Group {
     /**
      * Default group
      */
-    DEFAULT(1, 0, "§cN/A", "§7", "§7", PermissionType.DEFAULT),
+    DEFAULT(1, 0, "§cN/A", "§e", "§e", PermissionType.DEFAULT),
 
     /**
      * Purchasable groups
