@@ -44,7 +44,7 @@ public class GlistCommand {
             servers.computeIfAbsent(server, k -> new ArrayList<>()).add(gamer.getName());
         });
         for (AbstractPlayerHolder server : servers.keySet()) {
-            stringBuilder.append("§f§l").append(server.getName()).append(": ");
+            stringBuilder.append("§f§l").append(server.getName()).append(" (").append(server.getPlayerIds().length).append(")").append(": ");
             for (String name : servers.get(server)) {
                 stringBuilder.append("§7").append(name).append(", ");
             }
