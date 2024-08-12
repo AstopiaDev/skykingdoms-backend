@@ -119,8 +119,8 @@ public enum DuelManager {
                 serverDeployed = true;
             }
         } else {
-            server.getChannel().sendPacket(new S38UpdateDuelData(serverName, gameMode, data));
             serverName = server.getName();
+            server.getChannel().sendPacket(new S38UpdateDuelData(serverName, gameMode, data));
         }
 
         return serverName;
