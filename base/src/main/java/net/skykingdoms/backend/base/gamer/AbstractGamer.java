@@ -378,6 +378,10 @@ public abstract class AbstractGamer implements IGamer {
             if (TagsSqlHandler.INSTANCE.getTag(getProperty(PropertyType.TAG_ID)) == null) {
                 return null;
             }
+            if (!TagsSqlHandler.INSTANCE.getPlayerTags(playerUniqueId).contains(getProperty(PropertyType.TAG_ID))) {
+                setProperty(PropertyType.TAG_ID, -1);
+                return null;
+            }
             return TagsSqlHandler.INSTANCE.getTag(getProperty(PropertyType.TAG_ID)).name();
         }
 

@@ -31,6 +31,7 @@ public enum TagsSqlHandler {
     String ADD_TAG = "INSERT INTO `SysInternal`.`Tags` (`Name`, `Season`, `Year`, `NameId`) VALUES (?, ?, ?, ?)";
     String GRAB_LUCK_TAGS = "SELECT * FROM `luckperms`.`luckperms_user_permissions`;";
     String ADD_PLAYER_TAG = "INSERT INTO `PlayerData`.`Tags` (`Uuid`, `TagId`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `TagId` = ?;";
+    String REMOVE_PLAYER_TAG = "DELETE FROM `PlayerData`.`Tags` WHERE `Uuid` = ? AND `TagId` = ?";
 
     Database databasePlayer = new MySQL(DatabaseCredentials.MAIN.withDatabase("PlayerData"));
     Database databaseSys = new MySQL(DatabaseCredentials.MAIN.withDatabase("PlayerData"));
@@ -99,6 +100,22 @@ public enum TagsSqlHandler {
 
     public void addPlayerTag(UUID playerId, int tagId) {
         databasePlayer.executeUpdate(ADD_PLAYER_TAG, playerId.toString(), tagId, tagId).join();
+    }
+
+    public void removePlayerTag(UUID playerId, int tagId) {
+        // Remove tag from the database
+        databasePlayer.executeUpdate(REMOVE_PLAYER_TAG, playerId.toString(), tagId).join();
+
+        // Update the cache
+        HashSet<Integer> tags = playerTags.getIfPresent(playerId);
+        if (tags != null) {
+            tags.remove(tagId);
+            if (tags.isEmpty()) {
+                playerTags.invalidate(playerId);
+            } else {
+                playerTags.put(playerId, tags);
+            }
+        }
     }
 
     public Tag getTag(int tagId) {
