@@ -6,7 +6,7 @@ import org.jetbrains.annotations.Nullable;
 public interface IScalable {
 
     /**
-     * Returns server scale type
+     * Returns instance scale type
      */
     ServerScaleType getServerScale();
 

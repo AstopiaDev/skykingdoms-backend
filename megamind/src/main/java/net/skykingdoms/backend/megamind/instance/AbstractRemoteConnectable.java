@@ -1,4 +1,4 @@
-package net.skykingdoms.backend.megamind.server;
+package net.skykingdoms.backend.megamind.instance;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 public abstract class AbstractRemoteConnectable implements IConnectable {
 
     /**
-     * Remote server's name
+     * Remote instance's name
      */
     String name;
 

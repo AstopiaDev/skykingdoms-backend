@@ -28,7 +28,7 @@ public final class BukkitAgent {
     ServerScaleType serverScaleType;
 
     // Actually, I guess all the servers have this present
-    // exceptions: limbo server or some unhandled exceptions
+    // exceptions: limbo instance or some unhandled exceptions
     GameType gameType;
 
     // Might be null, if that's not a game instance
@@ -48,12 +48,12 @@ public final class BukkitAgent {
     Configuration configuration;
 
     public boolean isGameServer() {
-        return (serverScaleType == ServerScaleType.MEGA || serverScaleType == ServerScaleType.MINI)
+        return (serverScaleType == ServerScaleType.LARGE || serverScaleType == ServerScaleType.MEDIUM)
                 && gameMode != null;
     }
 
     public boolean isLobby() {
-        return serverScaleType == ServerScaleType.LOBBY;
+        return serverScaleType == ServerScaleType.MINI;
     }
 
     public int getPort() {
@@ -139,9 +139,9 @@ public final class BukkitAgent {
             Logging.IMP.info("[boot] Done processing testflow data [ok]");
         }
 
-        Logging.IMP.info("[boot] Modifying server.properties [...]");
+        Logging.IMP.info("[boot] Modifying instance.properties [...]");
         modifyServerProperties();
-        Logging.IMP.info("[boot] Modified server.properties [ok]");
+        Logging.IMP.info("[boot] Modified instance.properties [ok]");
 
         Logging.IMP.info("[boot] Executing core bootstrap [...]");
         executeCore();
@@ -153,15 +153,15 @@ public final class BukkitAgent {
     @SneakyThrows
     public void modifyServerProperties() {
         val props = new Properties();
-        props.load(new FileReader("server.properties"));
-        props.setProperty("server-port", String.valueOf(getPort()));
+        props.load(new FileReader("instance.properties"));
+        props.setProperty("instance-port", String.valueOf(getPort()));
         props.setProperty("online-mode", String.valueOf(false));
         props.setProperty("enforce-secure-profile", String.valueOf(false));
-        if (serverScaleType != ServerScaleType.PERSISTENT) {
+/*        if (serverScaleType != ServerScaleType.PERSISTENT) {
             props.setProperty("allow-nether", String.valueOf(false));
-        }
+        }*/
         props.setProperty("motd", "static-connect\n" + serverScaleType.name() + "/" + gameType.name());
-        props.store(new FileWriter("server.properties"), null);
+        props.store(new FileWriter("instance.properties"), null);
     }
 
     public void executeCore() {
@@ -188,7 +188,7 @@ public final class BukkitAgent {
         command.add(javaVersion== null ? "java" : javaVersion.getBinaryPath());
         command.add("-Xms" + initialHeapSizeMB + "m");
         command.add("-Xmx" + maxHeapSizeMB + "m");
-        command.add(debugPort > 0 ? "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:" + debugPort : "-Dvoid=0");
+        command.add(debugPort > 0 ? "-agentlib:jdwp=transport=dt_socket,instance=y,suspend=n,address=*:" + debugPort : "-Dvoid=0");
 
         if (javaVersion != null && javaVersion == JavaVersion.GRAALVM_17 || javaVersion == JavaVersion.NORMAL_17 || javaVersion == JavaVersion.OPENJDK_21) {
             command.add("--add-opens=java.base/java.lang=ALL-UNNAMED");
@@ -205,7 +205,7 @@ public final class BukkitAgent {
         command.add("-Dlog4j2.formatMsgNoLookups=true");
         command.add("-DexternalAddr=" + getExternalHost());
         command.add("-jar");
-        command.add("server.jar");
+        command.add("instance.jar");
 
         ProcessBuilder processBuilder = new ProcessBuilder(command);
 

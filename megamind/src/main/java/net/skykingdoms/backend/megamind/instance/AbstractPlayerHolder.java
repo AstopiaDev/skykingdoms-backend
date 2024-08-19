@@ -1,4 +1,4 @@
-package net.skykingdoms.backend.megamind.server;
+package net.skykingdoms.backend.megamind.instance;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;

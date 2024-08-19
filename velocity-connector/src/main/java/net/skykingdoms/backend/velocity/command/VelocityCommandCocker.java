@@ -17,7 +17,7 @@ import java.util.stream.Stream;
 
 /**
  * This class is used in tabcomplete purposes.
- * Basically stores command maps for each server registered in network.
+ * Basically stores command maps for each instance registered in network.
  *
  * @author Vihara
  */

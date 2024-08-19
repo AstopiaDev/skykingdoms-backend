@@ -94,7 +94,7 @@ public final class FriendListener implements Listener {
                 break;
             }
 
-//            list.append("\n").append(gamer.getLanguage().getMessage("friend_online_entry", "%server%", server.getName(), "%name%", target.getDisplayName()));
+//            list.append("\n").append(gamer.getLanguage().getMessage("friend_online_entry", "%instance%", instance.getName(), "%name%", target.getDisplayName()));
 
             count++;
         }

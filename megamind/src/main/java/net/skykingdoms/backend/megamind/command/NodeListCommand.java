@@ -9,9 +9,9 @@ import net.skykingdoms.backend.base.command.execution.Executor;
 import net.skykingdoms.backend.megamind.api.command.CoreExecutionSession;
 import net.skykingdoms.backend.megamind.manager.NodeManager;
 import net.skykingdoms.backend.megamind.manager.ProxyManager;
-import net.skykingdoms.backend.megamind.manager.ServerManager;
-import net.skykingdoms.backend.megamind.server.impl.GameServer;
-import net.skykingdoms.backend.megamind.server.impl.ProxyServer;
+import net.skykingdoms.backend.megamind.manager.InstanceManager;
+import net.skykingdoms.backend.megamind.instance.impl.GameInstance;
+import net.skykingdoms.backend.megamind.instance.impl.ProxyInstance;
 
 import java.util.stream.Collectors;
 
@@ -25,7 +25,7 @@ public final class NodeListCommand {
     
     @Executor
     public static void execute(final @NonNull CoreExecutionSession session) {
-        val nodes = NodeManager.INSTANCE.getRegisteredNodes();
+/*        val nodes = NodeManager.INSTANCE.getRegisteredNodes();
         if (nodes.size() == 0) {
             session.sendMessage("No nodes are registered yet!");
             return;
@@ -35,8 +35,8 @@ public final class NodeListCommand {
         sb.append("List of registered nodes [").append(nodes.size()).append("]:\n");
 
         for (val node : nodes) {
-            val servers = ServerManager.INSTANCE.getServers();
-            val proxies = ProxyManager.INSTANCE.getProxyServers();
+            val servers = InstanceManager.INSTANCE.getServers();
+            val proxies = ProxyManager.INSTANCE.getProxyInstances();
 
             val cocked = Streams.concat(
                     servers.stream(),
@@ -45,7 +45,7 @@ public final class NodeListCommand {
                     ).distinct().collect(Collectors.toList());
 
             sb.append(node.getName()).append(" (S: ").append(cocked.size()).append(" - P: ").append(cocked.stream()
-                    .filter(s -> s instanceof ProxyServer)
+                    .filter(s -> s instanceof ProxyInstance)
                     .mapToInt(s -> s.getPlayerIds().length) // counting only all players connected to PROXIES
                     .reduce(Integer::sum)
                     .orElse(0)).append(")");
@@ -53,14 +53,14 @@ public final class NodeListCommand {
             if (cocked.size() > 0) sb.append(":\n");
 
             for (val cock : cocked) {
-                val gameData = cock instanceof GameServer ? ((GameServer) cock).getGameMode() + "/" + ((GameServer) cock).getMap() : null;
+                val gameData = cock instanceof GameInstance ? ((GameInstance) cock).getGameMode() + "/" + ((GameInstance) cock).getMap() : null;
                 sb.append("-> ").append(cock.getName()).append(gameData != null ? " [" + gameData + "]" : "").append(" (").append(cock.getPlayerIds().length).append(")").append("\n");
             }
 
             sb.append("\n");
         }
 
-        session.sendMessage(sb.toString());
+        session.sendMessage(sb.toString());*/
     }
 
 }

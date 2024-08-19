@@ -16,7 +16,7 @@ import net.skykingdoms.backend.megamind.api.plugin.Event;
 public class RemoteClientCommandExecuteEvent extends Event {
 
     CommandSender sender;
-    // AbstractServer server;
+    // AbstractServer instance;
     String command;
 
 }

@@ -81,7 +81,7 @@ public class TabCompleteListener {
             if (VelocityCommandCocker.INSTANCE.getCommands().contains(baseCommand)) {
                 Connection.awaitPacket(new Tabcomplete.Request(gamer.getGamerId(), cursor))
                         .whenComplete((response, cause) -> {
-                            Preconditions.checkNotNull(player.getCurrentServer(), "server");
+                            Preconditions.checkNotNull(player.getCurrentServer(), "instance");
 
                             if (player.getProtocolVersion().getProtocol() >= ProtocolVersion.MINECRAFT_1_13.getProtocol()) {
                                 int start = cursor.lastIndexOf(' ') + 1;

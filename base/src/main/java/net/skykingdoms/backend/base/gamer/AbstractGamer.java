@@ -313,17 +313,17 @@ public abstract class AbstractGamer implements IGamer {
     }
 
     /**
-     * Basically, kicks/disconnects a player from server
+     * Basically, kicks/disconnects a player from instance
      */
     public abstract void disconnect(final @NotNull String reason);
 
     /**
-     * Sends a packet to bukkit server instance the player is connected to
+     * Sends a packet to bukkit instance instance the player is connected to
      */
     public void sendToServer(final @NotNull Packet<?> packet) { }
 
     /**
-     * Sends a packet to proxy server
+     * Sends a packet to proxy instance
      */
     public void sendToProxy(final @NotNull Packet<?> packet) { }
 

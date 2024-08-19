@@ -94,13 +94,13 @@ public enum DuelManager {
         if (!serverDeployed) {
             return null;
         }
-        val server = ServerManager.INSTANCE.getBestGameServerByOnlineAndMap(sender, gameMode.bakeData(), data.map(), true);
+        val server = InstanceManager.INSTANCE.getBestGameServerByOnlineAndMap(sender, gameMode.bakeData(), data.map(), true);
         String serverName = null;
 
         if (server == null) {
             GameBootResponse response = new GameBootResponse(gameMode, 1);
 
-            val duelServer = ServerManager.INSTANCE.getServerByType(GameType.DUELS, 60);
+            val duelServer = InstanceManager.INSTANCE.getServerByType(GameType.DUELS, 60);
             if (duelServer != null) {
                 serverName = duelServer.getChannel().awaitPacket(new ArenaBoot.Request(gameMode, data)).join().getName();
             } else {
@@ -112,7 +112,7 @@ public enum DuelManager {
                                     || result == DeploymentResponse.TRANSACTION_FAILED) {
                                 Logging.IMP.error("Transaction failed! (" + result.name() + ") / (#" + result.transactionId() + ")");
                             } else {
-                                ServerManager.INSTANCE.queueGameInstanceBoot(result.transactionId(), new GameBootResponse[]{response});
+                                InstanceManager.INSTANCE.queueGameInstanceBoot(result.transactionId(), new GameBootResponse[]{response});
                                 Logging.IMP.info("Queued deployment of game instances!");
                             }
                         });

@@ -13,7 +13,6 @@ import net.skykingdoms.backend.base.data.stat.StatsManager;
 import net.skykingdoms.backend.base.data.state.NetworkState;
 import net.skykingdoms.backend.base.gamer.ICommandSender;
 import net.skykingdoms.backend.base.language.Language;
-import net.skykingdoms.backend.base.mysql.DatabaseCredentials;
 import net.skykingdoms.backend.base.permission.RankSqlHandler;
 import net.skykingdoms.backend.base.util.collection.CollectionUtil;
 import net.skykingdoms.backend.base.util.color.ChatColor;
@@ -37,8 +36,8 @@ import net.skykingdoms.backend.megamind.data.staffchat.StaffChatListener;
 import net.skykingdoms.backend.megamind.event.gamer.CommandEvent;
 import net.skykingdoms.backend.megamind.lookup.LookupManager;
 import net.skykingdoms.backend.megamind.manager.*;
-import net.skykingdoms.backend.megamind.server.impl.NodeServer;
-import net.skykingdoms.backend.megamind.server.impl.ProxyServer;
+import net.skykingdoms.backend.megamind.instance.impl.NodeInstance;
+import net.skykingdoms.backend.megamind.instance.impl.ProxyInstance;
 import net.skykingdoms.backend.protocol.exception.BindException;
 import net.skykingdoms.backend.protocol.logging.Logging;
 import net.skykingdoms.backend.protocol.server.GameMode;
@@ -122,8 +121,6 @@ public enum MegamindApp {
         running = true;
 
         // Invoking #postBootstrap() method for required managers
-
-        ServerManager.INSTANCE.postBootstrap();
         CoreSecurityManager.INSTANCE.postBootstrap();
         DeploymentManager.INSTANCE.postBootstrap();
         ProxyManager.INSTANCE.postBootstrap();
@@ -133,9 +130,6 @@ public enum MegamindApp {
         TestFlowManager.INSTANCE.postBootstrap();
         StatsManager.INSTANCE.postBootstrap();
         DuelManager.INSTANCE.postBootstrap();
-
-
-        this.addPersistentServers();
 
         Logging.IMP.info("Connection opened at {}", connection.getChannel().localAddress());
         Logging.IMP.info("Epoll: {}", coloredEpoll(connection.isEpoll()));
@@ -186,20 +180,6 @@ public enum MegamindApp {
                 : ChatColor.YELLOW
                 : ChatColor.GREEN)
                 + String.valueOf(time);
-    }
-
-    private void addPersistentServers() {
-        Configuration section = configuration.getSection("servers");
-        for (String key : section.getKeys()) {
-            Configuration server = section.getSection(key);
-            DeploymentManager.INSTANCE.addPersistentDeployment(key,
-                    UUID.fromString(server.getString("tid")),
-                    server.getString("address"),
-                    server.getInt("port"),
-                    GameType.valueOf(server.getString("gameType")),
-                    GameMode.valueOf(server.getString("gameMode"))
-            );
-        }
     }
 
     public long getUptime(final @NonNull TimeUnit unit) {
@@ -327,7 +307,7 @@ public enum MegamindApp {
             }
         });
 
-        // basically a server that player can join
+        // basically a instance that player can join
         // it wont show a raw bukkit instances if games present
         TabcompleteManager.IMP.addCompleter("connectable", new AbstractTabcompleter() {
             @Override
@@ -335,7 +315,7 @@ public enum MegamindApp {
                 if (sender instanceof Gamer && !((Gamer) sender).isStaff()) {
                     return Collections.emptyList();
                 }
-                return any(label, Streams.concat(ServerManager.INSTANCE.getGameServers().stream(), LobbyManager.INSTANCE.getRegisteredLobbyServers().stream(), ServerManager.INSTANCE.getPersistentServers().stream())
+                return any(label, Streams.concat(InstanceManager.INSTANCE.getInstances().stream(), LobbyManager.INSTANCE.getLobbyInstances().stream())
                         .distinct()
                         .map(IConnectable::getName));
             }
@@ -379,7 +359,7 @@ public enum MegamindApp {
                     return Collections.emptyList();
                 }
                 return any(label, NodeManager.INSTANCE.getRegisteredNodes().stream()
-                        .map(NodeServer::getName));
+                        .map(NodeInstance::getName));
             }
         });
 
@@ -390,8 +370,8 @@ public enum MegamindApp {
                 if (sender instanceof Gamer && !((Gamer) sender).isStaff()) {
                     return Collections.emptyList();
                 }
-                return any(label, ProxyManager.INSTANCE.getProxyServers().stream()
-                        .map(ProxyServer::getName));
+                return any(label, ProxyManager.INSTANCE.getProxyInstances().stream()
+                        .map(ProxyInstance::getName));
             }
         });
     }

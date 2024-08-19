@@ -5,7 +5,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import net.skykingdoms.backend.protocol.type.reconnect.impl.FluentBukkitDataImpl;
+import net.skykingdoms.backend.protocol.type.reconnect.impl.bukkit.FluentBukkitDataImpl;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;

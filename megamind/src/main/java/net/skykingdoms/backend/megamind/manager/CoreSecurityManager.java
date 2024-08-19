@@ -52,7 +52,7 @@ public final class CoreSecurityManager {
     }
 
     /**
-     * Invoked once on server startup
+     * Invoked once on instance startup
      */
     public void postBootstrap() {
         bungeeSecurityToken = generateToken(128);

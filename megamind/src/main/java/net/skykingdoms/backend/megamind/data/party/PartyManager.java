@@ -264,7 +264,7 @@ public final class PartyManager {
     }
 
     /**
-     * Warps each party member to gamer's server
+     * Warps each party member to gamer's instance
      */
     public void warpTo(final @NonNull Gamer gamer) {
         val party = getParty(gamer.getGamerId());
@@ -274,7 +274,7 @@ public final class PartyManager {
 
         val server = gamer.getCurrentServer();
 
-        Logging.IMP.info(server.getName() + " is the name of the server btw" + server.canJoin() + " apparently thats the joinable");
+        Logging.IMP.info(server.getName() + " is the name of the instance btw" + server.canJoin() + " apparently thats the joinable");
 
         val needWarp = party.getAllMembers().stream()
                 .filter(member -> member.getCurrentServer() != server)
@@ -289,7 +289,7 @@ public final class PartyManager {
                             .collect(Collectors.joining(", ")));
         }
 
-        // sending all niggers to target server
+        // sending all niggers to target instance
         needWarp.forEach(player -> {
             player.sendLocalizedMessage("party_warp_summoned",
                     "%player%", gamer.getDisplayName());
@@ -481,7 +481,7 @@ public final class PartyManager {
     }
 
     /**
-     * Invoked when player joins the server
+     * Invoked when player joins the instance
      */
     public void handleJoin(final @NonNull Gamer gamer) {
         val party = getParty(gamer.getGamerId());

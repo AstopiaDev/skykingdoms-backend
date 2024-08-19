@@ -20,7 +20,9 @@ import net.skykingdoms.backend.protocol.type.WrappedNodeSnapshot;
 import net.skykingdoms.backend.protocol.type.reconnect.impl.FluentNodeDataImpl;
 import net.skykingdoms.backend.protocol.util.Consumer;
 
+import java.util.EnumSet;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public final class RemoteServerConnection extends AbstractRemoteServerChannel {
@@ -32,14 +34,22 @@ public final class RemoteServerConnection extends AbstractRemoteServerChannel {
 
     @Override
     public void active() {
-        sendPacket(new Handshake.Request(
+        NodeApp.INSTANCE.reloadNodeData();
+
+        EnumSet<Handshake.RequestFlag> flags = EnumSet.noneOf(Handshake.RequestFlag.class);
+        if (NodeApp.INSTANCE.reconnecting()) {
+            flags.add(Handshake.RequestFlag.IS_RECONNECT);
+        }
+        flags.add(Handshake.RequestFlag.HAS_FLUENT_DATA);
+
+        sendPacket(
+                new Handshake.Request(
                         RemoteConnectedType.NODE,
                         NodeApp.INSTANCE.nodeConfiguration().getSecret(),
                         UUID.randomUUID(), // any value for NODE, doesn't matter
-                        NodeApp.INSTANCE.reconnecting()
-                                ? Handshake.Request.IS_RECONNECT | Handshake.Request.HAS_FLUENT_DATA
-                                : 0,
-                        NodeApp.INSTANCE.nodeData(), 0
+                        flags,
+                        NodeApp.INSTANCE.nodeData(),
+                0
                 )
         );
     }
@@ -93,29 +103,24 @@ public final class RemoteServerConnection extends AbstractRemoteServerChannel {
 
         ctx.setResponse(new ServerDeploy.Response(ServerDeploy.DeploymentResult.ACCEPTED, 90_000L));
 
-        // Async execution, to let channel processor context finish and send response
-        //noinspection Convert2Lambda (error: incompatible types: inference variable T has incompatible bounds)
-        NodeApp.INSTANCE.executor().submit(new Runnable() {
-            @Override
-            public void run() {
+        // Async execution using CompletableFuture
+        CompletableFuture.runAsync(() -> {
+            Consumer<Void> task = $ -> {
+                NodeDeploymentManager.INSTANCE.handleRequest(
+                        packet.getDeploymentTarget(),
+                        pending,
+                        packet.isTestFlow(),
+                        packet.getTestFlowName(),
+                        packet.getDebugPort(),
+                        packet.getTestFlowId());
+            };
 
-                Consumer<Void> queueShit = $ -> {
-                    NodeDeploymentManager.INSTANCE.handleRequest(
-                            packet.getDeploymentTarget(),
-                            pending,
-                            packet.isTestFlow(),
-                            packet.getTestFlowName(),
-                            packet.getDebugPort(),
-                            packet.getTestFlowId());
-                };
-
-                if (NodeDeploymentManager.INSTANCE.isLoaded()) {
-                    queueShit.accept(null);
-                } else {
-                    NodeDeploymentManager.INSTANCE.addQueue(queueShit);
-                }
+            if (NodeDeploymentManager.INSTANCE.isLoaded()) {
+                task.accept(null);
+            } else {
+                NodeDeploymentManager.INSTANCE.addQueue(task);
             }
-        });
+        }, NodeApp.INSTANCE.executor());
     }
 
     @Override

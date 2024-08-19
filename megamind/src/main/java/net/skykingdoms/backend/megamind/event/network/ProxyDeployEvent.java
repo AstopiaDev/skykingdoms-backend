@@ -5,7 +5,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import net.skykingdoms.backend.megamind.api.plugin.Event;
-import net.skykingdoms.backend.megamind.server.impl.ProxyServer;
+import net.skykingdoms.backend.megamind.instance.impl.ProxyInstance;
 
 /**
  * 
@@ -15,7 +15,7 @@ import net.skykingdoms.backend.megamind.server.impl.ProxyServer;
 @Getter
 public final class ProxyDeployEvent extends Event {
 
-    ProxyServer proxyServer;
+    ProxyInstance proxyInstance;
 
     boolean reconnect;
 

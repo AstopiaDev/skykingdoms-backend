@@ -2,7 +2,7 @@ package net.skykingdoms.backend.protocol.type;
 
 /**
  * Enum representing type of network. It is used
- * to split development server and production server.
+ * to split development instance and production instance.
  *
  */
 public enum NetworkType {

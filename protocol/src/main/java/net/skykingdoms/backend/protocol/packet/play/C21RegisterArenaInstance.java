@@ -19,7 +19,7 @@ import org.jetbrains.annotations.NotNull;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public final class C21RegisterGameInstance extends Packet<PlayClientProcessor> {
+public final class C21RegisterArenaInstance extends Packet<PlayClientProcessor> {
 
     ScalableDataImpl data;
 

@@ -26,8 +26,8 @@ public final class ServersSqlHandler {
 
 
     /**
-     * Id           = id of the server
-     * Name     = name of the server
+     * Id           = id of the instance
+     * Name     = name of the instance
      * <p>
      * Returns generated ID blya
      */

@@ -31,15 +31,15 @@ public final class SecurityHandshakeListener implements Listener {
 
     @NotNull
     private static String getServerVersion() {
-        Class<?> server = Bukkit.getServer().getClass();
-        if (!server.getSimpleName().equals("CraftServer")) {
+        Class<?> instance = Bukkit.getServer().getClass();
+        if (!instance.getSimpleName().equals("CraftServer")) {
             return ".";
         }
-        if (server.getName().equals("org.bukkit.craftbukkit.CraftServer")) {
+        if (instance.getName().equals("org.bukkit.craftbukkit.CraftServer")) {
             // Non versioned class
             return ".";
         } else {
-            String version = server.getName().substring("org.bukkit.craftbukkit".length());
+            String version = instance.getName().substring("org.bukkit.craftbukkit".length());
             return version.substring(0, version.length() - "CraftServer".length());
         }
     }*/
@@ -60,9 +60,9 @@ public final class SecurityHandshakeListener implements Listener {
             Logging.IMP.warn("[Security] Denying connection from {} {} - reason: {}", e.getUniqueId(), fail.describeConnection(), fail.reason().name());
 
             if (fail.reason() == BungeeCordHandshake.Fail.Reason.INVALID_HANDSHAKE) {
-                e.setFailMessage(ChatColor.RED + "Internal server error\n[SEC-2]");
+                e.setFailMessage(ChatColor.RED + "Internal instance error\n[SEC-2]");
             } else {
-                e.setFailMessage(ChatColor.RED + "Internal server error\n[SEC-3-" + fail.reason().name() + "]");
+                e.setFailMessage(ChatColor.RED + "Internal instance error\n[SEC-3-" + fail.reason().name() + "]");
             }
 
             e.setFailed(true);
@@ -81,7 +81,7 @@ public final class SecurityHandshakeListener implements Listener {
     }
 
     private static @NotNull Class<?> getEntityHumanClass() throws ClassNotFoundException {
-        return Class.forName("net.minecraft.server" + SERVER_VERSION + "EntityHuman");
+        return Class.forName("net.minecraft.instance" + SERVER_VERSION + "EntityHuman");
     }*/
 
 }

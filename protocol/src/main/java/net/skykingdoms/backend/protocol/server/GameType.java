@@ -138,7 +138,7 @@ public enum GameType {
     }
 
     public ScalableDataImpl bakeLobbyData() {
-        return new ScalableDataImpl(ServerScaleType.LOBBY, this, null);
+        return new ScalableDataImpl(ServerScaleType.MINI, this, null);
     }
 
     public static final GameType[] VALUES = values();

@@ -35,6 +35,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
@@ -47,6 +50,9 @@ import java.util.function.Supplier;
 public enum NodeDeploymentManager {
     INSTANCE;
 
+    private final BlockingQueue<Consumer<Void>> taskQueue = new LinkedBlockingQueue<>();
+    @Getter
+    private volatile boolean loaded = false;
     final DockerClientConfig cockerConfig = DefaultDockerClientConfig.createDefaultConfigBuilder()
             .withDockerHost("unix:///var/run/docker.sock")
             .withDockerTlsVerify(false)
@@ -55,7 +61,6 @@ public enum NodeDeploymentManager {
             .withRegistryEmail(System.getProperty("docker.mail", "gorenjecalen@gmail.com"))
             .withRegistryUrl(System.getProperty("docker.registry", "http://127.0.0.1:5000/"))
             .build();
-
     final DockerHttpClient cockerHttpClient = new ApacheDockerHttpClient.Builder()
             .dockerHost(cockerConfig.getDockerHost())
             .sslConfig(cockerConfig.getSSLConfig())
@@ -63,23 +68,10 @@ public enum NodeDeploymentManager {
             .connectionTimeout(Duration.ofSeconds(30))
             .responseTimeout(Duration.ofSeconds(45))
             .build();
-
     final DockerClient client = DockerClientImpl.getInstance(cockerConfig, cockerHttpClient);
-
     private final List<Integer> reservedPorts = new ArrayList<>();
-
     private static final String VELOCITY_IMAGE_NAME = "docker.piby.eu/backend/velocity:1.0";
-
     private static String externalHost;
-
-    List<Consumer<Void>> queue = new ArrayList<>();
-
-    @Getter
-    boolean loaded = false;
-
-    public void addQueue(Consumer<Void> consumer) {
-        queue.add(consumer);
-    }
 
     @SneakyThrows
     public static String getExternalHost() {
@@ -101,12 +93,17 @@ public enum NodeDeploymentManager {
         Logging.IMP.info("[Deploy/PB] Updating external address ...");
         Logging.IMP.info("[Deploy/PB] External address: {}", getExternalHost());
 
-        // Removing all containers, because we need only our shit :3
+        removeAllContainers();
+        cleanupAndPullImages();
+        setLoaded(true);
+    }
+
+    private void removeAllContainers() {
         client.listContainersCmd().withShowAll(true).exec().forEach(container -> {
             if (container.getState().equals("running")) {
-                String containerName = container.getNames()[0]; // Get the container name
+                String containerName = container.getNames()[0];
                 if (!containerName.equals("/registry") && !containerName.equals("/node-app") && !containerName.equals("/portainer_agent")
-                && GameMode.valueOf(containerName.substring(1).toUpperCase(), null) == null) {
+                        && GameMode.valueOf(containerName.substring(1).toUpperCase(), null) == null) {
                     try {
                         client.killContainerCmd(container.getId()).exec();
                         client.removeContainerCmd(container.getId()).exec();
@@ -117,41 +114,37 @@ public enum NodeDeploymentManager {
                 }
             }
         });
+    }
 
-
-
-        // Cleaning up images, pulling new from repository
+    private void cleanupAndPullImages() {
         try {
             client.removeImageCmd(VELOCITY_IMAGE_NAME).withForce(true).exec();
-
             for (DeploymentVersion version : DeploymentVersion.VALUES) {
                 client.removeImageCmd(version.image()).withForce(true).exec();
             }
-        } catch (Exception e) { // images not found, don't care
+        } catch (Exception e) {
+            // images not found, don't care
         }
 
-        Logging.IMP.info("[Deploy/PB] Removed old images... Pulling new shit");
+        Logging.IMP.info("[Deploy/PB] Removed old images... Pulling new images");
 
         for (String ye : cockerConfig.getAuthConfigurations().getConfigs().keySet()) {
             Logging.IMP.info(ye);
         }
 
-        try {
-            client.pullImageCmd(VELOCITY_IMAGE_NAME).start().awaitCompletion();
-            Logging.IMP.info("[Deploy/PB] Pulled proxy image!");
+        CompletableFuture.runAsync(() -> {
+            try {
+                client.pullImageCmd(VELOCITY_IMAGE_NAME).start().awaitCompletion();
+                Logging.IMP.info("[Deploy/PB] Pulled proxy image!");
 
-            for (DeploymentVersion version : DeploymentVersion.VALUES) {
-                client.pullImageCmd(version.image()).start().awaitCompletion();
-                Logging.IMP.info("[Deploy/PB] Pulled " + version.image() + " image!");
+                for (DeploymentVersion version : DeploymentVersion.VALUES) {
+                    client.pullImageCmd(version.image()).start().awaitCompletion();
+                    Logging.IMP.info("[Deploy/PB] Pulled " + version.image() + " image!");
+                }
+            } catch (InterruptedException exception) {
+                Logging.IMP.error("[Deploy/PB] Couldn't fetch images from remote");
             }
-
-            loaded = true;
-            for (Consumer<Void> consumer : queue) {
-                consumer.accept(null);
-            }
-        } catch (InterruptedException exception) {
-            Logging.IMP.error("[Deploy/PB] Couldn't fetch images from remote");
-        }
+        });
     }
 
     private String _handleProxyDeploy(final @NonNull ProxyDeployRequest request,
@@ -202,7 +195,7 @@ public enum NodeDeploymentManager {
     }
 
     /**
-     * Invoked right from remote server connection handler,
+     * Invoked right from remote instance connection handler,
      * when the request packet is received.
      */
     public void handleRequest(
@@ -221,7 +214,6 @@ public enum NodeDeploymentManager {
         }, 10, TimeUnit.SECONDS);
 
         val portBindings = new ArrayList<PortBinding>();
-        //Logging.IMP.info("cock 1");
         portBindings.add(PortBinding.parse(port + ":" + port));
         if (debugPort > 0) {
             portBindings.add(PortBinding.parse(debugPort + ":" + debugPort));
@@ -229,20 +221,16 @@ public enum NodeDeploymentManager {
 
         val hostConfig = HostConfig.newHostConfig()
                 .withPortBindings(portBindings)
-        // TODO: YES PLS NEED TOA DD THIS BACK TESTING SON ONON NOAN OFNDSOFNOSDOFSNDOF
                .withAutoRemove(testFlowId <= 0);
-      //  Logging.IMP.info("cock 2");
 
         String containerId;
         if (deploymentTarget == ServerDeploy.DeploymentTarget.PROXY) {
             containerId = _handleProxyDeploy((ProxyDeployRequest) request, hostConfig, port);
-        } else { // bukkit server
+        } else {
             containerId = _handleBukkitDeploy((BukkitDeployRequest) request, hostConfig, port,
                     testFlow ? testFlowName : null, debugPort, testFlowId);
         }
-       // Logging.IMP.info("cock 3 " + containerId);
 
-        //Logging.IMP.info("Starting the container...");
         try {
             client.startContainerCmd(containerId).exec();
             client.renameContainerCmd(containerId).withName(request.getTransactionId().toString()).exec();
@@ -279,7 +267,7 @@ public enum NodeDeploymentManager {
      * Basically destroys a specified container.
      *
      * @param graceful      should we shut down container gracefully of just stop and remove it
-     * @param containerName name of the server instance
+     * @param containerName name of the instance instance
      */
     public void handleDestructionRequest(final @NonNull String containerName,
                                          final boolean graceful,
@@ -317,14 +305,6 @@ public enum NodeDeploymentManager {
         ctx.setResponse(new ServerDestroy.Response(true));
     }
 
-/*    private int getAvailablePort() {
-        int ret = 25565;
-        while (!available(ret)) {
-            ret += 1;
-        }
-        return ret;
-    }*/
-
     private static boolean available(int port) throws IllegalStateException {
         if (NodeDeploymentManager.INSTANCE.reservedPorts.contains(port)) {
             return false;
@@ -347,6 +327,26 @@ public enum NodeDeploymentManager {
             port++;
         }
         throw new IllegalStateException("No available ports in the range");
+    }
+
+    public void setLoaded(boolean loaded) {
+        this.loaded = loaded;
+        if (loaded) {
+            processQueue();
+        }
+    }
+
+    public void addQueue(Consumer<Void> task) {
+        taskQueue.add(task);
+    }
+
+    private void processQueue() {
+        while (!taskQueue.isEmpty()) {
+            Consumer<Void> task = taskQueue.poll();
+            if (task != null) {
+                task.accept(null);
+            }
+        }
     }
 
 }

@@ -14,7 +14,7 @@ import net.skykingdoms.backend.megamind.api.command.CommandSender;
 import net.skykingdoms.backend.megamind.api.command.CoreExecutionSession;
 import net.skykingdoms.backend.megamind.data.gamer.Gamer;
 import net.skykingdoms.backend.megamind.data.party.PartyManager;
-import net.skykingdoms.backend.megamind.manager.ServerManager;
+import net.skykingdoms.backend.megamind.manager.InstanceManager;
 import net.skykingdoms.backend.megamind.manager.TestFlowManager;
 import net.skykingdoms.backend.protocol.type.connect.ConnectStatus;
 import org.apache.commons.cli.CommandLine;
@@ -26,7 +26,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
- * Command used to deploy test server instances
+ * Command used to deploy test instance instances
  * @author Vihara
  */
 @NamedCommand("testflow")
@@ -113,7 +113,7 @@ public final class TestFlowCommand {
                             sender.sendMessage(ChatColor.GRAY + "Btw you dont have a party!");
                         }
 
-                        val result = gamer.sendTo(ServerManager.INSTANCE.getPlayableServer(server));
+                        val result = gamer.sendTo(InstanceManager.INSTANCE.getPlayableServer(server));
 
                         if (result == ConnectStatus.SUCCESS) {
                             AsyncExecution.INSTANCE.runLater(() -> {

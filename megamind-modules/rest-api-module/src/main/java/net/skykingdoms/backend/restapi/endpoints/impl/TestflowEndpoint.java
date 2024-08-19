@@ -26,7 +26,7 @@ public final class TestflowEndpoint implements IEndpoint {
 
         val testFlowData = TestFlowManager.INSTANCE.getTestFlow(request.queryParams("name"));
         if (testFlowData == null) {
-            response.status(500); // internal server error
+            response.status(500); // internal instance error
             return "TestFlow with this name doesn't exist!\n";
         }
 

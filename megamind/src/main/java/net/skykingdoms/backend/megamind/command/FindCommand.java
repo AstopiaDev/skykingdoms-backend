@@ -35,6 +35,6 @@ public class FindCommand {
         }
 
 
-        session.sendMessage("§5Beep, boop, beep! ~~~\n§8" + gamer.getName() + " is currently on server: " + gamer.getCurrentServer().getName());
+        session.sendMessage("§5Beep, boop, beep! ~~~\n§8" + gamer.getName() + " is currently on instance: " + gamer.getCurrentServer().getName());
     }
 }

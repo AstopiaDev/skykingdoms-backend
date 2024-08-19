@@ -23,7 +23,7 @@ public final class PortCommand {
     public static void execute(CoreExecutionSession session) throws CommandTranslationException {
         val target = session.getGamer(0);
         if (target.getCurrentServer() == session.getGamer().getCurrentServer()) {
-            session.sendMessage(ChatColor.RED + "This player is already connected to your server!");
+            session.sendMessage(ChatColor.RED + "This player is already connected to your instance!");
             return;
         }
 

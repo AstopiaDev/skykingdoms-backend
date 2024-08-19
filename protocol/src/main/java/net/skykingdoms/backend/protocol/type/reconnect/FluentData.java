@@ -4,12 +4,12 @@ import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import net.skykingdoms.backend.protocol.packet.serialize.Serializable;
 import net.skykingdoms.backend.protocol.type.RemoteConnectedType;
-import net.skykingdoms.backend.protocol.type.reconnect.impl.FluentBukkitDataImpl;
+import net.skykingdoms.backend.protocol.type.reconnect.impl.bukkit.FluentBukkitDataImpl;
 import net.skykingdoms.backend.protocol.type.reconnect.impl.FluentNodeDataImpl;
 import net.skykingdoms.backend.protocol.type.reconnect.impl.FluentProxyDataImpl;
 
 /**
- * A basic class that represents basic fluent information on server
+ * A basic class that represents basic fluent information on instance
  * 
  */
 @SuppressWarnings("unchecked")

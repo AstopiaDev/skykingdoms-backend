@@ -1,40 +1,41 @@
 package net.skykingdoms.backend.protocol.server;
 
-
 public enum ServerScaleType {
 
     /**
-     * Small server instances that don't require many resources
-     * Example: bedwars game server instance
+     * Small instance instances that don't require many resources.
+     * Example: bedwars game instance instance.
      */
     MINI,
 
     /**
-     * Big server instances that require many resources
-     * Example: SoupPvP FFA arena (only some instances are launched "network-wide")
+     * Medium instance instances that host multiple minigames or arenas.
+     * Example: multiple arenas on one game instance.
      */
-    MEGA,
+    MEDIUM,
 
     /**
-     * Lobby server instances are registered for every single game mode (if required)
-     * Example: bedwarslobby13
+     * Large instance instances that are resource-intensive and can hold up to 100 players.
+     * Example: Mega skywars game.
      */
-    LOBBY,
-    PERSISTENT,
+    LARGE,
+
+    /**
+     * Proxy instance instance that is used to connect to other servers.
+     * Example: Velocity proxy instance.
+     */
+    PROXY,
 
     /**
      * This shouldn't be actually used.
      * Currently, referenced for PROXY WrappedServerTransmittedInfo.
-     * It represents any undefined server instance that is registered in network with custom name.
+     * It represents any undefined instance instance that is registered in network with custom name.
      */
-    UNDEFINED
-
-    ;
+    UNDEFINED;
 
     public boolean hasGameMode() {
-        return this == MINI || this == MEGA || this == PERSISTENT;
+        return this == MINI || this == MEDIUM || this == LARGE;
     }
 
     public static final ServerScaleType[] VALUES = values();
-
 }

@@ -22,8 +22,10 @@ import net.skykingdoms.backend.protocol.packet.play.S04UpdateRemoteData;
 import net.skykingdoms.backend.protocol.packet.play.S15ReloadLanguages;
 import net.skykingdoms.backend.protocol.server.ServerScaleType;
 import net.skykingdoms.backend.protocol.type.RemoteConnectedType;
-import net.skykingdoms.backend.protocol.type.reconnect.impl.FluentBukkitDataImpl;
+import net.skykingdoms.backend.protocol.type.reconnect.impl.bukkit.FluentBukkitDataImpl;
 import org.bukkit.Bukkit;
+
+import java.util.EnumSet;
 
 /**
  * @author Vihara
@@ -46,6 +48,8 @@ public final class RemoteServerConnection extends AbstractRemoteServerChannel { 
             Logging.IMP.stacktrace(t, "Can't call active event");
         }
 
+
+
         sendPacket(new Handshake.Request(
                 RemoteConnectedType.SERVER,
                 BukkitConnector.INSTANCE.secret(),
@@ -55,22 +59,16 @@ public final class RemoteServerConnection extends AbstractRemoteServerChannel { 
                 BukkitConnector.INSTANCE.testFlowId()));
     }
 
-    private int _getReconnectMask() {
-        int mask = 0;
-
-        // bukkit always has fluent data
-        mask |= Handshake.Request.HAS_FLUENT_DATA;
-
-        if (BukkitConnector.INSTANCE.serverScaleType() == ServerScaleType.PERSISTENT) {
-            return mask;
-        }
+    private EnumSet<Handshake.RequestFlag> _getReconnectMask() {
+        EnumSet<Handshake.RequestFlag> mask = EnumSet.noneOf(Handshake.RequestFlag.class);
+        mask.add(Handshake.RequestFlag.HAS_FLUENT_DATA);
 
         if (!BukkitConnector.INSTANCE.fluentBukkitData().getNodeName().equals("N/A")) {
-            mask |= Handshake.Request.IS_RECONNECT;
+            mask.add(Handshake.RequestFlag.IS_RECONNECT);
         }
 
         if (BukkitConnector.INSTANCE.testFlowId() > 0) {
-            mask |= Handshake.Request.IS_TESTFLOW;
+            mask.add(Handshake.RequestFlag.IS_TESTFLOW);
         }
 
         return mask;
@@ -110,7 +108,7 @@ public final class RemoteServerConnection extends AbstractRemoteServerChannel { 
             BukkitConnector.INSTANCE.plugin().getServer().getPluginManager().callEvent(new ServerDataUpdateEvent(BukkitConnector.INSTANCE.fluentBukkitData()));
         });
 
-        Logging.IMP.info("Updated server data: {} @ {}", cockData.getServerName(), cockData.getNodeName());
+        Logging.IMP.info("Updated instance data: {} @ {}", cockData.getServerName(), cockData.getNodeName());
     }
 
     @Override

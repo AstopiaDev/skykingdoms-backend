@@ -16,7 +16,7 @@ import java.util.List;
  * Attempts to determine if original protocol or protocol v2 is being used.
  */
 public class VotifierProtocolDifferentiator extends ByteToMessageDecoder {
-    private static final QuietException V2_ONLY = new QuietException("This server only accepts well-formed Votifier v2 packets.");
+    private static final QuietException V2_ONLY = new QuietException("This instance only accepts well-formed Votifier v2 packets.");
 
     private static final short PROTOCOL_2_MAGIC = 0x733A;
     private final boolean testMode;

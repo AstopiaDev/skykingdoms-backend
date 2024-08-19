@@ -1,11 +1,11 @@
-package net.skykingdoms.backend.megamind.server.impl;
+package net.skykingdoms.backend.megamind.instance.impl;
 
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.FieldDefaults;
 import net.skykingdoms.backend.megamind.connection.RemoteClientConnection;
-import net.skykingdoms.backend.megamind.server.AbstractPlayerHolder;
+import net.skykingdoms.backend.megamind.instance.AbstractPlayerHolder;
 import net.skykingdoms.backend.protocol.server.IDeployable;
 
 import java.net.InetSocketAddress;
@@ -13,19 +13,19 @@ import java.net.InetSocketAddress;
 
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Getter
-public final class ProxyServer extends AbstractPlayerHolder implements IDeployable {
+public final class ProxyInstance extends AbstractPlayerHolder implements IDeployable {
 
-    NodeServer node;
+    NodeInstance node;
 
     /**
      * Remote proxy's host
      */
     InetSocketAddress host;
 
-    public ProxyServer(final @NonNull String name,
-                       final @NonNull NodeServer server,
-                       final @NonNull RemoteClientConnection connection,
-                       final @NonNull InetSocketAddress remote) {
+    public ProxyInstance(final @NonNull String name,
+                         final @NonNull NodeInstance server,
+                         final @NonNull RemoteClientConnection connection,
+                         final @NonNull InetSocketAddress remote) {
         super(name, connection);
         this.node = server;
         this.host = remote;

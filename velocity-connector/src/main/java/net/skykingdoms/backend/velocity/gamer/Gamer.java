@@ -47,7 +47,7 @@ public final class Gamer extends AbstractGamer implements IGamer, ProxiedCommand
     @Setter volatile Player player;
 
     /**
-     * Which domain player used to connect to the server
+     * Which domain player used to connect to the instance
      */
     @Setter String domain;
 

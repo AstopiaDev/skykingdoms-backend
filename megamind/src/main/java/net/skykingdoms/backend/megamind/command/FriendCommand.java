@@ -16,10 +16,9 @@ import net.skykingdoms.backend.base.util.time.TimeUtil;
 import net.skykingdoms.backend.megamind.api.command.CoreExecutionSession;
 import net.skykingdoms.backend.megamind.data.friend.FriendManager;
 import net.skykingdoms.backend.megamind.data.gamer.Gamer;
-import net.skykingdoms.backend.megamind.server.AbstractPlayerHolder;
-import net.skykingdoms.backend.megamind.server.impl.GameServer;
-import net.skykingdoms.backend.megamind.server.impl.LobbyServer;
-import net.skykingdoms.backend.megamind.server.impl.PersistentServer;
+import net.skykingdoms.backend.megamind.instance.AbstractPlayerHolder;
+import net.skykingdoms.backend.megamind.instance.impl.GameInstance;
+import net.skykingdoms.backend.megamind.instance.impl.LobbyInstance;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -214,15 +213,12 @@ public final class FriendCommand {
                     }
 
                     AbstractPlayerHolder holder = friend.getCurrentServer();
-                    if (holder instanceof GameServer) {
-                        GameServer gameServer = (GameServer) holder;
+                    if (holder instanceof GameInstance) {
+                        GameInstance gameServer = (GameInstance) holder;
                         return displayName + "§a is currently playing " + gameServer.getGameType().getHumanName();
-                    } else if (holder instanceof LobbyServer) {
-                        LobbyServer lobbyServer = (LobbyServer) holder;
+                    } else if (holder instanceof LobbyInstance) {
+                        LobbyInstance lobbyServer = (LobbyInstance) holder;
                         return displayName + "§a is currently in " + lobbyServer.getGameType().getHumanName() + " Lobby";
-                    } else if (holder instanceof PersistentServer) {
-                        PersistentServer persistentServer = (PersistentServer) holder;
-                        return displayName + "§a is currently in " + persistentServer.getGameMode().getHumanName();
                     }
                     return "#" + meta.getMetaId() + " " + displayName + " - " + TimeUtil.getDateString(gamer.getLanguage(), LocalDate.from(meta.getBeginning()));
                 })

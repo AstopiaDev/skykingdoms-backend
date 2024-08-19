@@ -42,7 +42,7 @@ public abstract class AbstractPluginMessagingForwardingSource implements Forward
             if (!forwardSpecific(server, rawData)) {
                 attemptToAddToCache(v, server.getName());
             } else if (plugin.isDebug()) {
-                plugin.getPluginLogger().info("Successfully forwarded vote " + v + " to server " + server.getName());
+                plugin.getPluginLogger().info("Successfully forwarded vote " + v + " to instance " + server.getName());
             }
         }
     }
@@ -79,7 +79,7 @@ public abstract class AbstractPluginMessagingForwardingSource implements Forward
     protected void onServerConnect(BackendServer server) {
         if (cache == null) return;
         final Collection<Vote> cachedVotes = cache.evict(server.getName());
-        dumpVotesToServer(cachedVotes, server, "server '" + server + "'", failedVotes -> {
+        dumpVotesToServer(cachedVotes, server, "instance '" + server + "'", failedVotes -> {
             for (Vote v : failedVotes)
                 cache.addToCache(v, server.getName());
         });

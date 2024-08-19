@@ -8,7 +8,7 @@ import net.skykingdoms.backend.base.command.execution.Executor;
 import net.skykingdoms.backend.base.language.Language;
 import net.skykingdoms.backend.megamind.api.command.CoreExecutionSession;
 import net.skykingdoms.backend.megamind.manager.ProxyManager;
-import net.skykingdoms.backend.megamind.manager.ServerManager;
+import net.skykingdoms.backend.megamind.manager.InstanceManager;
 import net.skykingdoms.backend.protocol.packet.play.S15ReloadLanguages;
 
 import java.util.Arrays;
@@ -20,7 +20,7 @@ import java.util.Arrays;
 public final class ReloadLanguagesCommand {
 
     @Dependency
-    private static ServerManager manager;
+    private static InstanceManager manager;
 
     @Executor
     @WithCondition("group: admin")
@@ -36,7 +36,7 @@ public final class ReloadLanguagesCommand {
             ProxyManager.INSTANCE.sendToProxies(packet);
 
             // Sending shit to ALL bukkit instances (that includes mini/mega/lobby instances)
-            ServerManager.INSTANCE.sendToServers(packet);
+            InstanceManager.INSTANCE.sendToServers(packet);
 
             session.sendPrefixedMessage("Translations updated networkwide :D");
         } else {
@@ -46,7 +46,7 @@ public final class ReloadLanguagesCommand {
                 session.sendPrefixedMessage("Translations updated locally UwU");
             } else {
                 session.getGamer().sendToServer(packet);
-                session.sendPrefixedMessage("Translations updated at " + session.getGamer().getBukkitServer().getName());
+                session.sendPrefixedMessage("Translations updated at " + session.getGamer().getBukkitInstance().getName());
             }
         }
     }

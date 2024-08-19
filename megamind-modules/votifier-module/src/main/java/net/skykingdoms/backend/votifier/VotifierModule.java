@@ -1,15 +1,12 @@
 package net.skykingdoms.backend.votifier;
 
 import lombok.val;
-import net.skykingdoms.backend.base.data.state.NetworkState;
-import net.skykingdoms.backend.base.language.Lang;
 import net.skykingdoms.backend.base.util.config.Configuration;
 import net.skykingdoms.backend.base.util.config.ConfigurationProvider;
 import net.skykingdoms.backend.base.util.config.YamlConfiguration;
-import net.skykingdoms.backend.megamind.MegamindApp;
 import net.skykingdoms.backend.megamind.api.plugin.Plugin;
 import net.skykingdoms.backend.megamind.data.gamer.Gamer;
-import net.skykingdoms.backend.megamind.manager.ServerManager;
+import net.skykingdoms.backend.megamind.manager.InstanceManager;
 import net.skykingdoms.backend.protocol.logging.Logging;
 import net.skykingdoms.backend.protocol.packet.play.S33VoteReceived;
 import net.skykingdoms.backend.protocol.type.PropertyType;
@@ -23,21 +20,15 @@ import net.skykingdoms.backend.votifier.platform.LoggingAdapter;
 import net.skykingdoms.backend.votifier.platform.VotifierPlugin;
 import net.skykingdoms.backend.votifier.platform.scheduler.VotifierScheduler;
 import net.skykingdoms.backend.votifier.support.forwarding.ForwardedVoteListener;
-import net.skykingdoms.backend.votifier.support.forwarding.ForwardingVoteSink;
-import net.skykingdoms.backend.votifier.util.IOUtil;
 import net.skykingdoms.backend.votifier.util.KeyCreator;
 import net.skykingdoms.backend.votifier.util.TokenUtil;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.security.Key;
 import java.security.KeyPair;
 import java.util.*;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static org.fusesource.jansi.Ansi.setEnabled;
@@ -46,7 +37,7 @@ public class VotifierModule extends Plugin implements VoteHandler, VotifierPlugi
     private final Random random = new Random();
 
     /**
-     * The server bootstrap.
+     * The instance bootstrap.
      */
     private VotifierServerBootstrap bootstrap;
 
@@ -87,10 +78,10 @@ public class VotifierModule extends Plugin implements VoteHandler, VotifierPlugi
         File config = new File(getDataFolder(), "config.yml");
 
         /*
-         * Use IP address from server.properties as a default for
+         * Use IP address from instance.properties as a default for
          * configurations. Do not use InetAddress.getLocalHost() as it most
-         * likely will return the main server address instead of the address
-         * assigned to the server.
+         * likely will return the main instance address instead of the address
+         * assigned to the instance.
          */
         String hostAddr = "0.0.0.0";
         /*
@@ -129,17 +120,17 @@ public class VotifierModule extends Plugin implements VoteHandler, VotifierPlugi
 
 
                 /*
-                 * Remind hosted server admins to be sure they have the right
+                 * Remind hosted instance admins to be sure they have the right
                  * port number.
                  */
                 Logging.IMP.info("------------------------------------------------------------------------------");
                 Logging.IMP.info("Assigning NuVotifier to listen on port 8192. If you are hosting Craftbukkit on a");
-                Logging.IMP.info("shared server please check with your hosting provider to verify that this port");
+                Logging.IMP.info("shared instance please check with your hosting provider to verify that this port");
                 Logging.IMP.info("is available for your use. Chances are that your hosting provider will assign");
                 Logging.IMP.info("a different port, which you need to specify in config.yml");
                 Logging.IMP.info("------------------------------------------------------------------------------");
                 Logging.IMP.info("Your default NuVotifier token is " + token + ".");
-                Logging.IMP.info("You will need to provide this token when you submit your server to a voting");
+                Logging.IMP.info("You will need to provide this token when you submit your instance to a voting");
                 Logging.IMP.info("list.");
                 Logging.IMP.info("------------------------------------------------------------------------------");
             } catch (Exception ex) {
@@ -212,7 +203,7 @@ public class VotifierModule extends Plugin implements VoteHandler, VotifierPlugi
             Logging.IMP.info("------------------------------------------------------------------------------");
             Logging.IMP.info("No tokens were found in your configuration, so we've generated one for you.");
             Logging.IMP.info("Your default Votifier token is " + token + ".");
-            Logging.IMP.info("You will need to provide this token when you submit your server to a voting");
+            Logging.IMP.info("You will need to provide this token when you submit your instance to a voting");
             Logging.IMP.info("list.");
             Logging.IMP.info("------------------------------------------------------------------------------");
         }
@@ -237,7 +228,7 @@ public class VotifierModule extends Plugin implements VoteHandler, VotifierPlugi
         } else {
             Logging.IMP.info("------------------------------------------------------------------------------");
             Logging.IMP.info("Your Votifier port is less than 0, so we assume you do NOT want to start the");
-            Logging.IMP.info("votifier port server! Votifier will not listen for votes over any port, and");
+            Logging.IMP.info("votifier port instance! Votifier will not listen for votes over any port, and");
             Logging.IMP.info("will only listen for pluginMessaging forwarded votes!");
             Logging.IMP.info("------------------------------------------------------------------------------");
         }
@@ -307,7 +298,7 @@ public class VotifierModule extends Plugin implements VoteHandler, VotifierPlugi
                 halt();
                 Logging.IMP.error("On reload, there was a problem with the configuration. Votifier currently does nothing!");
             } catch (Exception ex) {
-                Logging.IMP.error("On reload, there was a problem loading, and we could not re-halt the server. Votifier is in an unstable state!", ex);
+                Logging.IMP.error("On reload, there was a problem loading, and we could not re-halt the instance. Votifier is in an unstable state!", ex);
             }
             return false;
         }
@@ -378,7 +369,7 @@ public class VotifierModule extends Plugin implements VoteHandler, VotifierPlugi
         // TODO: SEND PACKET TO EVER SERVER
 
         byte[] rawData = vote.serialize().toString().getBytes(StandardCharsets.UTF_8);
-        ServerManager.INSTANCE.sendToServers(new S33VoteReceived(rawData));
+        InstanceManager.INSTANCE.sendToServers(new S33VoteReceived(rawData));
 
         Gamer gamer = Gamer.getGamer(vote.getUsername());
 

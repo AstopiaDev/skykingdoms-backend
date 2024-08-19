@@ -7,7 +7,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
-import net.skykingdoms.backend.megamind.server.AbstractPlayerHolder;
+import net.skykingdoms.backend.megamind.instance.AbstractPlayerHolder;
 import net.skykingdoms.backend.protocol.packet.play.S20LookupResponse;
 import net.skykingdoms.backend.protocol.type.lookup.LookupResponse;
 import net.skykingdoms.backend.protocol.type.lookup.LookupTarget;

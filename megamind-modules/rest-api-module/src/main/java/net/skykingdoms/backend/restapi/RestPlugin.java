@@ -9,6 +9,6 @@ public final class RestPlugin extends Plugin {
     public void onEnable() {
         saveDefaultConfig();
 
-        RestApiManager.INSTANCE.initialize(getConfig().getInt("server-port"));
+        RestApiManager.INSTANCE.initialize(getConfig().getInt("instance-port"));
     }
 }

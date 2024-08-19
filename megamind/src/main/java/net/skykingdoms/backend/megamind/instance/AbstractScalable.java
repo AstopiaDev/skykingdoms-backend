@@ -1,4 +1,4 @@
-package net.skykingdoms.backend.megamind.server;
+package net.skykingdoms.backend.megamind.instance;
 
 import lombok.Getter;
 import lombok.NonNull;
@@ -7,9 +7,7 @@ import lombok.val;
 import net.skykingdoms.backend.megamind.connection.RemoteClientConnection;
 import net.skykingdoms.backend.megamind.data.gamer.Gamer;
 import net.skykingdoms.backend.megamind.lookup.LookupManager;
-import net.skykingdoms.backend.protocol.server.IDeployable;
-import net.skykingdoms.backend.protocol.server.IPlayableBukkitServer;
-import net.skykingdoms.backend.protocol.server.IScalable;
+import net.skykingdoms.backend.protocol.server.*;
 import net.skykingdoms.backend.protocol.server.impl.ScalableDataImpl;
 
 
@@ -17,7 +15,7 @@ import net.skykingdoms.backend.protocol.server.impl.ScalableDataImpl;
 public abstract class AbstractScalable extends AbstractPlayerHolder implements IScalable, IDeployable, IPlayableBukkitServer {
 
     /**
-     * Indicates that we had this server instance deployed
+     * Indicates that we had this instance instance deployed
      * by /testflow command.
      * <p>
      * This field is required for testflow manager

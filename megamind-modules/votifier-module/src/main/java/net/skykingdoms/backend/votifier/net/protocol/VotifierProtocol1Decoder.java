@@ -57,7 +57,7 @@ public class VotifierProtocol1Decoder extends ByteToMessageDecoder {
         }
 
         if (!split[0].equals("VOTE")) {
-            throw new QuietException("The VOTE opcode was not present. This is not a NuVotifier issue, but a bug with the server list.");
+            throw new QuietException("The VOTE opcode was not present. This is not a NuVotifier issue, but a bug with the instance list.");
         }
 
         // Create the vote.

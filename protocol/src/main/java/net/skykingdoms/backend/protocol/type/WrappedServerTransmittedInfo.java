@@ -14,7 +14,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * This dataclass is used in {@link Handshake.Request}
- * to determine which server is connecting to coordinator.
+ * to determine which instance is connecting to coordinator.
  *
  * 
  */
@@ -25,7 +25,7 @@ import org.jetbrains.annotations.Nullable;
 public final class WrappedServerTransmittedInfo implements Serializable<WrappedServerTransmittedInfo> {
 
     /**
-     * Full name of server
+     * Full name of instance
      */
     @NotNull String serverName;
 
@@ -35,12 +35,12 @@ public final class WrappedServerTransmittedInfo implements Serializable<WrappedS
     @NotNull ServerScaleType scaleType;
 
     /**
-     * Name of node which server is deployed on
+     * Name of node which instance is deployed on
      */
     @NotNull String deployedNodeName;
 
     /**
-     * Type of this game server (in case of undefined server it
+     * Type of this game instance (in case of undefined instance it
      */
     @Nullable GameType gameType;
 
@@ -51,8 +51,8 @@ public final class WrappedServerTransmittedInfo implements Serializable<WrappedS
         return  "Name: " + serverName + "\n" +
                 "Deployed on node: " + deployedNodeName + "\n" +
                 "Scale type: " + scaleType + "\n" +
-                (scaleType == ServerScaleType.MEGA
-                        || scaleType == ServerScaleType.MINI
+                (scaleType == ServerScaleType.LARGE
+                        || scaleType == ServerScaleType.MEDIUM
                         ?   "Game type: " + gameType + "\n" +
                             (gameType != GameType.MAIN ? "Mode: " + gameMode : "")
                         : "");
@@ -63,8 +63,8 @@ public final class WrappedServerTransmittedInfo implements Serializable<WrappedS
         PacketUtils.writeString(out, serverName);
         PacketUtils.writeString(out, deployedNodeName);
         PacketUtils.writeEnum(out, scaleType);
-        if (scaleType == ServerScaleType.MEGA
-                || scaleType == ServerScaleType.MINI || scaleType == ServerScaleType.PERSISTENT) {
+        if (scaleType == ServerScaleType.LARGE
+                || scaleType == ServerScaleType.MEDIUM) {
             PacketUtils.writeEnum(out, gameType);
             if (gameType != GameType.MAIN) { // main game type don't have any game modes
                 PacketUtils.writeEnum(out, gameMode);
@@ -79,9 +79,9 @@ public final class WrappedServerTransmittedInfo implements Serializable<WrappedS
         this.deployedNodeName = PacketUtils.readString(in);
         this.scaleType = PacketUtils.readEnum(in, ServerScaleType.class);
 
-        // If server is defined as LOBBY / MINI / LOBBY it must have a game mode linked
-        if (this.scaleType == ServerScaleType.MINI
-                || this.scaleType == ServerScaleType.MEGA || this.scaleType == ServerScaleType.PERSISTENT) {
+        // If instance is defined as LOBBY / MINI / LOBBY it must have a game mode linked
+        if (this.scaleType == ServerScaleType.MEDIUM
+                || this.scaleType == ServerScaleType.LARGE) {
             this.gameType = PacketUtils.readEnum(in, GameType.class);
             if (this.gameType != GameType.MAIN) {
                 this.gameMode = PacketUtils.readEnum(in, GameMode.class);

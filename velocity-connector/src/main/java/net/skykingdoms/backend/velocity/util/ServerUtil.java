@@ -19,7 +19,7 @@ import java.util.concurrent.CompletableFuture;
 public final class ServerUtil {
 
     /**
-     * Basically retrieves any lobby/hub server (used for debug purposes)
+     * Basically retrieves any lobby/hub instance (used for debug purposes)
      */
     public RegisteredServer getRandomLobbyServer() {
         return VelocityConnector.INSTANCE.server().getAllServers().stream()

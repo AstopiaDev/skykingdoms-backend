@@ -15,14 +15,13 @@ import net.skykingdoms.backend.megamind.api.command.CommandSender;
 import net.skykingdoms.backend.megamind.data.party.Party;
 import net.skykingdoms.backend.megamind.event.gamer.*;
 import net.skykingdoms.backend.megamind.lookup.LookupManager;
-import net.skykingdoms.backend.megamind.server.AbstractPlayerHolder;
-import net.skykingdoms.backend.megamind.server.AbstractScalable;
-import net.skykingdoms.backend.megamind.server.impl.*;
+import net.skykingdoms.backend.megamind.instance.AbstractPlayerHolder;
+import net.skykingdoms.backend.megamind.instance.AbstractScalable;
+import net.skykingdoms.backend.megamind.instance.impl.*;
 import net.skykingdoms.backend.protocol.logging.Logging;
 import net.skykingdoms.backend.protocol.packet.Packet;
 import net.skykingdoms.backend.protocol.packet.play.*;
 import net.skykingdoms.backend.protocol.server.IPlayableBukkitServer;
-import net.skykingdoms.backend.protocol.server.ServerScaleType;
 import net.skykingdoms.backend.protocol.type.PropertyType;
 import net.skykingdoms.backend.protocol.type.connect.ConnectStatus;
 import org.jetbrains.annotations.Nullable;
@@ -33,7 +32,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -43,7 +41,7 @@ import java.util.stream.IntStream;
 public final class Gamer extends AbstractGamer implements CommandSender, IGamer {
 
     /**
-     * Which hostname user used to connect to le server
+     * Which hostname user used to connect to le instance
      */
     @Setter
     String domain;
@@ -70,30 +68,17 @@ public final class Gamer extends AbstractGamer implements CommandSender, IGamer 
     /**
      * The proxy which player is connected to
      */
-    @Getter @Setter ProxyServer proxyServer;
+    @Getter @Setter
+    ProxyInstance proxyInstance;
 
     /**
-     * The game instance server player is connected to
+     * The bukkit instance instance player is connected to
      */
-    @Getter @Setter BukkitServer bukkitServer;
+    @Getter @Setter
+    BukkitInstance bukkitInstance;
 
     /**
-     * Current game instance server (null if not on game server)
-     */
-    @Getter @Setter GameServer gameServer;
-
-    /**
-     * Current lobby server (null if not in lobby)
-     */
-    @Getter @Setter LobbyServer lobbyServer;
-
-    /**
-     * Current persistent server (null if not in a persistent server)
-     */
-    @Getter @Setter PersistentServer persistentServer;
-
-    /**
-     * A field used to indicate to which server we are currently trying to connect.
+     * A field used to indicate to which instance we are currently trying to connect.
      * When not connecting, it equals to NULL :3
      */
     @Getter @Setter IPlayableBukkitServer currentlyConnectingTo;
@@ -132,9 +117,7 @@ public final class Gamer extends AbstractGamer implements CommandSender, IGamer 
         }
 
         if (serverInstance == null) {
-            setGameServer(null);
-            setLobbyServer(null);
-            setBukkitServer(null);
+            setBukkitInstance(null);
             return;
         }
 
@@ -143,20 +126,15 @@ public final class Gamer extends AbstractGamer implements CommandSender, IGamer 
             lastLogin = LocalDateTime.now();
         }
 
-        if (serverInstance instanceof BukkitServer) {
-            val bs = ((BukkitServer) serverInstance);
-            setBukkitServer(bs);
-            setGameServer(null);
-            setLobbyServer(null);
+        if (serverInstance instanceof BukkitInstance) {
+            val bs = ((BukkitInstance) serverInstance);
+            setBukkitInstance(bs);
 
             bs.addPlayer(this);
         }
 
-        if (serverInstance instanceof GameServer) {
-            val gs = (GameServer) serverInstance;
-            setBukkitServer(gs.getParentServer());
-            setGameServer(gs);
-            setLobbyServer(null);
+        if (serverInstance instanceof ArenaInstance) {
+            val gs = (ArenaInstance) serverInstance;
 
             gs.addPlayer(this);
 
@@ -166,30 +144,11 @@ public final class Gamer extends AbstractGamer implements CommandSender, IGamer 
             }
         }
 
-        if (serverInstance instanceof LobbyServer) {
-            val ls = (LobbyServer) serverInstance;
-            setBukkitServer(ls.getParentServer());
-            setLobbyServer(ls);
-            setGameServer(null);
-
-            ls.addPlayer(this);
-        }
-
-        if (serverInstance instanceof PersistentServer) {
-            val ps = (PersistentServer) serverInstance;
-            setBukkitServer(ps.getParentServer());
-            setPersistentServer(ps);
-            setGameServer(null);
-            setLobbyServer(null);
-
-            ps.addPlayer(this);
-        }
-
         updateTablist();
     }
 
     public void updateTablist() {
-        String header = language.getMessage(isModern(), "tab_header", "%server_name%", getBukkitServer().getName());
+        String header = language.getMessage(isModern(), "tab_header", "%server_name%", getBukkitInstance().getName());
         String footer = language.getMessage(isModern(), "tab_footer");
 
         sendToProxy(new S14SetPlayerTablist(gamerId, header, footer));
@@ -213,15 +172,15 @@ public final class Gamer extends AbstractGamer implements CommandSender, IGamer 
             return ConnectStatus.ALREADY_CONNECTED;
         }
 
-/*        if (server instanceof GameServer && isVanished() && !ranks.canApply(Group.HELPER)) {
+/*        if (instance instanceof GameServer && isVanished() && !ranks.canApply(Group.HELPER)) {
             sendLocalizedMessage(isModern(), "core_vanish_noserver");
             return ConnectStatus.REJECTED_BY_DESTINATION; // todo: write different state enum
         }*/
 
-        if (server instanceof GameServer && getCurrentServer() instanceof GameServer) {
-            val oldGame = (GameServer) getCurrentServer();
-            val newGame = (GameServer) server;
-            if (oldGame.getParentServer().getName().equals(newGame.getParentServer().getName())) {
+        if (server instanceof ArenaInstance && getCurrentServer() instanceof ArenaInstance) {
+            val oldGame = (ArenaInstance) getCurrentServer();
+            val newGame = (ArenaInstance) server;
+            if (oldGame.getHost().getAddress().equals(newGame.getHost().getAddress())) {
                 sendToServer(new S26UpdatePlayerGameServer(gamerId, newGame.getGameId()));
             }
         }
@@ -230,7 +189,7 @@ public final class Gamer extends AbstractGamer implements CommandSender, IGamer 
 
         sendToProxy(new S18SendPlayer(gamerId, currentlyConnectingTo.getName()));
 
-        sendLocalizedMessage(isModern(), "server_teleportation_started", "%server%",
+        sendLocalizedMessage(isModern(), "server_teleportation_started", "%instance%",
                 server.getName());
 
         return ConnectStatus.SUCCESS;
@@ -239,10 +198,7 @@ public final class Gamer extends AbstractGamer implements CommandSender, IGamer 
     // endregion
 
     public AbstractPlayerHolder getCurrentServer() {
-        if (gameServer != null) return gameServer;
-        if (lobbyServer != null) return lobbyServer;
-        if (persistentServer != null) return persistentServer;
-        return bukkitServer;
+        return bukkitInstance;
     }
 
     // region settings
@@ -348,17 +304,17 @@ public final class Gamer extends AbstractGamer implements CommandSender, IGamer 
      */
     @Override
     public void sendToProxy(final @NonNull Packet<?> packet) {
-        if (online && proxyServer != null) {
-            proxyServer.getChannel().sendPacket(packet);
+        if (online && proxyInstance != null) {
+            proxyInstance.getChannel().sendPacket(packet);
         }
     }
 
     /**
-     * Sends a packet to the server the player is connected to
+     * Sends a packet to the instance the player is connected to
      */
     @Override
     public void sendToServer(final @NonNull Packet<?> packet) {
-        if (online && bukkitServer != null) {
+        if (online && bukkitInstance != null) {
 /*            if (bukkitServer.getServerScale() == ServerScaleType.PERSISTENT) {
                 if (persistentServer != null) {
                     persistentServer.getChannel().sendPacket(packet);
@@ -366,7 +322,7 @@ public final class Gamer extends AbstractGamer implements CommandSender, IGamer 
                 }
             }*/
             //Logging.IMP.info("SENDING TO SERVER {} | {}", bukkitServer.getName(), packet.toString());
-            bukkitServer.getChannel().sendPacket(packet);
+            bukkitInstance.getChannel().sendPacket(packet);
         }
     }
 
@@ -421,7 +377,7 @@ public final class Gamer extends AbstractGamer implements CommandSender, IGamer 
             return false;
         }
 
-        // all shit validated, so we send vanish packet to server
+        // all shit validated, so we send vanish packet to instance
         setProperty(PropertyType.VANISHED, vanished ? 1 : 0);
 
         val server = getCurrentServer();
@@ -441,7 +397,7 @@ public final class Gamer extends AbstractGamer implements CommandSender, IGamer 
             return false;
         }
 
-        // all shit validated, so we send vanish packet to server
+        // all shit validated, so we send vanish packet to instance
         setProperty(PropertyType.BUILD_MODE, buildMode ? 1 : 0);
 
         val server = getCurrentServer();
@@ -605,9 +561,9 @@ public final class Gamer extends AbstractGamer implements CommandSender, IGamer 
     public static void removeGamer(final @NonNull Gamer gamer) {
         gamer.updateServer(null);
 
-        if (gamer.getProxyServer() != null) {
-            gamer.getProxyServer().removePlayer(gamer);
-            gamer.setProxyServer(null);
+        if (gamer.getProxyInstance() != null) {
+            gamer.getProxyInstance().removePlayer(gamer);
+            gamer.setProxyInstance(null);
         }
 
         synchronized (OFFLINE_GAMERS) {

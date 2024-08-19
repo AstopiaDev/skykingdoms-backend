@@ -10,9 +10,8 @@ import net.skykingdoms.backend.megamind.AsyncExecution;
 import net.skykingdoms.backend.megamind.api.command.CoreExecutionSession;
 import net.skykingdoms.backend.megamind.data.gamer.Gamer;
 import net.skykingdoms.backend.megamind.manager.DuelManager;
-import net.skykingdoms.backend.megamind.manager.DuelRequest;
-import net.skykingdoms.backend.megamind.manager.ServerManager;
-import net.skykingdoms.backend.megamind.server.AbstractScalable;
+import net.skykingdoms.backend.megamind.manager.InstanceManager;
+import net.skykingdoms.backend.megamind.instance.AbstractScalable;
 import net.skykingdoms.backend.protocol.server.GameMode;
 import net.skykingdoms.backend.protocol.type.duel.KitFluentRequestData;
 
@@ -106,9 +105,9 @@ public class DuelInternalCommand {
         }
 
         sender.sendMessage("§a" + gamer.getDisplayName() + " §ahas accepted your duel request.");
-        sender.sendMessage("§7Searching for a server, please wait ...");
+        sender.sendMessage("§7Searching for a instance, please wait ...");
         gamer.sendMessage("§aYou have accepted the duel invite from " + sender.getDisplayName());
-        gamer.sendMessage("§7Searching for a server, please wait ...");
+        gamer.sendMessage("§7Searching for a instance, please wait ...");
 
 
         DuelManager.INSTANCE.removeRequest(sender.getGamerId());
@@ -116,19 +115,19 @@ public class DuelInternalCommand {
 
         AsyncExecution.INSTANCE.runLater(() -> {
             if (serverName == null) {
-                gamer.sendMessage("§cNo server available, try again later.");
-                sender.sendMessage("§cNo server available, try again later.");
+                gamer.sendMessage("§cNo instance available, try again later.");
+                sender.sendMessage("§cNo instance available, try again later.");
                 return;
             }
 
-            AbstractScalable server = ServerManager.INSTANCE.getPlayableServer(serverName);
+            AbstractScalable server = InstanceManager.INSTANCE.getPlayableServer(serverName);
 
             if (server != null) {
                 gamer.sendTo(server);
                 sender.sendTo(server);
             } else {
-                gamer.sendMessage("§cNo server available, try again later.");
-                sender.sendMessage("§cNo server available, try again later.");
+                gamer.sendMessage("§cNo instance available, try again later.");
+                sender.sendMessage("§cNo instance available, try again later.");
             }
         }, 500, TimeUnit.MILLISECONDS);
     }

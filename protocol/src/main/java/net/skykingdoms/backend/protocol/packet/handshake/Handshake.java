@@ -11,11 +11,12 @@ import net.skykingdoms.backend.protocol.packet.handshake.processor.HandshakeClie
 import net.skykingdoms.backend.protocol.packet.handshake.processor.HandshakeServerProcessor;
 import net.skykingdoms.backend.protocol.type.RemoteConnectedType;
 import net.skykingdoms.backend.protocol.type.reconnect.FluentData;
-import net.skykingdoms.backend.protocol.type.reconnect.impl.FluentBukkitDataImpl;
+import net.skykingdoms.backend.protocol.type.reconnect.impl.bukkit.FluentBukkitDataImpl;
 import net.skykingdoms.backend.protocol.type.reconnect.impl.FluentNodeDataImpl;
 import net.skykingdoms.backend.protocol.type.reconnect.impl.FluentProxyDataImpl;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.EnumSet;
 import java.util.UUID;
 
 public final class Handshake {
@@ -31,10 +32,6 @@ public final class Handshake {
     @Data
     public static final class Request extends Packet.Request<HandshakeClientProcessor, Response> {
 
-        public static int HAS_FLUENT_DATA   = 0b00001;
-        public static int IS_RECONNECT      = 0b00010;
-        public static int IS_TESTFLOW       = 0b00100;
-
         // Type of client
         RemoteConnectedType type;
 
@@ -44,22 +41,22 @@ public final class Handshake {
         // Deployment transaction ID (in case of node it's random)
         UUID transactionId;
 
-        int mask;
+        EnumSet<RequestFlag> flags;
 
         FluentData fluentData;
 
         int testFlowId;
 
         public boolean isTestFlow() {
-            return (mask & IS_TESTFLOW) == IS_TESTFLOW;
+            return flags.contains(RequestFlag.IS_TESTFLOW);
         }
 
         public boolean isReconnect() {
-            return (mask & IS_RECONNECT) == IS_RECONNECT;
+            return flags.contains(RequestFlag.IS_RECONNECT);
         }
 
         public boolean hasData() {
-            return (mask & HAS_FLUENT_DATA) == HAS_FLUENT_DATA;
+            return flags.contains(RequestFlag.HAS_FLUENT_DATA);
         }
 
         @Override
@@ -77,7 +74,11 @@ public final class Handshake {
             type = PacketUtils.readEnum(buf, RemoteConnectedType.class);
             secret = PacketUtils.readString(buf);
             transactionId = UUID.fromString(PacketUtils.readString(buf));
-            mask = buf.readByte();
+            flags = EnumSet.noneOf(RequestFlag.class);
+            byte flagByte = buf.readByte();
+            if ((flagByte & 0b00001) != 0) flags.add(RequestFlag.HAS_FLUENT_DATA);
+            if ((flagByte & 0b00010) != 0) flags.add(RequestFlag.IS_RECONNECT);
+            if ((flagByte & 0b00100) != 0) flags.add(RequestFlag.IS_TESTFLOW);
             if (hasData()) {
                 switch (type) {
                     case PROXY: {
@@ -104,7 +105,11 @@ public final class Handshake {
             PacketUtils.writeEnum(buf, type);
             PacketUtils.writeString(buf, secret);
             PacketUtils.writeString(buf, transactionId.toString());
-            buf.writeByte(mask);
+            byte flagByte = 0;
+            if (flags.contains(RequestFlag.HAS_FLUENT_DATA)) flagByte |= 0b00001;
+            if (flags.contains(RequestFlag.IS_RECONNECT)) flagByte |= 0b00010;
+            if (flags.contains(RequestFlag.IS_TESTFLOW)) flagByte |= 0b00100;
+            buf.writeByte(flagByte);
             if (hasData()) {
                 fluentData.serialize(buf);
             }
@@ -160,5 +165,11 @@ public final class Handshake {
 
     public enum Result {
         FAILED, SUCCESS
+    }
+
+    public enum RequestFlag {
+        HAS_FLUENT_DATA,
+        IS_RECONNECT,
+        IS_TESTFLOW
     }
 }

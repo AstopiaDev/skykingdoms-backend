@@ -8,7 +8,7 @@ import lombok.experimental.FieldDefaults;
 import net.skykingdoms.backend.megamind.api.plugin.Cancellable;
 import net.skykingdoms.backend.megamind.api.plugin.Event;
 import net.skykingdoms.backend.megamind.data.gamer.Gamer;
-import net.skykingdoms.backend.megamind.server.AbstractPlayerHolder;
+import net.skykingdoms.backend.megamind.instance.AbstractPlayerHolder;
 
 /**
  * 

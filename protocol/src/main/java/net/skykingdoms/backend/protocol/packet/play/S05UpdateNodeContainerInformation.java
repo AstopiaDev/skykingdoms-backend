@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.UUID;
 
 /**
- * This packet is used to acknowledge a node that some server got
+ * This packet is used to acknowledge a node that some instance got
  * it's FluentData updated.
  *
  * 

@@ -29,7 +29,7 @@ public interface PlayClientProcessor extends PlayProcessor {
         // override me
     }
 
-    default void process(C21RegisterGameInstance packet, ChannelProcessorContext ctx) {
+    default void process(C21RegisterArenaInstance packet, ChannelProcessorContext ctx) {
         // override me
     }
 

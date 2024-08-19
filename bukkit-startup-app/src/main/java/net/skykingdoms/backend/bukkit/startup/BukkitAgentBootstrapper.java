@@ -17,7 +17,7 @@ import java.io.File;
 import java.io.IOException;
 
 /**
- * Agent that basically sets up everything on le server 0_o
+ * Agent that basically sets up everything on le instance 0_o
  *
  */
 public final class BukkitAgentBootstrapper {

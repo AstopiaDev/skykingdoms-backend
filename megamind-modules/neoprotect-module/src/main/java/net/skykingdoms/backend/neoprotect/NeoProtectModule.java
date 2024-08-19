@@ -27,7 +27,7 @@ public final class NeoProtectModule extends Plugin {
     String api;
 
     /**
-     * NeoProtect server shield ID
+     * NeoProtect instance shield ID
      */
     String serverId;
 
@@ -39,7 +39,7 @@ public final class NeoProtectModule extends Plugin {
         loadConfig();
 
         this.api = getConfig().getString("api-token");
-        this.serverId = getConfig().getString("server-id");
+        this.serverId = getConfig().getString("instance-id");
 
         NeoProtectManager.INSTANCE.postBootstrap();
 

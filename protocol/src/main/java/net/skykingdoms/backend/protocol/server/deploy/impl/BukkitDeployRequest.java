@@ -12,7 +12,7 @@ import net.skykingdoms.backend.protocol.server.impl.ScalableDataImpl;
 import java.util.UUID;
 
 /**
- * A request can be headed as Lobby, some special shiet or a GameServer
+ * A request can be headed as a GameServer deployment request.
  * 
  */
 @FieldDefaults(level = AccessLevel.PRIVATE)

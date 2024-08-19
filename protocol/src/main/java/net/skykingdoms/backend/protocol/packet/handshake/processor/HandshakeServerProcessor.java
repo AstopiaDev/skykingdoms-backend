@@ -4,7 +4,7 @@ import net.skykingdoms.backend.protocol.packet.ChannelProcessorContext;
 import net.skykingdoms.backend.protocol.packet.handshake.Handshake;
 
 /**
- * Processes packets FROM server
+ * Processes packets FROM instance
  *
  * 
  */

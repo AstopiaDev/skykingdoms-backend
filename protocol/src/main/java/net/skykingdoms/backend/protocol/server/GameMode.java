@@ -20,7 +20,7 @@ public enum GameMode {
     BEDWARS_FOUR_THREE("3v3v3v3"), // 3v3v3v3
     BEDWARS_FOUR_FOUR("4v4v4v4"),  // 4v4v4v4
     BEDWARS_TWO_FOUR("4v4"),   // 4v4
-    BEDWARS("Bed Wars", ServerScaleType.PERSISTENT, true),
+    BEDWARS("Bed Wars", true),
 
     // SKYWARS
     SOLO_NORMAL("Solo Normal"),
@@ -28,19 +28,19 @@ public enum GameMode {
     TEAMS_NORMAL("Teams Normal"),
     TEAMS_INSANE("Teams Insane"),
     RANKED_NORMAL("Ranked"),
-    MEGA_NORMAL("Mega", ServerScaleType.MEGA),
-    SKYWARS("Sky Wars", ServerScaleType.PERSISTENT, true),
+    MEGA_NORMAL("Mega"),
+    SKYWARS("Sky Wars", true),
 
-    MURDER("Murder People", ServerScaleType.PERSISTENT, true),
-    SKYBLOCK("Sky Block", ServerScaleType.PERSISTENT, true),
-    FACTIONS("Factions", ServerScaleType.PERSISTENT, true),
+    MURDER("Murder People", true),
+    SKYBLOCK("Sky Block", true),
+    FACTIONS("Factions", true),
 
 
     // STATIC
-    SURVIVAL_BEES("Survival Bees", ServerScaleType.PERSISTENT, true),
-    SKYPVP("SkyPvP", ServerScaleType.PERSISTENT, true),
-    BUILD("Build", ServerScaleType.PERSISTENT, true),
-    DEV("Dev", ServerScaleType.PERSISTENT, true),
+    SURVIVAL_BEES("Survival Bees", true),
+    SKYPVP("SkyPvP", true),
+    BUILD("Build", true),
+    DEV("Dev", true),
 
     // SKYPVP
     SKYPVP_MOB_ARENA_ONE("SkyPvP Mob Arena"),
@@ -68,23 +68,16 @@ public enum GameMode {
     }
 
     /**
-     * By default, we initialize mode with MINI server
+     * By default, we initialize mode with MINI instance
      */
     GameMode(final @NonNull String humanName) {
-        scaleType = ServerScaleType.MINI;
         staticGame = false;
         this.humanName = humanName;
     }
 
-    GameMode(final @NonNull String humanName, final @NonNull ServerScaleType scaleType) {
-        staticGame = false;
-        this.scaleType = scaleType;
-        this.humanName = humanName;
-    }
 
-    GameMode(final @NonNull String humanName, final @NonNull ServerScaleType scaleType, final @NonNull boolean staticGame) {
+    GameMode(final @NonNull String humanName, final @NonNull boolean staticGame) {
         this.staticGame = staticGame;
-        this.scaleType = scaleType;
         this.humanName = humanName;
     }
 
@@ -95,11 +88,10 @@ public enum GameMode {
      * We couldn't just define it in {@link GameType} because
      * skywars, for example, uses MEGA scale for MEGA_INSANE
      */
-    @Getter ServerScaleType scaleType;
     @Getter boolean staticGame;
 
     public ScalableDataImpl bakeData() {
-        return new ScalableDataImpl(scaleType, GameType.getLinkedGameType(this), this);
+        return new ScalableDataImpl(ServerScaleType.MEDIUM, GameType.getLinkedGameType(this), this);
     }
 
 }

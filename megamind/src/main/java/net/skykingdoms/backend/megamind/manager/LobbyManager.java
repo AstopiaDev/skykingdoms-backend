@@ -10,16 +10,16 @@ import net.skykingdoms.backend.megamind.MegamindApp;
 import net.skykingdoms.backend.megamind.data.gamer.Gamer;
 import net.skykingdoms.backend.megamind.lookup.LookupManager;
 import net.skykingdoms.backend.megamind.manager.deployment.DeploymentResponse;
-import net.skykingdoms.backend.megamind.server.impl.BukkitServer;
-import net.skykingdoms.backend.megamind.server.impl.LobbyServer;
+import net.skykingdoms.backend.megamind.instance.impl.BukkitInstance;
+import net.skykingdoms.backend.megamind.instance.impl.LobbyInstance;
 import net.skykingdoms.backend.protocol.logging.Logging;
 import net.skykingdoms.backend.protocol.packet.play.S06RegisterServers;
 import net.skykingdoms.backend.protocol.packet.play.ServerDeploy;
 import net.skykingdoms.backend.protocol.server.GameType;
 import net.skykingdoms.backend.protocol.server.deploy.impl.BukkitDeployRequest;
-import net.skykingdoms.backend.protocol.server.deploy.impl.ProxyDeployRequest;
 
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -37,7 +37,7 @@ public final class LobbyManager {
     // ------------------------------------------------------------
 
     // Set of registered lobby servers
-    Collection<LobbyServer> registeredLobbyServers = CollectionUtil.createConcurrentSet();
+    Collection<LobbyInstance> lobbyInstances = CollectionUtil.createConcurrentSet();
 
     /**
      * Invoked once in coordinator bootstrap task
@@ -55,8 +55,8 @@ public final class LobbyManager {
         MegamindApp.INSTANCE.scheduler().schedule(() -> {
             for (val gametype : GameType.VALUES) {
                 if (!gametype.isHasLobby()) continue;
-                val amount = registeredLobbyServers.stream()
-                        .filter(_zvo -> _zvo.getParentServer().getGameType() == gametype)
+                val amount = lobbyInstances.stream()
+                        .filter(_zvo -> _zvo.getGameType() == gametype)
                         .count();
                 if (amount < HARDCODED_RETARDED_NUMBER) {
                     Logging.IMP.info("[LobbyManager] There are not enough lobbies loaded up for {} (current: {})",
@@ -79,10 +79,10 @@ public final class LobbyManager {
     }
 
     /**
-     * Removes a lobby server and routes all gamers to fallback
+     * Removes a lobby instance and routes all gamers to fallback
      */
-    public void removeLobbyServer(final @NonNull LobbyServer lobbyServer) {
-        if (!registeredLobbyServers.contains(lobbyServer)) {
+    public void removeLobbyServer(final @NonNull LobbyInstance lobbyServer) {
+        if (!lobbyInstances.contains(lobbyServer)) {
             return; // dont do shit cuz its not even registered
         }
 
@@ -94,59 +94,73 @@ public final class LobbyManager {
             // todo: route to fallback
         }
 
-        registeredLobbyServers.remove(lobbyServer);
+        lobbyInstances.remove(lobbyServer);
 
         // handling removing in lookups
         LookupManager.INSTANCE.handleServerRemove(lobbyServer);
     }
 
-    public LobbyServer getLobbyServer(final @NonNull String lobbyName) {
-        return registeredLobbyServers.stream()
+    public LobbyInstance getLobbyServer(final @NonNull String lobbyName) {
+        return lobbyInstances.stream()
                 .filter(s -> s.getName().equalsIgnoreCase(lobbyName))
                 .findFirst()
                 .orElse(null);
     }
 
+    public LobbyInstance getLobbyInstance(@NonNull GameType gameType) {
+        // Comparator to select the LobbyInstance with the optimal player count distribution
+        Comparator<LobbyInstance> loadBalancerComparator = Comparator.comparingDouble(this::calculateLobbyScore);
+
+        // Find the best LobbyInstance with the given GameType, balancing player distribution and ensuring it's not full
+        return lobbyInstances.stream()
+                .filter(lobby -> lobby.getGameType() == gameType)             // Match the game type
+                .filter(lobby -> lobby.getPlayerIds().length < lobby.getSlots())  // Ensure the lobby is not full
+                .min(loadBalancerComparator)                                  // Select lobby with the best score (balanced load)
+                .orElse(null);                                                // Return null if none found
+    }
+
+    private double calculateLobbyScore(LobbyInstance lobby) {
+        // Calculate a score where fewer players lead to a higher score
+        int currentPlayers = lobby.getPlayerIds().length;
+        int maxPlayers = lobby.getSlots();
+
+        // Adjust the score formula as needed for your distribution logic
+        return (double) currentPlayers / maxPlayers;
+    }
+
     /**
-     * Basically adds a new lobby server instance to registry
+     * Basically adds a new lobby instance instance to registry
      * @param server    instance
      * @return          self-instance
      */
-    public LobbyServer addLobbyServer(final @NonNull LobbyServer server) {
-        if (registeredLobbyServers.contains(server)) {
+    public LobbyInstance addLobbyServer(final @NonNull LobbyInstance server) {
+        if (lobbyInstances.contains(server)) {
             throw new IllegalStateException("Lobby is already registered");
         }
 
         ProxyManager.INSTANCE.sendToProxies(new S06RegisterServers(
                 server.getName(),
-                server.getParentServer().getHost().getHostString(),
-                server.getParentServer().getHost().getPort(),
-                server.getParentServer().getScaleType(),
-                server.getParentServer().getGameType()));
+                server.getHost().getHostString(),
+                server.getHost().getPort(),
+                server.getScaleType(),
+                server.getGameType()));
 
-        registeredLobbyServers.add(server);
+        lobbyInstances.add(server);
 
         LookupManager.INSTANCE.handleServerCreate(server);
 
         return server;
     }
 
-    public LobbyServer getLinkedLobbyServer(final @NonNull BukkitServer server) {
-        return registeredLobbyServers.stream()
-                .filter(lobbyServer -> lobbyServer.getParentServer().equals(server))
-                .findFirst()
-                .orElse(null);
-    }
-
     /**
-     * Basically prepares deployment process of lobby-server
+     * Basically prepares deployment process of lobby-instance
      */
     public void deployLobbyServer(final @NonNull GameType gameType) {
         if (!gameType.isHasLobby()) {
             throw new UnsupportedOperationException("Cannot boot lobby for this GameType");
         }
 
-        if (registeredLobbyServers.size() == 0) {
+        if (lobbyInstances.size() == 0) {
             Logging.IMP.info("[LobbyManager] Tried deploying a lobby, but no BukkitServer is up yet ... ");
             Logging.IMP.info("[LobbyManager] Deploying required amount of instances ({})");
         }

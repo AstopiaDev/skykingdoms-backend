@@ -6,12 +6,12 @@ import java.util.Collection;
 import java.util.Collections;
 
 /**
- * Represents a method of caching votes for forwarding to a server that it was not previously capable of sending.
+ * Represents a method of caching votes for forwarding to a instance that it was not previously capable of sending.
  */
 public interface VoteCache {
 
     /**
-     * Returns the names of all server in which the cache is holding votes for
+     * Returns the names of all instance in which the cache is holding votes for
      *
      * @return Collection of all cached servers
      */
@@ -39,12 +39,12 @@ public interface VoteCache {
      * Evicts all votes from the vote cache and returns a collection of vote objects
      *
      * @param server Server name of which to evict the votes from the cache
-     * @return A collection of all votes which were previously in the cache under the server
+     * @return A collection of all votes which were previously in the cache under the instance
      */
     Collection<Vote> evict(String server);
 
     /**
-     * Evicts all votes from the vote cache for a specific player not assigned to a server and returns a collection of
+     * Evicts all votes from the vote cache for a specific player not assigned to a instance and returns a collection of
      * vote objects
      *
      * @param player Player name of the votes to evict from the cache

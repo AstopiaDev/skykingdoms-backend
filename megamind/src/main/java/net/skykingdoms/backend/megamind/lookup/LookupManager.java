@@ -6,10 +6,10 @@ import lombok.experimental.FieldDefaults;
 import lombok.val;
 import net.skykingdoms.backend.base.util.collection.CollectionUtil;
 import net.skykingdoms.backend.megamind.data.gamer.Gamer;
-import net.skykingdoms.backend.megamind.manager.ServerManager;
-import net.skykingdoms.backend.megamind.server.AbstractScalable;
-import net.skykingdoms.backend.megamind.server.impl.GameServer;
-import net.skykingdoms.backend.protocol.logging.Logging;
+import net.skykingdoms.backend.megamind.instance.impl.ArenaInstance;
+import net.skykingdoms.backend.megamind.manager.InstanceManager;
+import net.skykingdoms.backend.megamind.instance.AbstractScalable;
+import net.skykingdoms.backend.megamind.instance.impl.GameInstance;
 import net.skykingdoms.backend.protocol.packet.play.S20LookupResponse;
 import net.skykingdoms.backend.protocol.packet.play.S21SetGlobalOnline;
 import net.skykingdoms.backend.protocol.server.GameState;
@@ -151,14 +151,14 @@ public final class LookupManager {
         handleEvent(LookupFlag.ON_RESULT_UPDATE.getMask(), server);
     }
 
-    public void handleStateChange(final @NonNull GameServer server) {
+    public void handleStateChange(final @NonNull GameInstance server) {
         handleEvent(LookupFlag.ON_STATE_UPDATE.getMask(), server);
     }
 
     private void sendLookup(Lookup lookup) {
         Set<LookupServer> servers = new HashSet<>();
 
-        for (val server : ServerManager.INSTANCE.getServers()) {
+        for (val server : InstanceManager.INSTANCE.getInstances()) {
             for (LookupTarget target : lookup.getTargets()) {
                 if (target.isTarget(server.bakeServerData())) {
                     val lookupServer = createLookupServer(server, target.getMask(), true);
@@ -179,8 +179,8 @@ public final class LookupManager {
         val lookups = new HashSet<Lookup>();
 
         // that's bukkitserver instance (redundant)
-        // but server MIGHT shut down :(
-        if (ServerManager.INSTANCE.getBukkitServer(server.getName()) != null) {
+        // but instance MIGHT shut down :(
+        if (InstanceManager.INSTANCE.getBukkitInstance(server.getName()) != null) {
             return;
         }
 
@@ -198,9 +198,9 @@ public final class LookupManager {
             for (val target : lookup.getTargets()) {
                 val targetMask = allFlags ? target.getMask() : mask;
 
-                //Logging.IMP.info("[" + lookup.getServer().getName() + "] -> " + server.bakeServerData() + " [" + server.getName() + "] [P: " + server.getPlayerIds().length + "]" + (server instanceof GameServer ? " [S: " + ((GameServer) server).getMap() + "/" + ((GameServer) server).getCurrentState() : ""));
+                //Logging.IMP.info("[" + lookup.getServer().getName() + "] -> " + instance.bakeServerData() + " [" + instance.getName() + "] [P: " + instance.getPlayerIds().length + "]" + (instance instanceof GameServer ? " [S: " + ((GameServer) instance).getMap() + "/" + ((GameServer) instance).getCurrentState() : ""));
                 if (target.isTarget(server.bakeServerData())) {
-                    val response = new LookupResponse(createLookupServer(server, targetMask, ServerManager.INSTANCE.getServers().stream().anyMatch(s -> s.getName().equals(server.getName()))));
+                    val response = new LookupResponse(createLookupServer(server, targetMask, InstanceManager.INSTANCE.getInstances().stream().anyMatch(s -> s.getName().equals(server.getName()))));
                     //Logging.IMP.info(lookup.getServer().getName() + " is target !!!" );
                     lookup.queueResponse(response);
                 }
@@ -215,8 +215,8 @@ public final class LookupManager {
 
         return new LookupServer(
                 System.currentTimeMillis(), server.getName(), new ScalableDataImpl(server.getServerScale(), server.getGameType(), server.getGameMode()), online,
-                server instanceof GameServer ? ((GameServer) server).getCurrentState() : GameState.STAND_BY,
-                server instanceof GameServer ? ((GameServer) server).getMap() : "",
+                server instanceof ArenaInstance ? ((ArenaInstance) server).getCurrentState() : GameState.STAND_BY,
+                server instanceof ArenaInstance ? ((ArenaInstance) server).getMap() : "",
                 players.length, server.getSlots(), players,
                 mask
         );

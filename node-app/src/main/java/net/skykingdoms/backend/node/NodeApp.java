@@ -15,6 +15,7 @@ import net.skykingdoms.backend.node.connection.NodeConnection;
 import net.skykingdoms.backend.node.deploy.NodeDeploymentManager;
 import net.skykingdoms.backend.protocol.exception.ConnectException;
 import net.skykingdoms.backend.protocol.logging.Logging;
+import net.skykingdoms.backend.protocol.server.ServerScaleType;
 import net.skykingdoms.backend.protocol.type.NetworkType;
 import net.skykingdoms.backend.protocol.type.reconnect.impl.FluentNodeDataImpl;
 
@@ -25,6 +26,7 @@ import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.stream.Collectors;
 
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Accessors(fluent = true)
@@ -52,7 +54,7 @@ public enum NodeApp {
     @Getter
     LocalClientConnection connection;
 
-    // Persistent node data, that is being updated by server
+    // Persistent node data, that is being updated by instance
     @Getter @Setter
     FluentNodeDataImpl nodeData;
 
@@ -126,10 +128,25 @@ public enum NodeApp {
                     yamlConfiguration.getBoolean("allowDockerEnvironmentVars"),
                     yamlConfiguration.getString("coordinatorHost"),
                     yamlConfiguration.getInt("coordinatorPort"),
-                    yamlConfiguration.getString("coordinatorSecret")
+                    yamlConfiguration.getString("coordinatorSecret"),
+                    yamlConfiguration.getStringList("scaleTypes").stream()
+                            .map(ServerScaleType::valueOf).distinct().toArray(ServerScaleType[]::new)
             );
         } catch (IOException e) {
             Logging.IMP.stacktrace(e, "Can't load configuration file");
+        }
+    }
+
+    public void reloadNodeData() {
+        int allocatedRamMB = (int) ((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / (1024 * 1024));
+        int maxRamMB = (int) (Runtime.getRuntime().maxMemory() / (1024 * 1024));
+
+        if (nodeData == null) {
+            nodeData = new FluentNodeDataImpl(null, nodeConfiguration.getScaleTypes(), allocatedRamMB, maxRamMB);
+        } else {
+            nodeData.setScaleTypes(nodeConfiguration.getScaleTypes());
+            nodeData.setAllocatedRamMB(allocatedRamMB);
+            nodeData.setMaxRamMB(maxRamMB);
         }
     }
 

@@ -31,13 +31,13 @@ public final class KickListener {
 */
 /*
             eventki(new TextComponent[]{new TextComponent(
-                    "§cInternal server error.\n" +
+                    "§cInternal instance error.\n" +
                             "§c[B-UNLOGGED]")});*/
             return;
         }
 
 
-// TODO: write a shit that will move a player to HUB or game lobby server on game-server shutdown
+// TODO: write a shit that will move a player to HUB or game lobby instance on game-instance shutdown
 
 /*        if (event.getResult() instanceof KickedFromServerEvent.RedirectPlayer) {
             KickedFromServerEvent.RedirectPlayer result = (KickedFromServerEvent.RedirectPlayer) event.getResult();*/

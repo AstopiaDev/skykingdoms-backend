@@ -7,7 +7,7 @@ import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
 import net.skykingdoms.backend.megamind.api.plugin.Event;
-import net.skykingdoms.backend.megamind.server.AbstractPlayerHolder;
+import net.skykingdoms.backend.megamind.instance.AbstractPlayerHolder;
 
 import java.net.InetAddress;
 

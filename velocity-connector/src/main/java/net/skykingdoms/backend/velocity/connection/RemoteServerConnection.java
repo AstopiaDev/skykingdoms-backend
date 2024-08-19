@@ -32,6 +32,7 @@ import net.skykingdoms.backend.velocity.gamer.Gamer;
 import net.skykingdoms.backend.velocity.security.BungeeSecurityManager;
 
 import java.net.InetSocketAddress;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.UUID;
 
@@ -138,13 +139,17 @@ public final class RemoteServerConnection extends AbstractRemoteServerChannel {
         VelocityConnector.INSTANCE.server().getEventManager().fire(new ServerActiveEvent(this));
 
         Logging.IMP.info("Active");
+        EnumSet<Handshake.RequestFlag> mask = EnumSet.of(Handshake.RequestFlag.HAS_FLUENT_DATA);
+
+        if (VelocityConnector.INSTANCE.reconnecting().get()) {
+            mask.add(Handshake.RequestFlag.IS_RECONNECT);
+        }
 
         sendPacket(new Handshake.Request(
                 RemoteConnectedType.PROXY,
                 System.getenv("CORD_SECRET"),
                 UUID.fromString(System.getenv("CORD_TID")),
-                VelocityConnector.INSTANCE.reconnecting().getAndSet(false)
-                ? Handshake.Request.IS_RECONNECT | Handshake.Request.HAS_FLUENT_DATA : Handshake.Request.HAS_FLUENT_DATA,
+                mask,
                 VelocityConnector.INSTANCE.proxyData(), 0));
     }
 
@@ -182,7 +187,7 @@ public final class RemoteServerConnection extends AbstractRemoteServerChannel {
                     new ServerInfo(name, address)
             );
 
-            if (type == ServerScaleType.LOBBY) {
+            if (type == ServerScaleType.MINI) {
                 VelocityConnector.INSTANCE.authMeAPI().addAuthServer(name);
             }
         }

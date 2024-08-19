@@ -7,10 +7,10 @@ import net.skykingdoms.backend.base.command.exception.CommandMessageException;
 import net.skykingdoms.backend.base.command.exception.CommandTranslationException;
 import net.skykingdoms.backend.base.command.execution.Executor;
 import net.skykingdoms.backend.megamind.api.command.CoreExecutionSession;
-import net.skykingdoms.backend.megamind.manager.ServerManager;
-import net.skykingdoms.backend.megamind.server.AbstractScalable;
+import net.skykingdoms.backend.megamind.instance.impl.LobbyInstance;
+import net.skykingdoms.backend.megamind.manager.LobbyManager;
+import net.skykingdoms.backend.megamind.instance.AbstractScalable;
 import net.skykingdoms.backend.protocol.server.GameType;
-import net.skykingdoms.backend.protocol.server.ServerScaleType;
 
 /**
  * @author Vihara 
@@ -35,9 +35,9 @@ public final class HubCommand {
                 throw new CommandMessageException("Invalid target lobby. Use your compass.");
             }
 
-            val server = ServerManager.INSTANCE.getLobbyServer(currentServer.getGameType());
+            val server = LobbyManager.INSTANCE.getLobbyInstance(currentServer.getGameType());
             if (server == null) {
-                throw new CommandMessageException("Can't find a lobby server!");
+                throw new CommandMessageException("Can't find a lobby instance!");
             }
 
             session.getGamer().sendTo(server);
@@ -46,21 +46,21 @@ public final class HubCommand {
         }
 
         AbstractScalable newServer = null;
-        // lobby server for some mini game
-        if (currentServer.getServerScale() == ServerScaleType.LOBBY) {
-            newServer = ServerManager.INSTANCE.getLobbyServer(GameType.MAIN);
+        // lobby instance for some mini game
+        if (currentServer instanceof LobbyInstance) {
+            newServer = LobbyManager.INSTANCE.getLobbyInstance(GameType.MAIN);
         }
 
-        // player is on game server instance
+        // player is on game instance instance
         if (currentServer.getGameMode() != null) {
-            newServer = ServerManager.INSTANCE.getLobbyServer(currentServer.getGameType());
-            if (newServer == null) { // no lobby server for gametype, so we route to HUB
-                newServer = ServerManager.INSTANCE.getLobbyServer(GameType.MAIN);
+            newServer = LobbyManager.INSTANCE.getLobbyInstance(currentServer.getGameType());
+            if (newServer == null) { // no lobby instance for gametype, so we route to HUB
+                newServer = LobbyManager.INSTANCE.getLobbyInstance(GameType.MAIN);
             }
         }
 
         if (newServer == null) {
-            throw new CommandMessageException("Can't find a lobby server!");
+            throw new CommandMessageException("Can't find a lobby instance!");
         }
 
         session.getGamer().sendTo(newServer);

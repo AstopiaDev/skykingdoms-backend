@@ -5,10 +5,9 @@ import net.skykingdoms.backend.base.command.NamedCommand;
 import net.skykingdoms.backend.base.command.condition.WithCondition;
 import net.skykingdoms.backend.base.command.exception.CommandMessageException;
 import net.skykingdoms.backend.base.command.execution.Executor;
-import net.skykingdoms.backend.base.command.tabcomplete.Tabcomplete;
 import net.skykingdoms.backend.megamind.api.command.CoreExecutionSession;
-import net.skykingdoms.backend.megamind.manager.ServerManager;
-import net.skykingdoms.backend.megamind.server.AbstractPlayerHolder;
+import net.skykingdoms.backend.megamind.manager.InstanceManager;
+import net.skykingdoms.backend.megamind.instance.AbstractPlayerHolder;
 import net.skykingdoms.backend.protocol.server.GameType;
 
 @NamedCommand("survival")
@@ -16,13 +15,13 @@ public class SurvivalCommand {
     @WithCondition("disableConsole")
     @Executor
     public static void execute(final CoreExecutionSession session) throws CommandMessageException {
-        val target = (AbstractPlayerHolder) ServerManager.INSTANCE.getLobbyServer(GameType.SURVIVAL);
+/*        val target = (AbstractPlayerHolder) InstanceManager.INSTANCE.getLobbyServer(GameType.SURVIVAL);
         if (target == null) {
             throw new CommandMessageException("Invalid target");
         }
 
         val gamer = session.getGamer();
-        session.sendMessage(gamer.sendTo(target).name());
+        session.sendMessage(gamer.sendTo(target).name());*/
     }
 
 }

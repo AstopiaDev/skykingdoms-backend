@@ -26,19 +26,19 @@ public enum DeploymentResponse {
     TRANSACTION_FAILED,
 
     /**
-     * If no server booted up until timeout reached
+     * If no instance booted up until timeout reached
      */
     DEPLOYMENT_TIMEOUT,
 
     /**
-     * If server booted up successfully
+     * If instance booted up successfully
      */
     SUCCESSFUL_BOOT
 
     ;
 
     /**
-     * A server transaction ID that we need for testflowyyyy thing
+     * A instance transaction ID that we need for testflowyyyy thing
      */
     @Accessors(fluent = true, chain = true)
     UUID transactionId;

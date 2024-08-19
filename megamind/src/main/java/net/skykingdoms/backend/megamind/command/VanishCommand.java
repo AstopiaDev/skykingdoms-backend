@@ -9,7 +9,7 @@ import net.skykingdoms.backend.megamind.MegamindApp;
 import net.skykingdoms.backend.megamind.api.command.CoreExecutionSession;
 import net.skykingdoms.backend.megamind.data.gamer.Gamer;
 import net.skykingdoms.backend.megamind.event.gamer.PlayerVanishEvent;
-import net.skykingdoms.backend.megamind.server.AbstractScalable;
+import net.skykingdoms.backend.megamind.instance.AbstractScalable;
 import net.skykingdoms.backend.protocol.server.ServerScaleType;
 
 @WithAlias("v")
@@ -23,7 +23,7 @@ public final class VanishCommand {
 
         boolean vanished = !sender.isVanished();
 
-        if (((AbstractScalable) sender.getCurrentServer()).getServerScale() != ServerScaleType.LOBBY && ((AbstractScalable) sender.getCurrentServer()).getServerScale() != ServerScaleType.PERSISTENT) {
+        if (((AbstractScalable) sender.getCurrentServer()).getServerScale() != ServerScaleType.MINI) {
             throw new CommandTranslationException("core_vanish_lobbyonly");
         }
 

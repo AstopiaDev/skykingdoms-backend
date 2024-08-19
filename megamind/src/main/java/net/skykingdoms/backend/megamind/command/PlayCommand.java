@@ -10,9 +10,10 @@ import net.skykingdoms.backend.base.command.tabcomplete.Tabcomplete;
 import net.skykingdoms.backend.base.util.color.ChatColor;
 import net.skykingdoms.backend.base.util.optionals.Optional;
 import net.skykingdoms.backend.megamind.api.command.CoreExecutionSession;
-import net.skykingdoms.backend.megamind.manager.ServerManager;
+import net.skykingdoms.backend.megamind.instance.impl.ArenaInstance;
+import net.skykingdoms.backend.megamind.manager.InstanceManager;
 import net.skykingdoms.backend.megamind.matchmaking.MatchmakingManager;
-import net.skykingdoms.backend.megamind.server.impl.GameServer;
+import net.skykingdoms.backend.megamind.instance.impl.GameInstance;
 import net.skykingdoms.backend.protocol.server.GameMode;
 
 /**
@@ -31,15 +32,15 @@ public final class PlayCommand {
             throw new CommandMessageException(ChatColor.RED + "Invalid game mode!");
         }
 
-        Optional<GameServer> optional;
+        Optional<ArenaInstance> optional;
         if (gameMode == GameMode.RANKED_NORMAL) {
             optional = MatchmakingManager.INSTANCE.getOptimalServer(gamer);
         } else {
-            optional = Optional.ofNullable((GameServer) ServerManager.INSTANCE.getBestByOnline(session.getGamer(), gameMode.bakeData(), true));
+            optional = Optional.ofNullable((ArenaInstance) InstanceManager.INSTANCE.getBestByOnline(session.getGamer(), gameMode, true));
         }
 
         if (optional.isEmpty()) {
-            throw new CommandMessageException(ChatColor.RED + "Couldn't find a server for you :(");
+            throw new CommandMessageException(ChatColor.RED + "Couldn't find a instance for you :(");
         }
 
         gamer.sendTo(optional.get());

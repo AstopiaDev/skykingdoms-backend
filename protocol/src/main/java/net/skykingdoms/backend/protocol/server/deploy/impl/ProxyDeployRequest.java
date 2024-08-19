@@ -8,7 +8,7 @@ import java.util.UUID;
 
 /**
  * No special fields declared in this request, as the only thing we must know -
- * we deploy a PROXY server :)
+ * we deploy a PROXY instance :)
  *
  */
 public final class ProxyDeployRequest extends AbstractDeployRequest {

@@ -3,7 +3,7 @@ package net.skykingdoms.backend.protocol.type;
 import java.util.Arrays;
 
 public enum RemoteConnectedType {
-
+    BOT,
     SERVER,
     PROXY,
     NODE

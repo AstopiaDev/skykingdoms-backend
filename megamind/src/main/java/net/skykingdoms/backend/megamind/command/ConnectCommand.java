@@ -7,8 +7,8 @@ import net.skykingdoms.backend.base.command.exception.CommandMessageException;
 import net.skykingdoms.backend.base.command.execution.Executor;
 import net.skykingdoms.backend.base.command.tabcomplete.Tabcomplete;
 import net.skykingdoms.backend.megamind.api.command.CoreExecutionSession;
-import net.skykingdoms.backend.megamind.manager.ServerManager;
-import net.skykingdoms.backend.megamind.server.AbstractPlayerHolder;
+import net.skykingdoms.backend.megamind.manager.InstanceManager;
+import net.skykingdoms.backend.megamind.instance.AbstractPlayerHolder;
 
 /**
  * @author Vihara
@@ -22,7 +22,7 @@ public final class ConnectCommand {
     @WithCondition("minArgs: 1")
     @Executor
     public static void execute(final CoreExecutionSession session) throws CommandMessageException {
-        val target = (AbstractPlayerHolder) ServerManager.INSTANCE.getPlayableServer(session.getArgument(0));
+        val target = (AbstractPlayerHolder) InstanceManager.INSTANCE.getPlayableServer(session.getArgument(0));
         if (target == null) {
             throw new CommandMessageException("Invalid target");
         }

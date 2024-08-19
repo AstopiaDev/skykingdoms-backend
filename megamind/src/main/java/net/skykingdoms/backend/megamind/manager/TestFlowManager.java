@@ -11,8 +11,8 @@ import net.skykingdoms.backend.megamind.api.command.CommandSender;
 import net.skykingdoms.backend.megamind.manager.deployment.DeploymentResponse;
 import net.skykingdoms.backend.megamind.manager.testflow.TestFlowData;
 import net.skykingdoms.backend.megamind.manager.testflow.TestFlowExecutionResponse;
-import net.skykingdoms.backend.megamind.server.AbstractScalable;
-import net.skykingdoms.backend.megamind.server.impl.LobbyServer;
+import net.skykingdoms.backend.megamind.instance.AbstractScalable;
+import net.skykingdoms.backend.megamind.instance.impl.LobbyInstance;
 import net.skykingdoms.backend.protocol.logging.Logging;
 import net.skykingdoms.backend.protocol.packet.play.ServerDeploy;
 import net.skykingdoms.backend.protocol.server.GameMode;
@@ -192,12 +192,12 @@ public final class TestFlowManager {
         val data = testflow.getData().getServerData();
 
         // we await lobby, but got some shit
-        if (data.getServerScale() == ServerScaleType.LOBBY && !(pendingServer instanceof LobbyServer)) {
+        if (data.getServerScale() == ServerScaleType.MINI && !(pendingServer instanceof LobbyInstance)) {
             return;
         }
 
         // we await game instance, but got some shit
-        if ((data.getServerScale() == ServerScaleType.MINI || data.getServerScale() == ServerScaleType.MEGA)) {
+        if ((data.getServerScale() == ServerScaleType.MEDIUM || data.getServerScale() == ServerScaleType.LARGE)) {
             return;
         }
 
@@ -250,7 +250,7 @@ public final class TestFlowManager {
                 loadedTests.add(new TestFlowData(
                         testFlowName,
                         new ScalableDataImpl(
-                                ServerScaleType.valueOf(configFile.getString("server-scale")),
+                                ServerScaleType.valueOf(configFile.getString("instance-scale")),
                                 GameType.valueOf(configFile.getString("game-type", null)),
                                 GameMode.valueOf(configFile.getString("game-mode"), null)
                         ),

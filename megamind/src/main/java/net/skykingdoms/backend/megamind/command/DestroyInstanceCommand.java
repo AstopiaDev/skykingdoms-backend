@@ -10,7 +10,7 @@ import net.skykingdoms.backend.megamind.api.command.CoreExecutionSession;
 import net.skykingdoms.backend.megamind.manager.DeploymentManager;
 
 /**
- * Basically shuts down a server with some benefits.
+ * Basically shuts down a instance with some benefits.
  * Eg: "force" flag indicates that we send a destroy packet to
  * @author Vihara
  */

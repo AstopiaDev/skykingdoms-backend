@@ -9,7 +9,7 @@ import lombok.val;
 import net.skykingdoms.backend.base.util.collection.CollectionUtil;
 import net.skykingdoms.backend.megamind.MegamindApp;
 import net.skykingdoms.backend.megamind.data.gamer.Gamer;
-import net.skykingdoms.backend.megamind.server.impl.ProxyServer;
+import net.skykingdoms.backend.megamind.instance.impl.ProxyInstance;
 import net.skykingdoms.backend.protocol.logging.Logging;
 import net.skykingdoms.backend.protocol.packet.Packet;
 import net.skykingdoms.backend.protocol.packet.play.S10RegisterCommands;
@@ -36,10 +36,10 @@ public final class ProxyManager {
     public static final ProxyManager INSTANCE = new ProxyManager();
     // ------------------------------------------------------------
 
-    Collection<ProxyServer> proxyServers = CollectionUtil.createConcurrentSet();
+    Collection<ProxyInstance> proxyInstances = CollectionUtil.createConcurrentSet();
 
     /**
-     * Invoked once. Required for initial proxy server registration
+     * Invoked once. Required for initial proxy instance registration
      * in case of complete network reboot.
      */
     public void postBootstrap() {
@@ -49,44 +49,44 @@ public final class ProxyManager {
         Logging.IMP.info("");
 
         MegamindApp.INSTANCE.scheduler().schedule(() -> {
-            if (!proxyServers.isEmpty()) return; // some proxy registered
+            if (!proxyInstances.isEmpty()) return; // some proxy registered
 
-            Logging.IMP.info("No proxy server came online! Bootstrapping cluster of proxy servers ...");
+            Logging.IMP.info("No proxy instance came online! Bootstrapping cluster of proxy servers ...");
 
             DeploymentManager.INSTANCE.sendDeploymentRequest(new ProxyDeployRequest(), ServerDeploy.DeploymentTarget.PROXY, false, null, 0, $ -> {});
         }, 20, TimeUnit.SECONDS);
     }
 
-    public ProxyServer getProxy(final @NonNull String name) {
-        return proxyServers.stream()
+    public ProxyInstance getProxy(final @NonNull String name) {
+        return proxyInstances.stream()
                 .filter(proxyServer -> proxyServer.getName().equalsIgnoreCase(name))
                 .findFirst()
                 .orElse(null);
     }
 
     public boolean isProxyRegistered(final @NonNull String name) {
-        return proxyServers.stream()
+        return proxyInstances.stream()
                 .anyMatch(proxyServer -> proxyServer.getName().equalsIgnoreCase(name));
     }
 
     public void sendToProxies(final @NonNull Packet<?> packet) {
-        proxyServers.forEach(proxyServer -> proxyServer.getChannel().sendPacket(packet));
+        proxyInstances.forEach(proxyServer -> proxyServer.getChannel().sendPacket(packet));
     }
 
     /**
-     * Just registers a proxy server instance
+     * Just registers a proxy instance instance
      */
-    public ProxyServer registerProxyServer(final @NonNull ProxyServer proxyServer) {
-        if (isProxyRegistered(proxyServer.getName())) {
+    public ProxyInstance registerProxyServer(final @NonNull ProxyInstance proxyInstance) {
+        if (isProxyRegistered(proxyInstance.getName())) {
             throw new IllegalArgumentException("Proxy with this name is already registered!");
         }
 
-        Logging.IMP.info("[Proxy] Registered proxy {}", proxyServer.getName());
+        Logging.IMP.info("[Proxy] Registered proxy {}", proxyInstance.getName());
 
-        proxyServers.add(proxyServer);
+        proxyInstances.add(proxyInstance);
 
         List<S10RegisterCommands.CommandContainer> containers = new ArrayList<>();
-        for (val entry : ServerManager.INSTANCE.getCommandMapper().getCommandsEntry()) {
+        for (val entry : InstanceManager.INSTANCE.getCommandMapper().getCommandsEntry()) {
             containers.add(new S10RegisterCommands.CommandContainer(
                     entry.getValue(), S10RegisterCommands.CommandSource.SERVER, entry.getKey()
             ));
@@ -94,9 +94,9 @@ public final class ProxyManager {
 
         containers.add(S10RegisterCommands.CommandContainer.coreSingleton(MegamindApp.INSTANCE.getCommands())[0]);
 
-        proxyServer.getChannel().sendPacket(new S10RegisterCommands(containers.toArray(S10RegisterCommands.CommandContainer[]::new)));
+        proxyInstance.getChannel().sendPacket(new S10RegisterCommands(containers.toArray(S10RegisterCommands.CommandContainer[]::new)));
 
-        return proxyServer;
+        return proxyInstance;
     }
 
     /**
@@ -118,19 +118,19 @@ public final class ProxyManager {
             Gamer.getGamer(playerId).quit();
         }
 
-        proxyServers.remove(proxy);
+        proxyInstances.remove(proxy);
 
         // If last proxy got unregistered we should
         // deploy new instance, so players would
         // have an ability to connect back 0_0
-        if (proxyServers.isEmpty()) {
-            Logging.IMP.info("It looks like the latest proxy server got unregistered, and now no active proxies are running!");
-            Logging.IMP.info("If in next 10 seconds no proxy server comes online we deploy a new proxy instance...");
+        if (proxyInstances.isEmpty()) {
+            Logging.IMP.info("It looks like the latest proxy instance got unregistered, and now no active proxies are running!");
+            Logging.IMP.info("If in next 10 seconds no proxy instance comes online we deploy a new proxy instance...");
 
             MegamindApp.INSTANCE.scheduler().schedule(() -> {
-                if (!proxyServers.isEmpty()) return;
+                if (!proxyInstances.isEmpty()) return;
 
-                Logging.IMP.info("No proxy server came online! Bootstrapping new proxy instance ...");
+                Logging.IMP.info("No proxy instance came online! Bootstrapping new proxy instance ...");
 
                 //DeploymentManager.INSTANCE.sendDeploymentRequest(new ProxyDeployRequest(), ServerDeploy.DeploymentTarget.PROXY, false, null, 0, $ -> {});
             }, 10, TimeUnit.SECONDS);
@@ -140,8 +140,8 @@ public final class ProxyManager {
     /**
      * Getting a proxy instance with smaller amount of players connected
      */
-    public ProxyServer getOptimalProxy() {
-        return proxyServers.stream()
+    public ProxyInstance getOptimalProxy() {
+        return proxyInstances.stream()
                 .min(Comparator.comparingInt(a -> a.getPlayerIds().length))
                 .orElse(null);
     }

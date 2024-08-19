@@ -17,14 +17,14 @@ import java.util.Arrays;
 public enum NetworkState {
 
     /**
-     * Common server state that allows everyone to join
+     * Common instance state that allows everyone to join
      */
     OPEN("motd", Consumer.empty(), gamer -> {
         gamer.sendMessage("§cYou might experience a lot of bugs, we have a new system that is still in development.\n §cPlease report any bugs to our staff team.");
     }),
 
     /**
-     * Development server. Only STAFF is able to join
+     * Development instance. Only STAFF is able to join
      */
     DEVELOPMENT("motd_devserver", gamer -> {
 /*        if (!gamer.isStaff()) {

@@ -28,7 +28,7 @@ public final class ServerDeploy {
     @Data
     public static final class Request extends Packet.Request<PlayServerProcessor, Response> {
         /**
-         * Indicates which server type we are deploying
+         * Indicates which instance type we are deploying
          */
         DeploymentTarget deploymentTarget;
 
@@ -157,7 +157,7 @@ public final class ServerDeploy {
     }
 
     /**
-     * Internal indicator that shows which game server should be deployed
+     * Internal indicator that shows which game instance should be deployed
      *
      *
      */

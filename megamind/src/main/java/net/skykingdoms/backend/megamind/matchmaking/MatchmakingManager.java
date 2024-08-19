@@ -7,8 +7,9 @@ import net.skykingdoms.backend.base.data.stat.StatisticPeriod;
 import net.skykingdoms.backend.base.util.optionals.Optional;
 import net.skykingdoms.backend.megamind.MegamindApp;
 import net.skykingdoms.backend.megamind.data.gamer.Gamer;
-import net.skykingdoms.backend.megamind.manager.ServerManager;
-import net.skykingdoms.backend.megamind.server.impl.GameServer;
+import net.skykingdoms.backend.megamind.instance.impl.ArenaInstance;
+import net.skykingdoms.backend.megamind.manager.InstanceManager;
+import net.skykingdoms.backend.megamind.instance.impl.GameInstance;
 import net.skykingdoms.backend.protocol.logging.Logging;
 import net.skykingdoms.backend.protocol.server.GameState;
 import net.skykingdoms.backend.protocol.type.PropertyType;
@@ -63,18 +64,19 @@ public final class MatchmakingManager {
     /**
      * Experimental, actually :nerd:
      */
-    public net.skykingdoms.backend.base.util.optionals.Optional<GameServer> getOptimalServer(final @NonNull Gamer gamer) {
+    public net.skykingdoms.backend.base.util.optionals.Optional<ArenaInstance> getOptimalServer(final @NonNull Gamer gamer) {
         val rating = gamer.getProperty(PropertyType.ACHIEVEMENT_POINTS);
 
         // GameServer -> Average rating
-        Map<GameServer, Integer> rankedServers = ServerManager.INSTANCE.getGameServers().stream()
+        Map<ArenaInstance, Integer> rankedServers = InstanceManager.INSTANCE.getInstances().stream()
+                .map(s -> (ArenaInstance) s)
                 /*.filter(gameServer -> gameServer.getGameMode() == GameMode.SURVIVAL_MODERN)*/
                 .collect(Collectors.toMap(gameServer -> gameServer, gameServer -> {
                     val overall = gameServer.getGamers().stream().mapToInt(iGamer -> iGamer.getProperty(PropertyType.ACHIEVEMENT_POINTS)).sum();
                     return overall / Math.max(1, gameServer.getGamers().size()); // avg
         }));
 
-        GameServer ret = null; // not initialized yet, there might be no servers for ranked :/
+        ArenaInstance ret = null; // not initialized yet, there might be no servers for ranked :/
         var servers = rankedServers.entrySet().stream().filter(s -> s.getKey().canJoin() && s.getKey().getCurrentState() == GameState.STAND_BY).sorted((a, b) -> Integer.compare(b.getValue(), a.getValue())).collect(Collectors.toList());
         for (val server : servers) {
             if (rating <= server.getValue()) {
@@ -85,7 +87,7 @@ public final class MatchmakingManager {
             }
         }
 
-        // fuck it, just getting random server with the smallest avg rating for our gamer
+        // fuck it, just getting random instance with the smallest avg rating for our gamer
         servers = Lists.reverse(servers);
 
         if (ret == null && servers.size() > 0) {
@@ -104,10 +106,10 @@ public final class MatchmakingManager {
         }
 
         if (ret == null) {
-            Logging.IMP.warn("[Matchmaking] Couldn't find a server for {} @ Rating: {}",
+            Logging.IMP.warn("[Matchmaking] Couldn't find a instance for {} @ Rating: {}",
                     gamer.getName(), rating);
         } else {
-            Logging.IMP.info("[Matchmaking] Found a server for {} @ Rating: {} @ Server: {}",
+            Logging.IMP.info("[Matchmaking] Found a instance for {} @ Rating: {} @ Server: {}",
                     gamer.getName(), rating, ret.getName());
         }
 

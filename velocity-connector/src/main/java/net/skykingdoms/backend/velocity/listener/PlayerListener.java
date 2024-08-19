@@ -148,7 +148,7 @@ public final class PlayerListener {
             this.loadedData.remove(event.getConnection());
         }).delay(2500L, TimeUnit.MILLISECONDS).schedule();
 
-        // if dude is new to the server we set up his default lang
+        // if dude is new to the instance we set up his default lang
         if (gamer.getGamerId() < 0) {
             gamer.changeLanguage(Language.DEFAULT, false);
         }
@@ -209,7 +209,7 @@ public final class PlayerListener {
                 gamer.setConnectedToCore(true);
                 continuation.resume();
             }).exceptionally(throwable -> {
-                connection.disconnect(Component.text("§cInternal server error.\n" + "§c[PL-EX]"));
+                connection.disconnect(Component.text("§cInternal instance error.\n" + "§c[PL-EX]"));
                 Logging.IMP.stacktrace(throwable, "Error while handling PostLoginEvent");
                 return null;
             });
@@ -229,14 +229,14 @@ public final class PlayerListener {
 
         val target = event.getInitialServer().orElse(null);
 
-        // this always happens if player just joins the server
-        // name of the default server is "undefined"
-        // so we ask a coordinator to get us a new server uwu owo >.<
+        // this always happens if player just joins the instance
+        // name of the default instance is "undefined"
+        // so we ask a coordinator to get us a new instance uwu owo >.<
 
         if (target == null || target.getServerInfo().getName().equals("undefined")) {
-            RegisteredServer newTarget = ServerUtil.getServerToConnect(gamer, new ScalableDataImpl(ServerScaleType.LOBBY, GameType.MAIN, null)).join();
+            RegisteredServer newTarget = ServerUtil.getServerToConnect(gamer, new ScalableDataImpl(ServerScaleType.MINI, GameType.MAIN, null)).join();
             if (newTarget == null) {
-                player.disconnect(Component.text("§cInternal server error.\n" + "§c[SCRQ-CANCEL]"));
+                player.disconnect(Component.text("§cInternal instance error.\n" + "§c[SCRQ-CANCEL]"));
                 continuation.resume();
                 return;
                 //newTarget = target;
@@ -254,7 +254,7 @@ public final class PlayerListener {
 */
 
                 if (connectionResponse.isCancelled()) {
-                    player.disconnect(Component.text("§cInternal server error.\n" + "§c[SCRQ-CANCEL]"));
+                    player.disconnect(Component.text("§cInternal instance error.\n" + "§c[SCRQ-CANCEL]"));
                     continuation.resumeWithException(new RuntimeException("Server connection canceled"));
                 } else {
                     return VelocityConnector.INSTANCE.server().getServer(connectionResponse.getNewServer()).get();
@@ -267,14 +267,14 @@ public final class PlayerListener {
 */
 
             if (targetServer == null || targetServer.getServerInfo().getName().equals("undefined")) {
-                player.disconnect(Component.text("§cInternal server error.\n" + "§c[NSF]"));
-                continuation.resumeWithException(new RuntimeException("No valid target server"));
+                player.disconnect(Component.text("§cInternal instance error.\n" + "§c[NSF]"));
+                continuation.resumeWithException(new RuntimeException("No valid target instance"));
             } else {
                 event.setInitialServer(targetServer);
                 continuation.resume();
             }
         } else {
-            player.disconnect(Component.text("§cInternal server error.\n" + "§c[SCRQ-CANCEL]"));
+            player.disconnect(Component.text("§cInternal instance error.\n" + "§c[SCRQ-CANCEL]"));
         }
     }
 

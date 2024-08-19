@@ -38,7 +38,7 @@ public final class PlayerStatusEndpoint implements IEndpoint {
         val sessionObject = new JsonObject();
         sessionObject.addProperty("online", gamer.isOnline());
 
-        val currentServer = gamer.getGameServer();
+        val currentServer = gamer.getCurrentServer();
         sessionObject.addProperty("gameType", currentServer == null ? "null" : currentServer.getGameType().name());
         sessionObject.addProperty("gameMode", currentServer == null ? "null" : currentServer.getGameMode().name());
         sessionObject.addProperty("map", currentServer == null ? "null" : currentServer.getMap());

@@ -44,14 +44,6 @@ public final class ScalableDataImpl implements IScalable, Serializable<ScalableD
         return this;
     }
 
-    public boolean isGameArena() {
-        return serverScale == ServerScaleType.MEGA || serverScale == ServerScaleType.MINI;
-    }
-
-    public boolean isLobby() {
-        return serverScale == ServerScaleType.LOBBY;
-    }
-
     @Override
     public boolean equals(Object obj) {
         return obj instanceof ScalableDataImpl

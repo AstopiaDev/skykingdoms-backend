@@ -1,11 +1,11 @@
-package net.skykingdoms.backend.megamind.server.impl;
+package net.skykingdoms.backend.megamind.instance.impl;
 
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.FieldDefaults;
 import net.skykingdoms.backend.megamind.connection.RemoteClientConnection;
-import net.skykingdoms.backend.megamind.server.AbstractScalable;
+import net.skykingdoms.backend.megamind.instance.AbstractScalable;
 import net.skykingdoms.backend.protocol.server.GameMode;
 import net.skykingdoms.backend.protocol.server.GameType;
 import net.skykingdoms.backend.protocol.server.INodeServer;
@@ -16,16 +16,15 @@ import org.jetbrains.annotations.Nullable;
 import java.net.InetSocketAddress;
 
 /**
- * Basically, represents any playable server registered in the network.
- *
- * 
+ * Basically, represents any playable instance registered in the network.
+ * @Author Vihara
  */
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Getter
-public final class BukkitServer extends AbstractScalable {
+public class BukkitInstance extends AbstractScalable {
 
     /**
-     * Which game type this server hosts
+     * Which game type this instance hosts
      */
     GameType gameType;
 
@@ -35,21 +34,21 @@ public final class BukkitServer extends AbstractScalable {
     ServerScaleType scaleType;
 
     /**
-     * A node this server is deployed on
+     * A node this instance is deployed on
      */
-    NodeServer deploymentNode;
+    NodeInstance deploymentNode;
 
     /**
      * Remote bukkit's host
      */
     InetSocketAddress host;
 
-    public BukkitServer(final @NonNull String name,
-                        final @NonNull RemoteClientConnection connection,
-                        final @NonNull GameType gameType,
-                        final @NonNull ServerScaleType scaleType,
-                        final NodeServer deploymentNode,
-                        final @NonNull InetSocketAddress host) {
+    public BukkitInstance(final @NonNull String name,
+                          final @NonNull RemoteClientConnection connection,
+                          final @NonNull GameType gameType,
+                          final @NonNull ServerScaleType scaleType,
+                          final NodeInstance deploymentNode,
+                          final @NonNull InetSocketAddress host) {
         super(name, connection);
         this.gameType = gameType;
         this.scaleType = scaleType;

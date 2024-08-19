@@ -21,7 +21,7 @@ public final class ProxyDeploymentListener implements Listener {
 
     @EventHandler
     public void onProxyDeploy(final ProxyDeployEvent event) {
-        val proxy = event.getProxyServer();
+        val proxy = event.getProxyInstance();
         Logging.IMP.info("[NeoProtect] Deployed proxy at {}{} @ Backend ID: {}", proxy.getHost().getHostString() + ":" + proxy.getHost().getPort(),
                 event.isReconnect() ? " (reconnect)" : "", NeoProtectManager.INSTANCE.requestBackendId(
                         proxy.getHost().getHostString(),

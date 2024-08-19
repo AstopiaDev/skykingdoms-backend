@@ -14,7 +14,7 @@ public final class BungeeSecurityListener {
         if (!BungeeSecurityManager.INSTANCE.isInitialized()) {
             Logging.IMP.warn("[Security] SecurityManager was not initialized yet!");
             // todo: make this red
-            e.setResult(ResultedEvent.ComponentResult.denied(Component.text("Internal server error\n[SEC-1]")));
+            e.setResult(ResultedEvent.ComponentResult.denied(Component.text("Internal instance error\n[SEC-1]")));
             return;
         }
 

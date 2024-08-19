@@ -5,7 +5,7 @@ import net.skykingdoms.backend.base.command.NamedCommand;
 import net.skykingdoms.backend.base.command.condition.WithCondition;
 import net.skykingdoms.backend.base.command.execution.Executor;
 import net.skykingdoms.backend.megamind.api.command.CoreExecutionSession;
-import net.skykingdoms.backend.megamind.manager.ServerManager;
+import net.skykingdoms.backend.megamind.manager.InstanceManager;
 
 @NamedCommand("removebukkitserver")
 public class RemoveBukkitServerCommand {
@@ -20,7 +20,7 @@ public class RemoveBukkitServerCommand {
             if (arg.equalsIgnoreCase("-f")) force = true;
         }
 
-        ServerManager.INSTANCE.removeBukkitServer(name, true, force);
-        session.sendMessage("Removing bukkit server: {} - Flags: F({})", name, force);
+        InstanceManager.INSTANCE.removeBukkitInstance(name, true, force);
+        session.sendMessage("Removing bukkit instance: {} - Flags: F({})", name, force);
     }
 }

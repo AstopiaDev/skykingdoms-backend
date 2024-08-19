@@ -25,7 +25,7 @@ public final class DeployTestCommand {
     public static void execute(final @NonNull CoreExecutionSession session) {
         val cock = RemoteConnectedType.valueOf(session.getArgument(0));
         DeploymentManager.INSTANCE.sendDeploymentRequest(cock == RemoteConnectedType.PROXY
-                        ? new ProxyDeployRequest() : new BukkitDeployRequest(new ScalableDataImpl(ServerScaleType.LOBBY, GameType.MAIN, null)),
+                        ? new ProxyDeployRequest() : new BukkitDeployRequest(new ScalableDataImpl(ServerScaleType.MINI, GameType.MAIN, null)),
                 cock == RemoteConnectedType.PROXY ? ServerDeploy.DeploymentTarget.PROXY : ServerDeploy.DeploymentTarget.BUKKIT, false, null, 0, response -> {
                     session.sendMessage("Result: " + response);
                 });

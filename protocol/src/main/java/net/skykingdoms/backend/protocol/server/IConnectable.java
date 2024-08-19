@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents any CLIENT that can be connected to Coordinator instance.
- * This could be a game instance server, proxy instance server, node connector, watchdog etc..
+ * This could be a game instance instance, proxy instance instance, node connector, watchdog etc..
  *
  */
 public interface IConnectable {

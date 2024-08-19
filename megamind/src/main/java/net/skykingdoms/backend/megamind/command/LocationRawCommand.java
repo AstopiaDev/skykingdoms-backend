@@ -6,6 +6,8 @@ import net.skykingdoms.backend.base.command.NamedCommand;
 import net.skykingdoms.backend.base.command.condition.WithCondition;
 import net.skykingdoms.backend.base.command.execution.Executor;
 import net.skykingdoms.backend.megamind.api.command.CoreExecutionSession;
+import net.skykingdoms.backend.megamind.instance.impl.ArenaInstance;
+import net.skykingdoms.backend.megamind.instance.impl.LobbyInstance;
 
 /**
  * @author Vihara
@@ -19,25 +21,23 @@ public final class LocationRawCommand {
         val gamer = session.getGamer();
         val json = new JsonObject();
 
-        // for lobbies, we want to see only dynamiclobby component as server name
+        // for lobbies, we want to see only dynamiclobby component as instance name
         // while for gameserver instances it's necessary to see the instance full name
-        if (gamer.getLobbyServer() != null) {
-            json.addProperty("server", gamer.getBukkitServer().getName());
+        if (gamer.getBukkitInstance() instanceof LobbyInstance) {
+            json.addProperty("lobbyname", gamer.getBukkitInstance().getName());
         } else {
-            json.addProperty("server", gamer.getCurrentServer().getName());
+            json.addProperty("instance", gamer.getCurrentServer().getName());
         }
 
-        if (gamer.getBukkitServer().getGameType() != null) {
-            json.addProperty("gametype", gamer.getBukkitServer().getGameType().name());
+        if (gamer.getBukkitInstance().getGameType() != null) {
+            json.addProperty("gametype", gamer.getBukkitInstance().getGameType().name());
         }
 
-        if (gamer.getLobbyServer() != null) {
-            json.addProperty("lobbyname", gamer.getLobbyServer().getName());
-        }
 
-        if (gamer.getGameServer() != null) {
-            json.addProperty("mode", gamer.getGameServer().getGameMode().name());
-            json.addProperty("map", gamer.getGameServer().getMap());
+        if (gamer.getBukkitInstance() instanceof ArenaInstance) {
+            ArenaInstance arenaInstance = (ArenaInstance) gamer.getBukkitInstance();
+            json.addProperty("mode", arenaInstance.getGameMode().name());
+            json.addProperty("map", arenaInstance.getMap());
         }
 
         gamer.sendMessage(json.toString());

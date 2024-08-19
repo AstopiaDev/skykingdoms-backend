@@ -1,23 +1,16 @@
 package net.skykingdoms.backend.megamind.manager;
 
-import com.google.common.cache.Cache;
 import com.google.common.collect.Streams;
-import gnu.trove.map.TIntObjectMap;
-import gnu.trove.map.TObjectIntMap;
-import gnu.trove.map.hash.TIntObjectHashMap;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.val;
 import net.skykingdoms.backend.base.command.dependency.Dependency;
-import net.skykingdoms.backend.base.data.network.PersistentServerMeta;
-import net.skykingdoms.backend.base.data.network.ServersSqlHandler;
 import net.skykingdoms.backend.base.util.collection.CollectionUtil;
-import net.skykingdoms.backend.megamind.MegamindApp;
 import net.skykingdoms.backend.megamind.data.gamer.Gamer;
 import net.skykingdoms.backend.megamind.lookup.LookupManager;
-import net.skykingdoms.backend.megamind.server.AbstractPlayerHolder;
-import net.skykingdoms.backend.megamind.server.AbstractScalable;
-import net.skykingdoms.backend.megamind.server.impl.*;
+import net.skykingdoms.backend.megamind.instance.AbstractPlayerHolder;
+import net.skykingdoms.backend.megamind.instance.AbstractScalable;
+import net.skykingdoms.backend.megamind.instance.impl.*;
 import net.skykingdoms.backend.protocol.logging.Logging;
 import net.skykingdoms.backend.protocol.packet.Packet;
 import net.skykingdoms.backend.protocol.packet.play.S06RegisterServers;
@@ -34,45 +27,47 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.TimeUnit;
 import java.util.function.BinaryOperator;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Getter
-public final class ServerManager {
+public final class InstanceManager {
 
     // --------------------------------------------------------------
     @Dependency
-    public static final ServerManager INSTANCE = new ServerManager();
+    public static final InstanceManager INSTANCE = new InstanceManager();
     // --------------------------------------------------------------
 
-    // Set of registered bukkit server instances and arena segments.
-    Collection<BukkitServer> registeredBukkitInstances = CollectionUtil.createConcurrentSet();
-    @Getter Collection<GameServer> gameServers = CollectionUtil.createConcurrentSet();
-    @Getter Collection<PersistentServer> persistentServers = CollectionUtil.createConcurrentSet();
+    // Set of registered bukkit instance instances and arena segments.
+    @Getter Map<String, BukkitInstance> virtualInstances = CollectionUtil.createConcurrentMap();
+    @Getter Collection<BukkitInstance> bukkitInstances = CollectionUtil.createConcurrentSet();
     @Getter ServerCommandMapper commandMapper = new ServerCommandMapper();
     @Getter final Map<String, CompletableFuture<AbstractPlayerHolder>> reconnectFutures = new HashMap<>();
     @Getter final Map<Object, GameBootResponse[]> pendingGameDeployments = new HashMap<>();
-/*    @Getter
-    TIntObjectMap<PersistentServerMeta> meta = new TIntObjectHashMap<>();*/
-
-    public void postBootstrap() {
-        /*this.meta = ServersSqlHandler.INSTANCE.loadServers().join();*/
-    }
 
     /**
-     * Basically registers a bukkit server instance. Arenas will be declared later
+     * Basically registers a dynamic bukkit instance. Arenas will be declared later
      */
-    public BukkitServer registerBukkitServer(final @NonNull BukkitServer server) {
-        if (isBukkitServerRegistered(server.getName())) {
-            throw new IllegalArgumentException("This server is already registered!");
+    /**
+     * Registers a dynamic Bukkit instance. Arenas are declared separately.
+     * Depending on the type of instance (GameInstance, ArenaInstance),
+     * it is added to the corresponding collections.
+     *
+     * @param server the BukkitInstance to register.
+     * @return the registered BukkitInstance.
+     * @throws IllegalArgumentException if the server is already registered.
+     */
+    public BukkitInstance registerBukkitInstance(@NonNull BukkitInstance server) {
+        if (bukkitInstanceExists(server.getName())) {
+            throw new IllegalArgumentException("This instance is already registered!");
         }
 
-        // handling reconnect shit
+        // Handling reconnect futures
         addReconnectingFuture(server);
 
+        // Send registration information to proxies
         ProxyManager.INSTANCE.sendToProxies(new S06RegisterServers(
                 server.getName(),
                 server.getHost().getHostString(),
@@ -80,52 +75,49 @@ public final class ServerManager {
                 server.getScaleType(),
                 server.getGameType()));
 
-        registeredBukkitInstances.add(server);
+        // Add the server to the appropriate collections based on its type
+        bukkitInstances.add(server);
 
+        // Notify the LookupManager about the new server creation
         LookupManager.INSTANCE.handleServerCreate(server);
 
         return server;
     }
 
-    private final Predicate<GameServer> STAND_BY = s -> s.getCurrentState() == GameState.STAND_BY;
+    public BukkitInstance registerVirtualInstance(@NonNull BukkitInstance server) {
+        if (bukkitInstanceExists(server.getName())) {
+            throw new IllegalArgumentException("This instance is already registered!");
+        }
+
+        // Add the server to the appropriate collections based on its type
+        virtualInstances.put(server.getName(), server);
+
+        // Notify the LookupManager about the new server creation
+        LookupManager.INSTANCE.handleServerCreate(server);
+
+        return server;
+    }
+
+    private final Predicate<ArenaInstance> STAND_BY = s -> s.getCurrentState() == GameState.STAND_BY;
 
     private AbstractPlayerHolder selectServer(@NonNull Predicate<AbstractPlayerHolder> filter,
                                               @NonNull BinaryOperator<AbstractPlayerHolder> reducer,
                                               @NonNull Collection<GameType> types) {
         AbstractPlayerHolder best = null;
 
-        Collection<AbstractScalable> servers = getServers();
-        for (AbstractScalable abstractScalable : servers) {
-/*
-            Logging.IMP.info(abstractScalable.getName());
-*/
-            if (abstractScalable.getName().equalsIgnoreCase("undefined")) {
-                servers.remove(abstractScalable);
-            }
-        }
-
+        Collection<AbstractScalable> servers = getInstances();
+        
         val shuffled = new ArrayList<>(servers);
         Collections.shuffle(shuffled);
         for (val $server : shuffled) {
 
             val server = (AbstractPlayerHolder) $server;
-            if (server instanceof GameServer) {
-                val gs = (GameServer) server;
+            if (server instanceof GameInstance) {
+                val gs = (GameInstance) server;
                 if (!types.contains(gs.getGameType())) {
                     continue;
                 }
             }
-
-            if (server instanceof PersistentServer) {
-                val ps = (PersistentServer) server;
-                if (!types.contains(ps.getGameType())) {
-                    continue;
-                }
-            }
-
-/*
-            Logging.IMP.info(server.getName() + " is joinable " + server.canJoin());
-*/
 
             if (!server.canJoin() || !filter.test(server)) {
                 continue;
@@ -141,13 +133,13 @@ public final class ServerManager {
         return best;
     }
 
-    public void handleStateChange(final BukkitServer parent,
+    public void handleStateChange(final BukkitInstance parent,
                                   final int arenaId,
                                   final GameState state) {
         val name = parent.getName() + ((char) ('A' + arenaId - 1));
-        val gameServer = getGameServer(name);
+        val gameServer = getArenaServer(name);
         if (gameServer == null) {
-            Logging.IMP.warn("[ServerManager/D] No such server: {}", name);
+            Logging.IMP.warn("[ServerManager/D] No such instance: {}", name);
             return;
         }
 
@@ -190,13 +182,13 @@ public final class ServerManager {
         Logging.IMP.info("[ServerManager/D] Flushed deployment info of {}", identify);
     }
 
-    public GameServer getGameServer(final @NonNull BukkitServer parent,
-                                    final int arenaId) {
-        return getGameServer(parent.getName() + ((char) ('A' + arenaId - 1)));
+    public GameInstance getArenaServer(final @NonNull BukkitInstance parent,
+                                      final int arenaId) {
+        return getArenaServer(parent.getName() + ((char) ('A' + arenaId - 1)));
     }
 
-/*    public Collection<AbstractScalable> getServers() {
-        val gameServers = getGameServers();
+/*    public Collection<AbstractScalable> getInstances() {
+        val gameServers = getArenaServers();
         val lobbyServers = LobbyManager.INSTANCE.getRegisteredLobbyServers();
         val bukkitServers = new HashSet<>(registeredBukkitInstances);
         val persistentServers = getPersistentServers();
@@ -209,27 +201,26 @@ public final class ServerManager {
                 .collect(Collectors.toSet());
     }*/
 
-    public Collection<AbstractScalable> getServers() {
-        val gameServers = getGameServers();
-        val lobbyServers = LobbyManager.INSTANCE.getRegisteredLobbyServers();
-        val persistentServers = getPersistentServers();
-//        val bukkitServers = new HashSet<>(registeredBukkitInstances);
-//        bukkitServers.removeIf(bs ->
-//                lobbyServers.stream().anyMatch(ls -> ls.getParentServer() == bs)
-//                || gameServers.stream().anyMatch(gs -> gs.getParentServer() == bs));
+    public Collection<AbstractScalable> getInstances() {
+        Collection<BukkitInstance> bukkitInstances = getBukkitInstances();
+        Collection<LobbyInstance> lobbyServers = LobbyManager.INSTANCE.getLobbyInstances();
 
-        return Streams.concat(gameServers.stream(), lobbyServers.stream(), persistentServers.stream())
-                .collect(Collectors.toSet());
+        Set<AbstractScalable> combinedInstances = Stream.concat(
+                bukkitInstances.stream(),
+                lobbyServers.stream()
+        ).collect(Collectors.toSet());
+
+        return combinedInstances;
     }
 
 
+    private ArenaInstance selectArenaServer(@NonNull Predicate<ArenaInstance> filter,
+                                           @NonNull BinaryOperator<ArenaInstance> reducer,
+                                           @NonNull Collection<GameMode> minis) {
+        ArenaInstance bestServer = null;
 
-    private GameServer selectArenaServer(@NonNull Predicate<GameServer> filter,
-                                         @NonNull BinaryOperator<GameServer> reducer,
-                                         @NonNull Collection<GameMode> minis) {
-        GameServer bestServer = null;
-
-        val serverList = gameServers.stream()
+        val serverList = bukkitInstances.stream()
+                .map(s -> (ArenaInstance) s)
                 .filter(filter)
                 .filter(c -> minis.contains(c.getGameMode()))
                 .collect(Collectors.toList());
@@ -247,29 +238,21 @@ public final class ServerManager {
         return bestServer;
     }
 
-    // selecting server by mode with max/min online
+    // selecting instance by mode with max/min online
+    // todo: will return to this
     public AbstractPlayerHolder getBestByOnline(final @Nullable Gamer gamer,
-                                                final @NonNull ScalableDataImpl type,
+                                                final @NonNull GameMode gameMode,
                                                 final boolean max) {
-        if (type.getServerScale() == ServerScaleType.LOBBY) {
-            return getLobbyServer(type.getGameType());
-        }
-
-        GameServer gameServer = getGameServer(gamer, type.getGameMode());
-        PersistentServer persistentServer = getPersistentServer(gamer, type.getGameMode());
-        if (gameServer != null) {
-            return gameServer;
-        } else {
-            return persistentServer;
-        }
+        BukkitInstance instance = getArenaServer(gamer, gameMode);
+        return instance;
     }
 
     public boolean existsServer(final @NonNull GameType type) {
-        return getServers().stream().anyMatch(s -> s.getGameType() == type);
+        return getInstances().stream().anyMatch(s -> s.getGameType() == type);
     }
 
     public AbstractPlayerHolder getServerByType(final @NonNull GameType type, int maxPlayers) {
-        return getServers().stream()
+        return getInstances().stream()
                 .filter(s -> s.getGameType() == type && s.getPlayerIds().length < maxPlayers)
                 .findFirst()
                 .orElse(null);
@@ -279,9 +262,9 @@ public final class ServerManager {
                                                 final @NonNull ScalableDataImpl type,
                                                 String map,
                                                 final boolean max) {
-        if (map == null) {
+/*        if (map == null) {
             return getBestByOnline(gamer, type, max);
-        }
+        }*/
 
         return selectArenaServer(
                 STAND_BY.and(server -> server.getMap().equals(map)),
@@ -290,7 +273,7 @@ public final class ServerManager {
         );
     }
 
-    // selecting server by mode with max/min online
+    // selecting instance by mode with max/min online
     public AbstractPlayerHolder getBestByOnline(@NonNull GameType type, boolean max) {
         BinaryOperator<AbstractPlayerHolder> reducer = max
                 ? (best, server) -> (best.getPlayerIds().length > server.getPlayerIds().length) ? best : server
@@ -299,7 +282,7 @@ public final class ServerManager {
         return selectServer(server -> true, reducer, Collections.singletonList(type));
     }
 
-    public GameServer getBestBySpace(@NonNull Collection<GameMode> minis, int space) {
+    public GameInstance getBestBySpace(@NonNull Collection<GameMode> minis, int space) {
         return selectArenaServer(
                 STAND_BY.and(server -> server.getSpace() >= space),
                 (best, server) -> best.getFillRate() > server.getFillRate() ? best : server,
@@ -308,20 +291,20 @@ public final class ServerManager {
     }
 
     // Игрок прыгает в портал на лобби
-    public GameServer getBestBySpace(final @NonNull GameType mode,
-                                     final int space) {
+    public GameInstance getBestBySpace(final @NonNull GameType mode,
+                                       final int space) {
         return getBestBySpace(mode.getModes(), space);
     }
 
     // player selected gametype but didn't select map
-    public GameServer getBestBySpace(final @NonNull GameMode mini,
-                                     final int space) {
+    public GameInstance getBestBySpace(final @NonNull GameMode mini,
+                                       final int space) {
         return getBestBySpace(Collections.singleton(mini), space);
     }
 
     // player selected specified map
-    public GameServer getBestWithMap(final @NonNull GameMode mini,
-                                     final @NonNull String map, int space) {
+    public ArenaInstance getBestWithMap(final @NonNull GameMode mini,
+                                       final @NonNull String map, int space) {
         return selectArenaServer(
                 STAND_BY.and(server -> server.getSpace() >= space && map.equals(server.getMap())),
                 (best, server) -> best.getPlayerIds().length > server.getPlayerIds().length ? best : server,
@@ -329,99 +312,97 @@ public final class ServerManager {
         );
     }
 
-    public LobbyServer getLobbyServer(final @NonNull GameType gameType) {
-        val reducer = (BinaryOperator<AbstractPlayerHolder>) (best, server) -> (best.getPlayerIds().length > server.getPlayerIds().length) ? best : server;
-        return (LobbyServer) selectServer($ -> ((AbstractScalable) $).getServerScale() == ServerScaleType.LOBBY
-                && ((AbstractScalable) $).getGameType() == gameType && !$.getName().equalsIgnoreCase("undefined"), reducer, Collections.emptyList());
-    }
-
-    public GameServer getGameServer(final @Nullable Gamer gamer,
-                                    final @NonNull GameMode gamemode) {
+    //TODO: MAKE THIS LOOK NICER
+    public ArenaInstance getArenaServer(final @Nullable Gamer gamer,
+                                      final @NonNull GameMode gamemode) {
         val reducer = (BinaryOperator<AbstractPlayerHolder>) (best, server) -> (best.getPlayerIds().length > server.getPlayerIds().length) ? best : server;
 
-        return (GameServer) selectServer(
-                $ -> (((AbstractScalable) $).getServerScale() == ServerScaleType.MINI || ((AbstractScalable) $).getServerScale() == ServerScaleType.MEGA)
+        return (ArenaInstance) selectServer(
+                $ -> (((AbstractScalable) $).getServerScale() == ServerScaleType.MEDIUM || ((AbstractScalable) $).getServerScale() == ServerScaleType.LARGE)
                         && ((AbstractScalable) $).getGameMode() == gamemode
-                        && (((GameServer) $).getCurrentState() == GameState.STAND_BY || ((GameServer) $).getCurrentState() == GameState.STARTING || ((GameServer) $).getCurrentState() == GameState.GAME && gamemode.isStaticGame())
+                        && (((ArenaInstance) $).getCurrentState() == GameState.STAND_BY || ((ArenaInstance) $).getCurrentState() == GameState.STARTING || ((ArenaInstance) $).getCurrentState() == GameState.GAME && gamemode.isStaticGame())
                         && !$.getName().equalsIgnoreCase("undefined")
                         && (gamer == null || Arrays.stream($.getPlayerIds()).noneMatch(s -> s == gamer.getGamerId())),
                 reducer,
                 Collections.singleton(GameType.getLinkedGameType(gamemode)));
     }
 
-    public PersistentServer getPersistentServer(final @Nullable Gamer gamer, final @NonNull GameMode gameMode) {
-        val reducer = (BinaryOperator<AbstractPlayerHolder>) (best, server) -> (best.getPlayerIds().length > server.getPlayerIds().length) ? best : server;
-        return (PersistentServer) selectServer(
-                $ -> (((AbstractScalable) $).getServerScale() == ServerScaleType.PERSISTENT)
-                        && ((AbstractScalable) $).getGameMode() == gameMode
-                        && !$.getName().equalsIgnoreCase("undefined")
-                        && (gamer == null || Arrays.stream($.getPlayerIds()).noneMatch(s -> s == gamer.getGamerId())),
-                reducer,
-                Collections.singleton(GameType.getLinkedGameType(gameMode)));
+    public BukkitInstance getBukkitInstance(final @Nullable Gamer gamer,
+                                            final @NonNull GameMode gameMode) {
+
+        // Define a reducer to find the server with the fewest players
+        BinaryOperator<AbstractPlayerHolder> findBestServer = (best, candidate) ->
+                (best.getPlayerIds().length > candidate.getPlayerIds().length) ? best : candidate;
+
+        // Criteria to select a suitable server
+        Predicate<AbstractScalable> isSuitableServer = server ->
+                (server.getServerScale() == ServerScaleType.MEDIUM || server.getServerScale() == ServerScaleType.LARGE) &&
+                        server.getGameMode() == gameMode;
+
+        Predicate<ArenaInstance> isValidArenaInstance = arena ->
+                (arena.getCurrentState() == GameState.STAND_BY ||
+                        arena.getCurrentState() == GameState.STARTING ||
+                        (arena.getCurrentState() == GameState.GAME && gameMode.isStaticGame())) &&
+                        !arena.getName().equalsIgnoreCase("undefined") &&
+                        (gamer == null || Arrays.stream(arena.getPlayerIds()).noneMatch(playerId -> playerId == gamer.getGamerId()));
+
+        // Select and return the best suitable server
+        AbstractPlayerHolder selectedServer = selectServer(
+                server -> server instanceof AbstractScalable
+                        && isSuitableServer.test((AbstractScalable) server)
+                        && (server instanceof ArenaInstance && isValidArenaInstance.test((ArenaInstance) server)),
+                findBestServer,
+                Collections.singleton(GameType.getLinkedGameType(gameMode))
+        );
+
+        return (BukkitInstance) selectedServer;
     }
 
-    public boolean isBukkitServerRegistered(final @NonNull String serverName) {
-        return registeredBukkitInstances.stream().anyMatch(s -> s.getName().equalsIgnoreCase(serverName));
+    public boolean bukkitInstanceExists(final @NonNull String serverName) {
+        return bukkitInstances.stream().anyMatch(s -> s.getName().equalsIgnoreCase(serverName));
     }
 
-    public boolean isGameServerRegistered(final @NonNull String serverName) {
-        return gameServers.stream().anyMatch(s -> s.getName().equalsIgnoreCase(serverName));
+    public boolean virtualInstanceExists(final @NonNull String serverName) {
+        return virtualInstances.containsKey(serverName);
     }
 
-    public boolean isPersistentServerRegistered(final @NonNull String serverName) {
-        return persistentServers.stream().anyMatch(s -> s.getName().equalsIgnoreCase(serverName));
-    }
-
-    public BukkitServer getBukkitServer(final @NonNull String bukkitServer) {
-        return registeredBukkitInstances.stream()
+    public BukkitInstance getBukkitInstance(final @NonNull String bukkitServer) {
+        return bukkitInstances.stream()
                 .filter(s -> s.getName().equalsIgnoreCase(bukkitServer))
                 .findFirst()
                 .orElse(null);
     }
 
-    public GameServer getGameServer(final @NonNull String gameServerName) {
-        return gameServers.stream()
-                .filter(s -> s.getName().equalsIgnoreCase(gameServerName))
+    public ArenaInstance getArenaServer(@NonNull String gameServerName) {
+        return bukkitInstances.stream()
+                .filter(s -> s instanceof ArenaInstance && s.getName().equalsIgnoreCase(gameServerName))
+                .map(s -> (ArenaInstance) s)
                 .findFirst()
                 .orElse(null);
     }
 
-    public GameServer registerGameServer(final @NonNull GameServer gameServer) {
-        if (isGameServerRegistered(gameServer.getName())) {
-            throw new IllegalArgumentException("This server is already registered!");
+    public ArenaInstance registerArenaInstance(final @NonNull ArenaInstance arenaInstance) {
+        if ((arenaInstanceExists(arenaInstance.getName()))) {
+            throw new IllegalArgumentException("This instance is already registered!");
         }
 
-        gameServers.add(gameServer);
+        bukkitInstances.add(arenaInstance);
 
         ProxyManager.INSTANCE.sendToProxies(new S06RegisterServers(
-                gameServer.getName(),
-                gameServer.getParentServer().getHost().getHostString(),
-                gameServer.getParentServer().getHost().getPort(),
-                gameServer.getServerScale(),
-                gameServer.getGameType()));
+                arenaInstance.getName(),
+                arenaInstance.getHost().getHostString(),
+                arenaInstance.getHost().getPort(),
+                arenaInstance.getScaleType(),
+                arenaInstance.getGameType()));
 
-        LookupManager.INSTANCE.handleServerCreate(gameServer);
+        LookupManager.INSTANCE.handleServerCreate(arenaInstance);
 
-        return gameServer;
+        return arenaInstance;
     }
 
-    public PersistentServer registerPersistentServer(final @NonNull PersistentServer persistentServer) {
-        if (isPersistentServerRegistered(persistentServer.getName())) {
-            return getPersistentServers().stream().filter(a -> a.getName().equalsIgnoreCase(persistentServer.getName())).findFirst().orElse(null);
-        }
-
-        persistentServers.add(persistentServer);
-
-        ProxyManager.INSTANCE.sendToProxies(new S06RegisterServers(
-                persistentServer.getName(),
-                persistentServer.getParentServer().getHost().getHostString(),
-                persistentServer.getParentServer().getHost().getPort(),
-                persistentServer.getServerScale(),
-                persistentServer.getGameType()));
-
-        LookupManager.INSTANCE.handleServerCreate(persistentServer);
-
-        return persistentServer;
+    public boolean arenaInstanceExists(final @NonNull String serverName) {
+        return bukkitInstances.stream()
+                .anyMatch(s -> s.getName().equalsIgnoreCase(serverName));
     }
 
     private void addReconnectingFuture(AbstractPlayerHolder server) {
@@ -434,13 +415,13 @@ public final class ServerManager {
         }
     }
 
-    public void removeGameServer(final @NonNull GameServer gameServer) {
+    public void removeArenaInstance(final @NonNull ArenaInstance gameServer) {
 
-        gameServers.remove(gameServer);
+        bukkitInstances.remove(gameServer);
 
         // todo: route gamers
 
-        Logging.IMP.info("[GameServer] Removed {} game server with {} players on it",
+        Logging.IMP.info("[GameServer] Removed {} game instance with {} players on it",
                 gameServer.getName(), gameServer.getPlayerIds().length);
 
         ProxyManager.INSTANCE.sendToProxies(new S07UnregisterServer(gameServer.getName()));
@@ -448,16 +429,8 @@ public final class ServerManager {
         LookupManager.INSTANCE.handleServerRemove(gameServer);
     }
 
-    public void removePersistentServer(final @NonNull PersistentServer persistentServer) {
-        persistentServers.remove(persistentServer);
-
-        Logging.IMP.info("[PersistentServer] Removed {} persistent server with {} players on it", persistentServer.getName(), persistentServer.getPlayerIds().length);
-
-        LookupManager.INSTANCE.handleServerRemove(persistentServer);
-    }
-
-    public void removeBukkitServer(final @NonNull String serverName, boolean sendToProxies, boolean force) {
-        val pending = getBukkitServer(serverName);
+    public void removeBukkitInstance(final @NonNull String serverName, boolean sendToProxies, boolean force) {
+        val pending = getBukkitInstance(serverName);
 
         if (pending == null) {
             if (force) {
@@ -476,48 +449,21 @@ public final class ServerManager {
         // removing shit from lookups
         LookupManager.INSTANCE.handleServerRemove(pending);
 
-        // IMPORTANT: remove bukkit server after lookup shit
+        // IMPORTANT: remove bukkit instance after lookup shit
         // this will fuck up "online" field in lookupserver
         // but doesnt matter cuz its BukkitServer.
         // Shit fix. TODO: rewrite this part of code
-        registeredBukkitInstances.remove(pending);
+        bukkitInstances.remove(pending);
 
-        // removing this server from proxy
+        // removing this instance from proxy
         if (sendToProxies) {
             ProxyManager.INSTANCE.sendToProxies(new S07UnregisterServer(serverName));
-        }
-
-        // With primary BukkitServer we also remove its "depends" (game instances)
-        val minors_mmmmm = Streams.concat(LobbyManager.INSTANCE.getRegisteredLobbyServers().stream(), gameServers.stream(), persistentServers.stream())
-                .filter(f -> f.getParentServer() == pending)
-                .distinct()
-                .collect(Collectors.toList());
-
-        if (minors_mmmmm.size() > 0) {
-            Logging.IMP.info("With this server we also remove {} servers:", minors_mmmmm.size());
-            for (val m : minors_mmmmm) {
-
-                if (sendToProxies) {
-                    ProxyManager.INSTANCE.sendToProxies(new S07UnregisterServer(m.getName()));
-                }
-
-                Logging.IMP.info("- " + m.getName());
-
-                if (m instanceof GameServer) {
-                    removeGameServer((GameServer) m);
-                }
-
-                if (m instanceof LobbyServer) {
-                    LobbyManager.INSTANCE.removeLobbyServer((LobbyServer) m);
-                }
-
-                if (m instanceof PersistentServer) {
-                    removePersistentServer((PersistentServer) m);
-                }
-            }
-
             // todo: route gamers to fallback
         }
+    }
+
+    public void removeVirtualInstance(final @NonNull String instanceName) {
+        virtualInstances.remove(instanceName);
     }
 
 /*    public void removePersistentServer(PersistentServer persistentServer) {
@@ -526,12 +472,15 @@ public final class ServerManager {
     }*/
 
     public void sendToServers(final @NonNull Packet<?> packet) {
-        registeredBukkitInstances.forEach(server -> server.getChannel().sendPacket(packet));
+        Stream.concat(
+                bukkitInstances.stream(),
+                LobbyManager.INSTANCE.getLobbyInstances().stream()
+        ).forEach(server -> server.getChannel().sendPacket(packet));
     }
 
-    // TODO: rewrite to use getServers()
+    // TODO: rewrite to use getInstances()
     public AbstractScalable getPlayableServer(final @NonNull String name) {
-        return getServers().stream()
+        return getInstances().stream()
                 .filter(server -> {
                     return server.getName().equals(name);
                 })
@@ -540,11 +489,11 @@ public final class ServerManager {
     }
 
     /**
-     * Basically returns random lobby server
+     * Basically returns random lobby instance
      */
     public AbstractPlayerHolder getFallbackServer() {
-        return registeredBukkitInstances.stream()
-                .filter(s -> s.getScaleType() == ServerScaleType.LOBBY)
+        return bukkitInstances.stream()
+                .filter(s -> s instanceof LobbyInstance)
                 .findFirst()
                 .orElse(null);
     }

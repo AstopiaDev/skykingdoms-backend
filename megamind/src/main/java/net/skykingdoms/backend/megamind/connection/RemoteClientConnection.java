@@ -15,15 +15,12 @@ import net.skykingdoms.backend.megamind.data.gamer.Gamer;
 import net.skykingdoms.backend.megamind.event.core.ClientActiveEvent;
 import net.skykingdoms.backend.megamind.event.core.GetBestServerEvent;
 import net.skykingdoms.backend.megamind.event.gamer.*;
+import net.skykingdoms.backend.megamind.instance.impl.*;
 import net.skykingdoms.backend.megamind.lookup.LookupManager;
 import net.skykingdoms.backend.megamind.manager.*;
 import net.skykingdoms.backend.megamind.manager.deployment.DeploymentResponse;
-import net.skykingdoms.backend.megamind.server.AbstractPlayerHolder;
-import net.skykingdoms.backend.megamind.server.AbstractScalable;
-import net.skykingdoms.backend.megamind.server.impl.BukkitServer;
-import net.skykingdoms.backend.megamind.server.impl.NodeServer;
-import net.skykingdoms.backend.megamind.server.impl.PersistentServer;
-import net.skykingdoms.backend.megamind.server.impl.ProxyServer;
+import net.skykingdoms.backend.megamind.instance.AbstractPlayerHolder;
+import net.skykingdoms.backend.megamind.instance.AbstractScalable;
 import net.skykingdoms.backend.protocol.channel.AbstractRemoteClientChannel;
 import net.skykingdoms.backend.protocol.logging.Logging;
 import net.skykingdoms.backend.protocol.packet.ChannelProcessorContext;
@@ -32,7 +29,6 @@ import net.skykingdoms.backend.protocol.packet.handshake.Handshake;
 import net.skykingdoms.backend.protocol.packet.play.*;
 import net.skykingdoms.backend.protocol.server.GameType;
 import net.skykingdoms.backend.protocol.server.IConnectable;
-import net.skykingdoms.backend.protocol.server.ServerScaleType;
 import net.skykingdoms.backend.protocol.server.deploy.impl.BukkitDeployRequest;
 import net.skykingdoms.backend.protocol.type.GameBootResponse;
 import net.skykingdoms.backend.protocol.type.ReportType;
@@ -44,7 +40,6 @@ import java.net.InetAddress;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 
@@ -75,25 +70,31 @@ public final class RemoteClientConnection extends AbstractRemoteClientChannel {
 
     @Override
     protected void onDisconnect() {
-        if (connectable instanceof NodeServer) {
-            val ns = (NodeServer) connectable;
+        if (connectable instanceof NodeInstance) {
+            val ns = (NodeInstance) connectable;
             NodeManager.INSTANCE.removeNode(ns);
         }
 
-        if (connectable instanceof ProxyServer) {
-            val ps = (ProxyServer) connectable;
+        if (connectable instanceof ProxyInstance) {
+            val ps = (ProxyInstance) connectable;
             ProxyManager.INSTANCE.removeProxyServer(ps.getName());
         }
 
-        if (connectable instanceof BukkitServer) {
-       /*     Logging.IMP.info("IT'S A BUKKIT SERVER");*/
-            val bs = (BukkitServer) connectable;
-            ServerManager.INSTANCE.removeBukkitServer(bs.getName(), bs.getScaleType() != ServerScaleType.PERSISTENT, false);
+        if (connectable instanceof ArenaInstance) {
+            val ai = (ArenaInstance) connectable;
+            InstanceManager.INSTANCE.removeArenaInstance(ai);
+            return;
         }
 
-        if (connectable instanceof PersistentServer) {
-            val ps = (PersistentServer) connectable;
-            ServerManager.INSTANCE.removePersistentServer(ps);
+        if (connectable instanceof GameInstance) {
+            val gi = (GameInstance) connectable;
+            InstanceManager.INSTANCE.removeBukkitInstance(gi.getName(), true, true);
+            return;
+        }
+
+        if (connectable instanceof BukkitInstance) {
+            val bs = (BukkitInstance) connectable;
+            InstanceManager.INSTANCE.removeVirtualInstance(connectable.getName());
         }
 
         Logging.IMP.info("[RCC/DEBUG] Disconnected {}:{}:{}", getDisplayName(), host, port);
@@ -122,7 +123,7 @@ public final class RemoteClientConnection extends AbstractRemoteClientChannel {
         synchronized (PENDING_LOGINS) {
             if ((gamer != null && gamer.isOnline()) ||
                     (!packet.contains(ProxyPlayerLogin.FINISH) && !PENDING_LOGINS.add(uuid))) {
-                ctx.setResponse(new ProxyPlayerLogin.Response(true, "§cYou are already connected to the server"));
+                ctx.setResponse(new ProxyPlayerLogin.Response(true, "§cYou are already connected to the instance"));
                 return;
             }
         }
@@ -171,7 +172,7 @@ public final class RemoteClientConnection extends AbstractRemoteClientChannel {
 
                 /*Logging.IMP.info("XDD LOLOLOLO");*/
 
-                val proxy = (ProxyServer) connectable;
+                val proxy = (ProxyInstance) connectable;
 
                 val gamer = new Gamer(uuid);
                 gamer.setAddress(address);
@@ -228,7 +229,7 @@ public final class RemoteClientConnection extends AbstractRemoteClientChannel {
                 Gamer.addGamer(gamer);
 
                 proxy.addPlayer(gamer);
-                gamer.setProxyServer(proxy);
+                gamer.setProxyInstance(proxy);
                 /*Logging.IMP.info("HEWOOOOOOOOOOOOOOOOOOOOOOO");*/
             }
         } finally {
@@ -271,11 +272,11 @@ public final class RemoteClientConnection extends AbstractRemoteClientChannel {
             gamer.setJustJoined(false);
         }
 
-        val server = (AbstractPlayerHolder) ServerManager.INSTANCE.getPlayableServer(packet.getServer());
+        val server = (AbstractPlayerHolder) InstanceManager.INSTANCE.getPlayableServer(packet.getServer());
         if (server == null) {
             // todo: fixme
-            Logging.IMP.warn("[{}] Kicking, due to moving to absent server {}", packet.getServer());
-            gamer.disconnect("Internal server error");
+            Logging.IMP.warn("[{}] Kicking, due to moving to absent instance {}", packet.getServer());
+            gamer.disconnect("Internal instance error");
             return;
         }
 
@@ -320,12 +321,12 @@ public final class RemoteClientConnection extends AbstractRemoteClientChannel {
                 return;
             }
 
-            val target = (AbstractPlayerHolder) ServerManager.INSTANCE.getPlayableServer(serverName);
+            val target = (AbstractPlayerHolder) InstanceManager.INSTANCE.getPlayableServer(serverName);
 
             if (target == null) {
                 val finalMom = serverName;
-                serverName = ServerManager.INSTANCE.getFallbackServer().getName();
-                gamer.sendMessage("Couldn't connect you to " + finalMom + " so you were routed to fallback server (" + serverName + ")");
+                serverName = InstanceManager.INSTANCE.getFallbackServer().getName();
+                gamer.sendMessage("Couldn't connect you to " + finalMom + " so you were routed to fallback instance (" + serverName + ")");
                 return;
             } else {
                 serverName = target.getName();
@@ -355,7 +356,7 @@ public final class RemoteClientConnection extends AbstractRemoteClientChannel {
     }
 
     private void asyncReconnectPlayers(C10ReconnectPlayers packet) {
-        val proxy = (ProxyServer) connectable;
+        val proxy = (ProxyInstance) connectable;
 
         Logging.IMP.info("Reconnecting " + packet.getGamers().size() + " gamers");
 
@@ -371,7 +372,7 @@ public final class RemoteClientConnection extends AbstractRemoteClientChannel {
             val target = Gamer.getGamer(name);
 
             if (target != null && target.isOnline()) {
-                gamers.add(new FailedReconnectGamer(name, uuid, "§cYou are already connected to the server"));
+                gamers.add(new FailedReconnectGamer(name, uuid, "§cYou are already connected to the instance"));
                 continue;
             }
 
@@ -394,7 +395,7 @@ public final class RemoteClientConnection extends AbstractRemoteClientChannel {
 
             gamer.setDomain(reconnectingGamer.getDomain());
             gamer.setProtocol(reconnectingGamer.getProtocol());
-            gamer.setProxyServer(proxy);
+            gamer.setProxyInstance(proxy);
             gamer.load();
 
             // we already had this player connected
@@ -415,7 +416,7 @@ public final class RemoteClientConnection extends AbstractRemoteClientChannel {
                 reconnecting.put(
                         gamer,
 
-                        ServerManager.INSTANCE.getFutureServer(serverName).whenComplete((result, e) -> {
+                        InstanceManager.INSTANCE.getFutureServer(serverName).whenComplete((result, e) -> {
                             if (result == null || e != null) {
                                 gamer.localizedDisconnect("core_reconnect_server_not_found");
                             } else {
@@ -542,7 +543,7 @@ public final class RemoteClientConnection extends AbstractRemoteClientChannel {
         MegamindApp.INSTANCE.pluginManager().callEvent(event);
 
         val server = event.getBestServer() == null
-                ? ServerManager.INSTANCE.getBestByOnline(Gamer.getGamer(packet.getName()), packet.getData(), true)
+                ? InstanceManager.INSTANCE.getBestByOnline(Gamer.getGamer(packet.getName()), packet.getData().getGameMode(), true)
                 : event.getBestServer();
 
         ctx.setResponse(new S19BestServer(server == null ? null : server.getName()));
@@ -550,11 +551,11 @@ public final class RemoteClientConnection extends AbstractRemoteClientChannel {
 
     @Override
     public void process(LobbyBoot.Request packet, ChannelProcessorContext ctx) {
-        if (!(connectable instanceof BukkitServer)
-                || ((BukkitServer) connectable).getScaleType() != ServerScaleType.LOBBY) {
-            Logging.IMP.error("Received lobby deploy packet from server with invalid scaling!");
+/*        if (!(connectable instanceof BukkitInstance)
+                || ((BukkitInstance) connectable).getScaleType() != ServerScaleType.LOBBY) {
+            Logging.IMP.error("Received lobby deploy packet from instance with invalid scaling!");
             return;
-        }
+        }*/
 
         DeploymentManager.INSTANCE.handleLobbyBoot(packet, this, ctx);
     }
@@ -577,7 +578,7 @@ public final class RemoteClientConnection extends AbstractRemoteClientChannel {
     public void process(RequestMap.Request packet, ChannelProcessorContext ctx) {
         val miniName = getConnectable().getName() + ((char) ('A' + packet.getArenaId() - 1));
         Logging.IMP.info("[{}] Requested maps by {}", getDisplayName(), miniName);
-        val bukkitServer = (BukkitServer) getConnectable();
+        val bukkitServer = (BukkitInstance) getConnectable();
 
         Logging.IMP.info("[{}] Requested testflow map for {}", getDisplayName(), miniName);
 
@@ -614,7 +615,7 @@ public final class RemoteClientConnection extends AbstractRemoteClientChannel {
             return;
         }
 
-        val server = ServerManager.INSTANCE.getPlayableServer(packet.getServer());
+        val server = InstanceManager.INSTANCE.getPlayableServer(packet.getServer());
 
         if (server == null) {
             ctx.setResponse(new S22ConnectResponse(ConnectStatus.SERVER_NOT_FOUND));
@@ -647,10 +648,10 @@ public final class RemoteClientConnection extends AbstractRemoteClientChannel {
     public void process(GameBoot.Request packet, ChannelProcessorContext ctx) {
         Logging.IMP.info("[{}] Requested game modes", getDisplayName());
 
-        val tf = TestFlowManager.INSTANCE.getActiveTestFlow(((BukkitServer)connectable).getLinkedTestFlowId());
+        val tf = TestFlowManager.INSTANCE.getActiveTestFlow(((BukkitInstance)connectable).getLinkedTestFlowId());
         if (tf != null) {
             val mode = tf.getData().getServerData().getGameMode();
-            Logging.IMP.info("[{}] Testflow linked to server (#{}), so we send {}/{}", getDisplayName(), tf.getTestFlowId(), mode, tf.getAmount());
+            Logging.IMP.info("[{}] Testflow linked to instance (#{}), so we send {}/{}", getDisplayName(), tf.getTestFlowId(), mode, tf.getAmount());
             ctx.setResponse(new GameBoot.Response(
                     new GameBootResponse[] {
                             new GameBootResponse(mode, tf.getAmount()),
@@ -659,11 +660,11 @@ public final class RemoteClientConnection extends AbstractRemoteClientChannel {
             return;
         }
 
-        if (ServerManager.INSTANCE.getPendingGameDeployments().containsKey(connectable.getName())) {
-            val response = ServerManager.INSTANCE.getPendingGameDeployments().get(connectable.getName());
+        if (InstanceManager.INSTANCE.getPendingGameDeployments().containsKey(connectable.getName())) {
+            val response = InstanceManager.INSTANCE.getPendingGameDeployments().get(connectable.getName());
             Logging.IMP.info("[{}] Pending game deployments are present for this instance: ", Arrays.stream(response).map(m -> m.getGameMode().getHumanName() + "=" + m.getAmount()).collect(Collectors.joining(", ")));
             ctx.setResponse(new GameBoot.Response(response));
-            ServerManager.INSTANCE.flushGameBoot(connectable.getName());
+            InstanceManager.INSTANCE.flushGameBoot(connectable.getName());
             return;
         }
 
@@ -712,7 +713,7 @@ public final class RemoteClientConnection extends AbstractRemoteClientChannel {
 
     @Override
     public void process(C07ServerRegisterCommands packet, ChannelProcessorContext ctx) {
-        ServerManager.INSTANCE.getCommandMapper().registerCommands(connectable.getName(), packet.getCommands());
+        InstanceManager.INSTANCE.getCommandMapper().registerCommands(connectable.getName(), packet.getCommands());
         ProxyManager.INSTANCE.sendToProxies(new S10RegisterCommands(S10RegisterCommands.CommandContainer.serverSingleton(packet.getCommands(), connectable.getName())));
     }
 
@@ -762,7 +763,7 @@ public final class RemoteClientConnection extends AbstractRemoteClientChannel {
 
         NetworkSqlHandler.INSTANCE.updatePlayerLanguage(gamer.getGamerId(), language);
 
-        if (connectable instanceof ProxyServer) {
+        if (connectable instanceof ProxyInstance) {
             gamer.sendToServer(packet);
         } else {
             gamer.sendToProxy(packet);
@@ -788,7 +789,7 @@ public final class RemoteClientConnection extends AbstractRemoteClientChannel {
         if (isExact) {
             String id = packet.getName();
 
-            IConnectable remote = ServerManager.INSTANCE.getBukkitServer(id);
+            IConnectable remote = InstanceManager.INSTANCE.getBukkitInstance(id);
 
             if (remote == null) {
                 remote = ProxyManager.INSTANCE.getProxy(id);
@@ -802,8 +803,8 @@ public final class RemoteClientConnection extends AbstractRemoteClientChannel {
                 Logging.IMP.error("Not implemented sending pattern commands (yet)");
 //                S11ServerCommand broadcastPacket = new S11ServerCommand(line);
 //
-//                for (val server : serverManager.findServers(packet.getName())) {
-//                    server.sendPacket(broadcastPacket);
+//                for (val instance : serverManager.findServers(packet.getName())) {
+//                    instance.sendPacket(broadcastPacket);
 //                }
             } catch (Exception e) {
                 Logging.IMP.error("Invalid pattern in {}", packet.toString());
@@ -838,7 +839,7 @@ public final class RemoteClientConnection extends AbstractRemoteClientChannel {
             gamer.updateSetting(setting, es);
         }
 
-        if (connectable instanceof BukkitServer) {
+        if (connectable instanceof BukkitInstance) {
             gamer.sendToProxy(packet);
         } else {
             gamer.sendToServer(packet);
@@ -855,7 +856,7 @@ public final class RemoteClientConnection extends AbstractRemoteClientChannel {
 
         gamer.updateProperty(packet.getProperty(), packet.getValue());
 
-        if (connectable instanceof BukkitServer) {
+        if (connectable instanceof BukkitInstance) {
             gamer.sendToProxy(packet);
         } else {
             gamer.sendToServer(packet);
@@ -872,7 +873,7 @@ public final class RemoteClientConnection extends AbstractRemoteClientChannel {
 
         gamer.dropProperty(packet.getProperty());
 
-        if (connectable instanceof BukkitServer) {
+        if (connectable instanceof BukkitInstance) {
             gamer.sendToProxy(packet);
         } else {
             gamer.sendToServer(packet);
@@ -880,8 +881,8 @@ public final class RemoteClientConnection extends AbstractRemoteClientChannel {
     }
 
     @Override
-    public void process(C21RegisterGameInstance packet, ChannelProcessorContext ctx) {
-        DeploymentManager.INSTANCE.handleGameCreate(packet, this);
+    public void process(C21RegisterArenaInstance packet, ChannelProcessorContext ctx) {
+        DeploymentManager.INSTANCE.handleArenaCreate(packet, this);
         if (packet.getData().getGameType() == GameType.DUELS) {
             DuelManager.INSTANCE.serverDeployed(true);
         }
@@ -889,12 +890,12 @@ public final class RemoteClientConnection extends AbstractRemoteClientChannel {
 
     @Override
     public void process(C29RegisterPersistentInstance packet, ChannelProcessorContext ctx) {
-        DeploymentManager.INSTANCE.handlePersistentCreate(packet, this);
+       // DeploymentManager.INSTANCE.handlePersistentCreate(packet, this);
     }
 
     @Override
     public void process(C22UpdateGameState packet, ChannelProcessorContext ctx) {
-        ServerManager.INSTANCE.handleStateChange((BukkitServer) connectable, packet.getArenaId(), packet.getGameState());
+        InstanceManager.INSTANCE.handleStateChange((BukkitInstance) connectable, packet.getArenaId(), packet.getGameState());
     }
 
     @Override
@@ -916,15 +917,15 @@ public final class RemoteClientConnection extends AbstractRemoteClientChannel {
     public void process(C32GetBestGameServerByMap packet, ChannelProcessorContext ctx) {
         // TODO: CALL MEGAMIND EVENT
 
-        val server = ServerManager.INSTANCE.getBestGameServerByOnlineAndMap(Gamer.getGamer(packet.getName()), packet.getData(), packet.getMap(),true);
+        val server = InstanceManager.INSTANCE.getBestGameServerByOnlineAndMap(Gamer.getGamer(packet.getName()), packet.getData(), packet.getMap(),true);
 
         if (server == null) {
-            Logging.IMP.info("No server found for {} with map {}", packet.getName(), packet.getMap());
-            Logging.IMP.info("Deploying new server for {} with map {}", packet.getName(), packet.getMap());
+            Logging.IMP.info("No instance found for {} with map {}", packet.getName(), packet.getMap());
+            Logging.IMP.info("Deploying new instance for {} with map {}", packet.getName(), packet.getMap());
 
             GameBootResponse response = new GameBootResponse(packet.getData().getGameMode(), 1);
 
-            if (ServerManager.INSTANCE.getBestByOnline(packet.getData().getGameType(), false) != null) {
+            if (InstanceManager.INSTANCE.getBestByOnline(packet.getData().getGameType(), false) != null) {
                 awaitPacket(new ArenaBoot.Request());
             }
 
@@ -936,7 +937,7 @@ public final class RemoteClientConnection extends AbstractRemoteClientChannel {
                                 || result == DeploymentResponse.TRANSACTION_FAILED) {
                             Logging.IMP.error("Transaction failed! (" + result.name() + ") / (#" + result.transactionId() + ")");
                         } else {
-                            ServerManager.INSTANCE.queueGameInstanceBoot(result.transactionId(), new GameBootResponse[] {response});
+                            InstanceManager.INSTANCE.queueGameInstanceBoot(result.transactionId(), new GameBootResponse[] {response});
                             Logging.IMP.info("Queued deployment of game instances!");
                         }
                     });
@@ -952,21 +953,21 @@ public final class RemoteClientConnection extends AbstractRemoteClientChannel {
         // TODO: CALL MEGAMIND EVENT
 
         ctx.addLatch();
-        val server = ServerManager.INSTANCE.getBestGameServerByOnlineAndMap(Gamer.getGamer(packet.getName()), packet.getData(), packet.getMap(), true);
+        val server = InstanceManager.INSTANCE.getBestGameServerByOnlineAndMap(Gamer.getGamer(packet.getName()), packet.getData(), packet.getMap(), true);
         String serverName = null;
 
         try {
             if (server == null) {
-                Logging.IMP.info("No server found for {} with map {}", packet.getName(), packet.getMap());
-                Logging.IMP.info("Deploying new server for {} with map {}", packet.getName(), packet.getMap());
+                Logging.IMP.info("No instance found for {} with map {}", packet.getName(), packet.getMap());
+                Logging.IMP.info("Deploying new instance for {} with map {}", packet.getName(), packet.getMap());
 
                 GameBootResponse response = new GameBootResponse(packet.getData().getGameMode(), 1);
 
                 Logging.IMP.info(packet.getData().getGameType().name());
 
-                val duelServer = ServerManager.INSTANCE.getServerByType(GameType.DUELS, 60);
+                val duelServer = InstanceManager.INSTANCE.getServerByType(GameType.DUELS, 60);
                 if (duelServer != null) {
-                    Logging.IMP.info("Found best server for duel: {}", duelServer.getName());
+                    Logging.IMP.info("Found best instance for duel: {}", duelServer.getName());
                     serverName = duelServer.getChannel().awaitPacket(new ArenaBoot.Request(packet.getData().getGameMode(), packet.getDuelData())).join().getName();
                 } else {
                     DeploymentManager.INSTANCE.sendDeploymentRequest(new BukkitDeployRequest(response.getGameMode().bakeData()),
@@ -977,7 +978,7 @@ public final class RemoteClientConnection extends AbstractRemoteClientChannel {
                                         || result == DeploymentResponse.TRANSACTION_FAILED) {
                                     Logging.IMP.error("Transaction failed! (" + result.name() + ") / (#" + result.transactionId() + ")");
                                 } else {
-                                    ServerManager.INSTANCE.queueGameInstanceBoot(result.transactionId(), new GameBootResponse[]{response});
+                                    InstanceManager.INSTANCE.queueGameInstanceBoot(result.transactionId(), new GameBootResponse[]{response});
                                     Logging.IMP.info("Queued deployment of game instances!");
                                 }
                             });

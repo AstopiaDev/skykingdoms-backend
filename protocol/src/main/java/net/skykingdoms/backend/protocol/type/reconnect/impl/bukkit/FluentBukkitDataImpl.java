@@ -1,4 +1,4 @@
-package net.skykingdoms.backend.protocol.type.reconnect.impl;
+package net.skykingdoms.backend.protocol.type.reconnect.impl.bukkit;
 
 import io.netty.buffer.ByteBuf;
 import lombok.*;
@@ -13,7 +13,7 @@ import net.skykingdoms.backend.protocol.server.ServerScaleType;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public final class FluentBukkitDataImpl implements FluentData {
+public class FluentBukkitDataImpl implements FluentData {
 
     String serverName;
     String nodeName;

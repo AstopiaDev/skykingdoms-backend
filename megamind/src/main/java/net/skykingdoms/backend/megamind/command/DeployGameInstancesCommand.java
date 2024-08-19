@@ -7,7 +7,7 @@ import net.skykingdoms.backend.base.command.exception.CommandMessageException;
 import net.skykingdoms.backend.base.command.execution.Executor;
 import net.skykingdoms.backend.megamind.api.command.CoreExecutionSession;
 import net.skykingdoms.backend.megamind.manager.DeploymentManager;
-import net.skykingdoms.backend.megamind.manager.ServerManager;
+import net.skykingdoms.backend.megamind.manager.InstanceManager;
 import net.skykingdoms.backend.megamind.manager.deployment.DeploymentResponse;
 import net.skykingdoms.backend.protocol.packet.play.ServerDeploy;
 import net.skykingdoms.backend.protocol.server.GameMode;
@@ -59,7 +59,7 @@ public final class DeployGameInstancesCommand {
                             || result == DeploymentResponse.TRANSACTION_FAILED) {
                         session.sendMessage("Transaction failed! (" + result.name() + ") / (#" + result.transactionId() + ")");
                     } else {
-                        ServerManager.INSTANCE.queueGameInstanceBoot(result.transactionId(), responses.toArray(GameBootResponse[]::new));
+                        InstanceManager.INSTANCE.queueGameInstanceBoot(result.transactionId(), responses.toArray(GameBootResponse[]::new));
                         session.sendMessage("Queued deployment of game instances!");
                     }
                 });

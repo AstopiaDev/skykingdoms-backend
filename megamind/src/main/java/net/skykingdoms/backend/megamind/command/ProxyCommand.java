@@ -15,7 +15,7 @@ public final class ProxyCommand {
     @WithCondition("disableConsole")
     @Executor
     public static void execute(final @NonNull CoreExecutionSession session) {
-        session.sendMessage(session.getGamer().getProxyServer().getName());
+        session.sendMessage(session.getGamer().getProxyInstance().getName());
     }
 
 }
