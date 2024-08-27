@@ -6,7 +6,7 @@ import lombok.NonNull;
 import lombok.experimental.FieldDefaults;
 import lombok.val;
 import net.skykingdoms.backend.node.NodeApp;
-import net.skykingdoms.backend.node.deploy.NodeDeploymentManager;
+import net.skykingdoms.backend.node.manager.DeploymentManager;
 import net.skykingdoms.backend.protocol.channel.AbstractRemoteServerChannel;
 import net.skykingdoms.backend.protocol.logging.Logging;
 import net.skykingdoms.backend.protocol.packet.ChannelProcessorContext;
@@ -20,6 +20,7 @@ import net.skykingdoms.backend.protocol.type.WrappedNodeSnapshot;
 import net.skykingdoms.backend.protocol.type.reconnect.impl.FluentNodeDataImpl;
 import net.skykingdoms.backend.protocol.util.Consumer;
 
+import java.util.EnumSet;
 import java.util.UUID;
 
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -32,21 +33,29 @@ public final class RemoteServerConnection extends AbstractRemoteServerChannel {
 
     @Override
     public void active() {
-        sendPacket(new Handshake.Request(
+        NodeApp.INSTANCE.reloadNodeData();
+
+        EnumSet<Handshake.RequestFlag> flags = EnumSet.noneOf(Handshake.RequestFlag.class);
+        if (NodeApp.INSTANCE.reconnecting()) {
+            flags.add(Handshake.RequestFlag.IS_RECONNECT);
+        }
+        flags.add(Handshake.RequestFlag.HAS_FLUENT_DATA);
+
+        sendPacket(
+                new Handshake.Request(
                         RemoteConnectedType.NODE,
                         NodeApp.INSTANCE.nodeConfiguration().getSecret(),
                         UUID.randomUUID(), // any value for NODE, doesn't matter
-                        NodeApp.INSTANCE.reconnecting()
-                                ? Handshake.Request.IS_RECONNECT | Handshake.Request.HAS_FLUENT_DATA
-                                : 0,
-                        NodeApp.INSTANCE.nodeData(), 0
+                        flags,
+                        NodeApp.INSTANCE.nodeData(),
+                0
                 )
         );
     }
 
     @Override
     public void process(S05UpdateNodeContainerInformation packet, ChannelProcessorContext ctx) {
-        NodeDeploymentManager.INSTANCE.handleContainerNameUpdate(
+        DeploymentManager.INSTANCE.handleContainerNameUpdate(
                 packet.getTransactionId(),
                 packet.getServerName().toLowerCase()
         );
@@ -59,7 +68,7 @@ public final class RemoteServerConnection extends AbstractRemoteServerChannel {
                 packet.getServerName(),
                 packet.isGraceful());
 
-        NodeDeploymentManager.INSTANCE.handleDestructionRequest(
+        DeploymentManager.INSTANCE.handleDestructionRequest(
                 packet.getServerName().toLowerCase(),
                 packet.isGraceful(),
                 ctx);
@@ -84,9 +93,7 @@ public final class RemoteServerConnection extends AbstractRemoteServerChannel {
     @Override
     public void process(final @NonNull ServerDeploy.Request packet,
                         final @NonNull ChannelProcessorContext ctx) {
-        val pending = packet.getDeploymentTarget() == ServerDeploy.DeploymentTarget.PROXY
-                ? (ProxyDeployRequest) packet.getPendingServer()
-                : (BukkitDeployRequest) packet.getPendingServer();
+        val pending = packet.getPendingServer();
 
         Logging.IMP.info("[Deploy] Received {} deployment request. Transaction ID: #{} / Debug: {}",
                 packet.getDeploymentTarget().name(), pending.getTransactionId(), packet.getDebugPort());
@@ -98,22 +105,13 @@ public final class RemoteServerConnection extends AbstractRemoteServerChannel {
         NodeApp.INSTANCE.executor().submit(new Runnable() {
             @Override
             public void run() {
-
-                Consumer<Void> queueShit = $ -> {
-                    NodeDeploymentManager.INSTANCE.handleRequest(
-                            packet.getDeploymentTarget(),
-                            pending,
-                            packet.isTestFlow(),
-                            packet.getTestFlowName(),
-                            packet.getDebugPort(),
-                            packet.getTestFlowId());
-                };
-
-                if (NodeDeploymentManager.INSTANCE.isLoaded()) {
-                    queueShit.accept(null);
-                } else {
-                    NodeDeploymentManager.INSTANCE.addQueue(queueShit);
-                }
+                DeploymentManager.INSTANCE.handleRequest(
+                        packet.getDeploymentTarget(),
+                        pending,
+                        packet.isTestFlow(),
+                        packet.getTestFlowName(),
+                        packet.getDebugPort(),
+                        packet.getTestFlowId());
             }
         });
     }

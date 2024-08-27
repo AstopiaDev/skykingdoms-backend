@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldDefaults;
+import net.skykingdoms.backend.protocol.server.ServerScaleType;
 
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @AllArgsConstructor
@@ -35,4 +36,5 @@ public final class BaseNodeConfiguration {
     String remoteCoordinatorHost;
     int remoteCoordinatorPort;
     String secret;
+    ServerScaleType[] scaleTypes;
 }

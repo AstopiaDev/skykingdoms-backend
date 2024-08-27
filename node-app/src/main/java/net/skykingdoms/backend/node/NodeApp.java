@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldDefaults;
+import lombok.experimental.NonFinal;
 import lombok.val;
 import net.skykingdoms.backend.base.util.config.Configuration;
 import net.skykingdoms.backend.base.util.config.ConfigurationProvider;
@@ -12,64 +13,74 @@ import net.skykingdoms.backend.base.util.config.YamlConfiguration;
 import net.skykingdoms.backend.node.config.BaseNodeConfiguration;
 import net.skykingdoms.backend.node.connection.LocalClientConnection;
 import net.skykingdoms.backend.node.connection.NodeConnection;
-import net.skykingdoms.backend.node.deploy.NodeDeploymentManager;
+import net.skykingdoms.backend.node.manager.DeploymentManager;
 import net.skykingdoms.backend.protocol.exception.ConnectException;
 import net.skykingdoms.backend.protocol.logging.Logging;
+import net.skykingdoms.backend.protocol.server.ServerScaleType;
 import net.skykingdoms.backend.protocol.type.NetworkType;
 import net.skykingdoms.backend.protocol.type.reconnect.impl.FluentNodeDataImpl;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
-@FieldDefaults(level = AccessLevel.PRIVATE)
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Accessors(fluent = true)
 @Getter
 public enum NodeApp {
     INSTANCE;
 
     // General purpose system fields
-    Configuration yamlConfiguration;
-    boolean running = false;
-    @Getter
-    BaseNodeConfiguration nodeConfiguration;
+    @NonFinal Configuration yamlConfiguration;
+    @Getter @NonFinal BaseNodeConfiguration nodeConfiguration;
     @Getter final long startDate = System.currentTimeMillis();
-    @Getter long bootElapsedEpoch;
+    @Getter @NonFinal long bootElapsedEpoch;
 
     // Executors
-    @Getter
-    ExecutorService executor;
-    @Getter
-    ScheduledExecutorService scheduler;
+    @Getter @NonFinal ExecutorService executor;
+    @Getter @NonFinal ScheduledExecutorService scheduler;
 
     // Connection related shit
-    @Getter @Setter boolean reconnecting = false;
-    InetSocketAddress address;
-    @Getter
-    LocalClientConnection connection;
+    @Getter @Setter @NonFinal boolean reconnecting = false;
+    @NonFinal InetSocketAddress address;
+    @Getter @NonFinal LocalClientConnection connection;
 
     // Persistent node data, that is being updated by server
-    @Getter @Setter
-    FluentNodeDataImpl nodeData;
+    @Getter @Setter @NonFinal FluentNodeDataImpl nodeData;
 
     // current network type
-    NetworkType networkType;
+    @NonFinal NetworkType networkType;
 
     public void init() {
-        reloadConfiguration();
-        Logging.IMP.info("[Bootstrap] Configuration reloaded");
+        this.loadConfig();
+        this.initExecutors();
+        this.bootManagers();
+        this.connect();
 
+        this.bootElapsedEpoch = System.currentTimeMillis() - startDate;
+        Logging.IMP.info("[Bootstrap] Done node initialization process. {} ms elapsed", bootElapsedEpoch);
+    }
+
+    private void loadConfig() {
+        reloadConfiguration();
         networkType = NetworkType.valueOf(System.getProperty("network.type", NetworkType.PRODUCTION.name()));
         Logging.IMP.info("Network type for this coordinator instance is: {}", networkType.name());
+    }
 
+    private void initExecutors() {
         scheduler = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors());
         executor = Executors.newCachedThreadPool();
         Logging.IMP.info("[Bootstrap] Executors instantiated");
+    }
 
+    private void bootManagers() {
+        DeploymentManager.INSTANCE.postBootstrap();
+    }
+
+    private void connect() {
         this.address = new InetSocketAddress(
                 nodeConfiguration.getRemoteCoordinatorHost(),
                 nodeConfiguration.getRemoteCoordinatorPort()
@@ -86,15 +97,7 @@ public enum NodeApp {
             return;
         }
 
-        NodeDeploymentManager.INSTANCE.postBootstrap();
-
-        // Updating connection instance in node class
         NodeConnection.setConnection(connection);
-
-        running = true;
-
-        bootElapsedEpoch = System.currentTimeMillis() - startDate;
-        Logging.IMP.info("[Bootstrap] Done node initialization process. {} ms elapsed", bootElapsedEpoch);
     }
 
     public void reloadConfiguration() {
@@ -126,11 +129,25 @@ public enum NodeApp {
                     yamlConfiguration.getBoolean("allowDockerEnvironmentVars"),
                     yamlConfiguration.getString("coordinatorHost"),
                     yamlConfiguration.getInt("coordinatorPort"),
-                    yamlConfiguration.getString("coordinatorSecret")
+                    yamlConfiguration.getString("coordinatorSecret"),
+                    yamlConfiguration.getStringList("scaleTypes").stream()
+                            .map(ServerScaleType::valueOf).distinct().toArray(ServerScaleType[]::new)
             );
         } catch (IOException e) {
             Logging.IMP.stacktrace(e, "Can't load configuration file");
         }
     }
 
+    public void reloadNodeData() {
+        int allocatedRamMB = (int) ((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / (1024 * 1024));
+        int maxRamMB = (int) (Runtime.getRuntime().maxMemory() / (1024 * 1024));
+
+        if (nodeData == null) {
+            nodeData = new FluentNodeDataImpl(null, nodeConfiguration.getScaleTypes(), allocatedRamMB, maxRamMB);
+        } else {
+            nodeData.setScaleTypes(nodeConfiguration.getScaleTypes());
+            nodeData.setAllocatedRamMB(allocatedRamMB);
+            nodeData.setMaxRamMB(maxRamMB);
+        }
+    }
 }
