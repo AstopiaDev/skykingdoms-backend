@@ -158,8 +158,6 @@ public final class ServerDeploy {
 
     /**
      * Internal indicator that shows which game server should be deployed
-     *
-     *
      */
     @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
     @RequiredArgsConstructor
@@ -168,7 +166,6 @@ public final class ServerDeploy {
 
         PROXY,      // bungee instance
         BUKKIT,      // virtualized lobby segment
-        PERSISTENT   // persistent serveR?
         ;
 
         public static final DeploymentTarget[] VALUES = values();
@@ -177,8 +174,6 @@ public final class ServerDeploy {
 
     /**
      * Used to indicate, if our deployment is accepted on node.
-     *
-     *
      */
     public enum DeploymentResult {
         ACCEPTED, DENIED
