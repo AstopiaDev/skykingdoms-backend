@@ -1,12 +1,12 @@
 package net.skykingdoms.backend.megamind.data.party;
 
+import net.skykingdoms.backend.megamind.MegamindApp;
 import net.skykingdoms.backend.megamind.api.event.EventHandler;
 import net.skykingdoms.backend.megamind.api.plugin.Listener;
 import net.skykingdoms.backend.megamind.event.gamer.GamerJoinEvent;
 import net.skykingdoms.backend.megamind.event.gamer.GamerLoadEvent;
 import net.skykingdoms.backend.megamind.event.gamer.GamerQuitEvent;
 import net.skykingdoms.backend.megamind.event.gamer.PlayerGameRedirectEvent;
-import net.skykingdoms.backend.megamind.MegamindApp;
 
 /**
  * @author Vihara
@@ -19,7 +19,7 @@ public final class PartyListener implements Listener {
 
     @EventHandler
     public void onPlayerDisconnect(final GamerQuitEvent event) {
-        PartyManager.INSTANCE.handleDisconnect(event.getGamer());
+        net.skykingdoms.backend.megamind.data.party.PartyManager.INSTANCE.handleDisconnect(event.getGamer());
     }
 
     @EventHandler

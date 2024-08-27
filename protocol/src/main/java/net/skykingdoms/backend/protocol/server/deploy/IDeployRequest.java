@@ -12,5 +12,4 @@ public interface IDeployRequest extends Serializable<IDeployRequest> {
      * Unique ID of deployment request (transaction)
      */
     @NotNull UUID getTransactionId();
-
 }

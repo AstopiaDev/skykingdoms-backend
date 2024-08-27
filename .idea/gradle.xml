@@ -19,8 +19,11 @@
             <option value="$PROJECT_DIR$/megamind-modules/neoprotect-module" />
             <option value="$PROJECT_DIR$/megamind-modules/rest-api-module" />
             <option value="$PROJECT_DIR$/megamind-modules/votifier-module" />
+            <option value="$PROJECT_DIR$/minimind" />
+            <option value="$PROJECT_DIR$/minimind/party" />
             <option value="$PROJECT_DIR$/node-app" />
             <option value="$PROJECT_DIR$/protocol" />
+            <option value="$PROJECT_DIR$/service-loader" />
             <option value="$PROJECT_DIR$/velocity-connector" />
           </set>
         </option>

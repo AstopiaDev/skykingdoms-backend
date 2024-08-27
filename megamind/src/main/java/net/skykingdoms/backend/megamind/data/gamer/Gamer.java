@@ -1,6 +1,5 @@
 package net.skykingdoms.backend.megamind.data.gamer;
 
-
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import net.skykingdoms.backend.base.data.network.NetworkSqlHandler;
