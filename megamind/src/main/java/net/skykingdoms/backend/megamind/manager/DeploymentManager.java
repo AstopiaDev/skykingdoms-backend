@@ -137,7 +137,7 @@ public final class DeploymentManager {
         _reserved.add(name); // reserving shit
 
         val node = NodeManager.INSTANCE.registerNode(new NodeServer(name, rcc));
-        node.getChannel().sendPacket(new S04UpdateRemoteData(RemoteConnectedType.NODE, new FluentNodeDataImpl(name)));
+        node.getChannel().sendPacket(new S04UpdateRemoteData(RemoteConnectedType.NODE, new FluentNodeDataImpl(name, null, -1, -1)));
 
         _reserved.remove(name); // invalidation reservation record
 
@@ -628,7 +628,7 @@ public final class DeploymentManager {
         return Streams.concat(
                         ServerManager.INSTANCE.getPersistentServers().stream(),
                         ServerManager.INSTANCE.getRegisteredBukkitInstances().stream(),
-                        ProxyManager.INSTANCE.getProxyServers().stream())
+                        ProxyManager.INSTANCE.getProxyServers().values().stream())
                 .collect(Collectors.toSet());
     }
 

@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.squareup.okhttp.Response;
+import lombok.Getter;
 import lombok.NonNull;
 import lombok.val;
 import net.skykingdoms.backend.protocol.logging.Logging;
@@ -17,6 +18,7 @@ public final class ResponseWrapper {
     JsonObject jsonObject;
 
     String responseBody;
+    @Getter
     Response response;
     int code;
 

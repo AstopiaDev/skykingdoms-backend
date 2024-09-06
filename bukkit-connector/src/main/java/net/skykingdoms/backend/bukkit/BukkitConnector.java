@@ -2,6 +2,7 @@ package net.skykingdoms.backend.bukkit;
 
 import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldDefaults;
 import lombok.val;
@@ -38,17 +39,18 @@ import java.util.UUID;
 public enum BukkitConnector {
     INSTANCE;
 
-    BukkitConnectorBoot plugin;
     BukkitLocalClientConnection connection;
-    SocketAddress address;
-    String secret;
-    UUID transactionId;
+    FluentBukkitDataImpl fluentBukkitData;
     ServerScaleType serverScaleType;
+    @Setter boolean reconnecting = false;
+    Configuration configuration;
+    BukkitConnectorBoot plugin;
+    SocketAddress address;
+    UUID transactionId;
     GameType gameType;
     GameMode gameMode;
     int testFlowId;
-    FluentBukkitDataImpl fluentBukkitData;
-    Configuration configuration;
+    String secret;
 
     public void construct(BukkitConnectorBoot plugin) {
         this.plugin = plugin;
@@ -60,13 +62,6 @@ public enum BukkitConnector {
         this.gameMode = GameMode.valueOf(System.getProperty("gameMode").toUpperCase(), null);
         this.gameType = GameType.valueOf(System.getProperty("gameType").toUpperCase());
         this.serverScaleType = ServerScaleType.valueOf(System.getProperty("serverScale").toUpperCase());
-
-        RankSqlHandler.INSTANCE.setLuckPerms(
-                LuckPermsRestClient.builder()
-                        .baseUrl(plugin.getConfig().getString("luckperms-url"))
-                        .apiKey(plugin.getConfig().getString("luckperms-api-key"))
-                        .build()
-        );
 
         // env vars
         this.secret = configuration == null ? System.getenv("CORD_SECRET") : configuration.getString("CORD_SECRET");

@@ -1,5 +1,6 @@
 package net.skykingdoms.backend.base.permission;
 
+import gnu.trove.list.TIntList;
 import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.Setter;
@@ -41,29 +42,22 @@ public final class RankSqlHandler {
             = "SELECT `UserId` FROM `UserRanks` WHERE `GroupId` %s ? ORDER BY `GroupId` DESC;";
 
     // ---------------------------------------------------
-
-    @Setter
-    LuckPermsRestClient luckPerms;
-
-/*    public CompletableFuture<UserRank> addUserRank(final int userId,
+/*
+    public CompletableFuture<UserRank> addUserRank(final int userId,
                                                    final @NonNull Group group,
                                                    final LocalDateTime expires) {
-        luckPerms.users().nodesAd
         return database.executeUpdate(ADD_PLAYER_RANK, userId, group.getId(), expires)
                 .thenApply(query -> new UserRank(query.getGeneratedKey(), group, expires));
-    }*/
+    }
 
-/*    public CompletableFuture<?> removeUserRank(final int rankId) {
+    public CompletableFuture<?> removeUserRank(final int rankId) {
         if (luckPerms == null) {
             return null;
         }
         return database.executeVoidUpdate(REMOVE_PLAYER_RANK, rankId);
-    }*/
+    }
 
-/*    public CompletableFuture<TIntList> getPlayersByRank(@NonNull Group group, boolean strict) {
-        if (luckPerms == null) {
-            return null;
-        }
+    public CompletableFuture<TIntList> getPlayersByRank(@NonNull Group group, boolean strict) {
         return database.executeQuery(String.format(LOAD_PLAYERS_BY_RANK, strict ? "=" : ">="), group.getId())
                 .thenApply(query -> {
                     val playerIds = new TIntArrayList();
@@ -74,13 +68,9 @@ public final class RankSqlHandler {
 
                     return playerIds;
                 });
-    }*/
+    }
 
     public CompletableFuture<UserRanks> loadUserRanks(UUID uuid) {
-        if (luckPerms == null) {
-            return CompletableFuture.completedFuture(null);
-        }
-
         return CompletableFuture.supplyAsync(() -> {
             try {
                 val list = luckPerms.users().nodes(uuid).execute().body().stream()
@@ -91,34 +81,15 @@ public final class RankSqlHandler {
                 for (val node : list) {
                     ranks.add(readUserRank(node));
                 }
-/*                Logging.IMP.info("Loaded ranks for " + uuid + ": " + ranks.size());
+*//*                Logging.IMP.info("Loaded ranks for " + uuid + ": " + ranks.size());
                 for (val rank : ranks) {
                     Logging.IMP.info("Rank: " + rank.getGroup().getName());
-                }*/
+                }*//*
                 return new UserRanks(ranks);
             } catch (Exception e) {
                 e.printStackTrace();
                 return null;
             }
         });
-    }
-
-    private UserRank readUserRank(final @NonNull Node node) {
-        if (luckPerms == null) {
-            return null;
-        }
-/*
-        Logging.IMP.info("Node: " + node.key());
-*/
-        val group = Group.fromLegacyGroup(node.key().substring(6));
-        val expires = node.expiry();
-
-        if (expires == null) {
-           return new UserRank(-1, group, -1);
-        }
-
-        return new UserRank(-1, group, LocalDateTime.ofInstant(Instant.ofEpochMilli(expires), ZoneId.systemDefault()));
-    }
-
-
+    }*/
 }

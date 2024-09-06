@@ -73,7 +73,6 @@ public final class ServerDeploy {
                     break;
                 }
                 case BUKKIT:
-                case PERSISTENT:
                     pendingServer = new BukkitDeployRequest().deserialize(buf);
                     break;
             }

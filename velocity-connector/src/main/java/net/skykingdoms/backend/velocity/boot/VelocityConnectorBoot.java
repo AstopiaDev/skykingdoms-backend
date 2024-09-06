@@ -29,7 +29,7 @@ public class VelocityConnectorBoot {
 
     @Subscribe
     public void onInitialize(ProxyInitializeEvent event) {
-        if (!VelocityConnector.INSTANCE.initialized().get()) {
+        if (!VelocityConnector.INSTANCE.initialized()) {
             VelocityConnector.INSTANCE.init();
         }
     }

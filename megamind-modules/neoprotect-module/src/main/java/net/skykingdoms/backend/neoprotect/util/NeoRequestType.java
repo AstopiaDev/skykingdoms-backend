@@ -2,5 +2,6 @@ package net.skykingdoms.backend.neoprotect.util;
 
 public enum NeoRequestType {
     GET_BACKENDS,
-    POST_BACKEND
+    POST_BACKEND,
+    DELETE_BACKEND,
 }

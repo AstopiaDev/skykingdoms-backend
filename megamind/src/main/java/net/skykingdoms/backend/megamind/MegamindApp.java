@@ -4,6 +4,7 @@ import com.google.common.collect.Streams;
 import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldDefaults;
+import lombok.experimental.NonFinal;
 import net.luckperms.rest.LuckPermsRestClient;
 import net.skykingdoms.backend.base.command.ICommand;
 import net.skykingdoms.backend.base.command.tabcomplete.AbstractTabcompleter;
@@ -64,49 +65,59 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-@FieldDefaults(level = AccessLevel.PRIVATE)
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Accessors(fluent = true)
 @Getter
 public enum MegamindApp {
     INSTANCE;
 
-    final long startDate = System.nanoTime();
-    ExecutorService executor;
-    ScheduledExecutorService scheduler;
-    final Path directory = Paths.get("/home/megamind");
-    final Path plugins = directory.resolve("plugins");
-    Configuration configuration;
-    boolean running = false;
-    PluginManager pluginManager;
-    LocalServerConnection connection;
-    String secret;
-    NetworkType networkType;
-    @Setter NetworkState networkState;
-    final CoreCommandManager commandManager = new CoreCommandManager();
-    final Map<String, ICommand> commands = CollectionUtil.createConcurrentMap();
+    NetworkType networkType = NetworkType.valueOf(System.getProperty("network.type", NetworkType.PRODUCTION.name()));
+    Map<String, ICommand> commands = CollectionUtil.createConcurrentMap();
+    CoreCommandManager commandManager = new CoreCommandManager();
+
+    ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors());
+    ExecutorService executor = Executors.newCachedThreadPool();
+
+    Path directory = Paths.get(".");
+    Path plugins = directory.resolve("plugins");
+
+    long startDate = System.nanoTime();
+
+    @Setter @NonFinal NetworkState networkState;
+    @NonFinal LocalServerConnection connection;
+    @NonFinal Configuration configuration;
+    @NonFinal PluginManager pluginManager;
+    @NonFinal boolean running = false;
+    @NonFinal String secret;
 
     public void init() {
-        Logging.IMP.info("Initializing Megamind application ...");
-        networkType = NetworkType.valueOf(System.getProperty("network.type", NetworkType.PRODUCTION.name()));
-        scheduler = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors());
-        executor = Executors.newCachedThreadPool();
+        Logging.IMP.info("[Megamind] Booting application ...");
         Language.reloadLanguages();
+        Logging.IMP.info("[Megamind] Loaded languages");
         this.reloadConfiguration();
-        Logging.IMP.info("Configuration has been loaded");
-        RankSqlHandler.INSTANCE.setLuckPerms(
-                LuckPermsRestClient.builder()
-                        .baseUrl(configuration.getString("luckperms-url"))
-                        .apiKey(configuration.getString("luckperms-api-key"))
-                        .build()
-        );
+        Logging.IMP.info("[Megamind] Loaded configuration");
         networkState = NetworkState.valueOf(configuration.getString("state"));
+        Logging.IMP.info("[Megamind] Loaded network state: {}", networkState);
+
         commandManager.addCondition(CoreCommandConditions.class);
         registerCommandCompleters();
         registerCommands();
 
         pluginManager = new PluginManager();
         this.enablePlugins();
-        Logging.IMP.info("Plugins have been loaded");
+        Logging.IMP.info("[Megamind] Loaded plugins");
+
+        ServerManager.INSTANCE.postBootstrap();
+        CoreSecurityManager.INSTANCE.postBootstrap();
+        DeploymentManager.INSTANCE.postBootstrap();
+        ProxyManager.INSTANCE.postBootstrap();
+        LobbyManager.INSTANCE.postBootstrap();
+        FriendManager.INSTANCE.postBootstrap();
+        PartyManager.INSTANCE.postBootstrap();
+        TestFlowManager.INSTANCE.postBootstrap();
+        StatsManager.INSTANCE.postBootstrap();
+        DuelManager.INSTANCE.postBootstrap();
+        Logging.IMP.info("[Megamind] Finished loading managers!");
 
         connection = new LocalServerConnection(
                 new InetSocketAddress(
@@ -121,31 +132,11 @@ public enum MegamindApp {
 
         running = true;
 
-        // Invoking #postBootstrap() method for required managers
-
-        ServerManager.INSTANCE.postBootstrap();
-        CoreSecurityManager.INSTANCE.postBootstrap();
-        DeploymentManager.INSTANCE.postBootstrap();
-        ProxyManager.INSTANCE.postBootstrap();
-        LobbyManager.INSTANCE.postBootstrap();
-        FriendManager.INSTANCE.postBootstrap();
-        PartyManager.INSTANCE.postBootstrap();
-        TestFlowManager.INSTANCE.postBootstrap();
-        StatsManager.INSTANCE.postBootstrap();
-        DuelManager.INSTANCE.postBootstrap();
-
-
-        this.addPersistentServers();
-
-        Logging.IMP.info("Connection opened at {}", connection.getChannel().localAddress());
-        Logging.IMP.info("Epoll: {}", coloredEpoll(connection.isEpoll()));
-        Logging.IMP.info("Megamind launched in {}ms",
+        Logging.IMP.info("[Megamind] Connection opened at {}", connection.getChannel().localAddress());
+        Logging.IMP.info("[Megamind] Epoll: {}", coloredEpoll(connection.isEpoll()));
+        Logging.IMP.info("[Megamind] Megamind launched in {}ms",
                 coloredStartupTime(getUptime(TimeUnit.MILLISECONDS)));
 
-      /*  PointsShiHandler.INSTANCE.migratePlayerPoints();*/
-/*
-        TagShiHandler.INSTANCE.startMigrationShit();
-*/
         new MegamindConsole().start();
     }
 
@@ -188,20 +179,6 @@ public enum MegamindApp {
                 + String.valueOf(time);
     }
 
-    private void addPersistentServers() {
-        Configuration section = configuration.getSection("servers");
-        for (String key : section.getKeys()) {
-            Configuration server = section.getSection(key);
-            DeploymentManager.INSTANCE.addPersistentDeployment(key,
-                    UUID.fromString(server.getString("tid")),
-                    server.getString("address"),
-                    server.getInt("port"),
-                    GameType.valueOf(server.getString("gameType")),
-                    GameMode.valueOf(server.getString("gameMode"))
-            );
-        }
-    }
-
     public long getUptime(final @NonNull TimeUnit unit) {
         return unit.convert(System.nanoTime() - startDate, TimeUnit.NANOSECONDS);
     }
@@ -217,8 +194,6 @@ public enum MegamindApp {
                 defaultConfiguration.set("port", 5345);
                 defaultConfiguration.set("secret", "");
                 defaultConfiguration.set("state", NetworkState.OPEN.name());
-                defaultConfiguration.set("luckperms-url", "");
-                defaultConfiguration.set("luckperms-api-key", "");
                 //defaultConfiguration.set("servers", new ArrayList<>());
 
                 //noinspection ResultOfMethodCallIgnored
@@ -390,7 +365,7 @@ public enum MegamindApp {
                 if (sender instanceof Gamer && !((Gamer) sender).isStaff()) {
                     return Collections.emptyList();
                 }
-                return any(label, ProxyManager.INSTANCE.getProxyServers().stream()
+                return any(label, ProxyManager.INSTANCE.getProxyServers().values().stream()
                         .map(ProxyServer::getName));
             }
         });

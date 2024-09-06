@@ -8,7 +8,6 @@ import lombok.experimental.NonFinal;
 @AllArgsConstructor
 @Getter @Setter
 public final class Backend {
-
     String id;
     @NonFinal String ip;
     int port;

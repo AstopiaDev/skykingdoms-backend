@@ -33,7 +33,7 @@ public final class StatsManager {
     public void postBootstrap() {
         modes.clear();
 
-        for (String table : StatsSqlHandler.INSTANCE.loadTables().join()) {
+/*        for (String table : StatsSqlHandler.INSTANCE.loadTables().join()) {
             StatsMode mode = StatsSqlHandler.INSTANCE.loadMode(table)
                     .join();
 
@@ -41,7 +41,7 @@ public final class StatsManager {
 
             Logging.IMP.info("[Statistic] Table {} loaded for {}", table, mode.getDisplayName());
             // Logging.IMP.info("[Statistic] Entries: ({})", table);
-        }
+        }*/
     }
 
     public StatsMode tryGetMode(final String mode) {

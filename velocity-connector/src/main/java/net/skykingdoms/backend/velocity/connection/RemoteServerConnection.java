@@ -32,6 +32,7 @@ import net.skykingdoms.backend.velocity.gamer.Gamer;
 import net.skykingdoms.backend.velocity.security.BungeeSecurityManager;
 
 import java.net.InetSocketAddress;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.UUID;
 
@@ -89,6 +90,7 @@ public final class RemoteServerConnection extends AbstractRemoteServerChannel {
         });
 
         reconnectPlayers();
+        VelocityConnector.INSTANCE.reconnecting(false);
     }
 
     @Override
@@ -137,14 +139,17 @@ public final class RemoteServerConnection extends AbstractRemoteServerChannel {
     public void active() {
         VelocityConnector.INSTANCE.server().getEventManager().fire(new ServerActiveEvent(this));
 
-        Logging.IMP.info("Active");
+        EnumSet<Handshake.RequestFlag> flags = EnumSet.noneOf(Handshake.RequestFlag.class);
+        if (VelocityConnector.INSTANCE.reconnecting()) {
+            flags.add(Handshake.RequestFlag.IS_RECONNECT);
+        }
+        flags.add(Handshake.RequestFlag.HAS_FLUENT_DATA);
 
         sendPacket(new Handshake.Request(
                 RemoteConnectedType.PROXY,
                 System.getenv("CORD_SECRET"),
                 UUID.fromString(System.getenv("CORD_TID")),
-                VelocityConnector.INSTANCE.reconnecting().getAndSet(false)
-                ? Handshake.Request.IS_RECONNECT | Handshake.Request.HAS_FLUENT_DATA : Handshake.Request.HAS_FLUENT_DATA,
+                flags,
                 VelocityConnector.INSTANCE.proxyData(), 0));
     }
 
@@ -190,7 +195,7 @@ public final class RemoteServerConnection extends AbstractRemoteServerChannel {
 
     @Override
     public void onServerDisconnect() {
-        VelocityConnector.INSTANCE.reconnecting().set(true);
+        VelocityConnector.INSTANCE.reconnecting(true);
         VelocityConnector.INSTANCE.server().getEventManager().fire(new ServerInactiveEvent(this));
     }
 

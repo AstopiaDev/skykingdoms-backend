@@ -2,6 +2,7 @@ package net.skykingdoms.backend.neoprotect;
 
 import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 import lombok.val;
 import net.skykingdoms.backend.megamind.MegamindApp;
@@ -30,6 +31,8 @@ public final class NeoProtectModule extends Plugin {
      * NeoProtect server shield ID
      */
     String serverId;
+
+    @Setter String backendGroupId;
 
     @Override
     public void onEnable() {

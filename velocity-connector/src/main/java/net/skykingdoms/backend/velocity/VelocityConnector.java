@@ -1,17 +1,12 @@
 package net.skykingdoms.backend.velocity;
 
-import com.velocitypowered.api.event.PostOrder;
 import com.velocitypowered.api.proxy.ProxyServer;
 import io.github._4drian3d.authmevelocity.api.velocity.AuthMeVelocityAPI;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldDefaults;
-import net.luckperms.rest.LuckPermsRestClient;
 import net.skykingdoms.backend.base.data.state.NetworkState;
 import net.skykingdoms.backend.base.language.Language;
-import net.skykingdoms.backend.base.permission.RankSqlHandler;
 import net.skykingdoms.backend.base.util.config.Configuration;
 import net.skykingdoms.backend.base.util.config.ConfigurationProvider;
 import net.skykingdoms.backend.base.util.config.YamlConfiguration;
@@ -24,12 +19,10 @@ import net.skykingdoms.backend.velocity.listener.KickListener;
 import net.skykingdoms.backend.velocity.listener.PingListener;
 import net.skykingdoms.backend.velocity.listener.PlayerListener;
 import net.skykingdoms.backend.velocity.listener.TabCompleteListener;
-import net.skykingdoms.backend.velocity.security.BungeeSecurityManager;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Accessors(fluent = true)
@@ -37,15 +30,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public enum VelocityConnector {
     INSTANCE;
 
-    VelocityConnectorBoot boot;
-    ProxyServer server;
+    @Setter NetworkState networkState = NetworkState.OPEN;
     VelocityLocalClientConnection connection;
     @Setter FluentProxyDataImpl proxyData;
-    final AtomicBoolean initialized = new AtomicBoolean(false);
-    final AtomicBoolean reconnecting = new AtomicBoolean(false);
+    @Setter boolean reconnecting = false;
+    boolean initialized = false;
     AuthMeVelocityAPI authMeAPI;
-    @Setter NetworkState networkState = NetworkState.OPEN;
     Configuration configuration;
+    VelocityConnectorBoot boot;
+    ProxyServer server;
 
     public void construct(VelocityConnectorBoot boot, ProxyServer proxyServer) {
         this.boot = boot;
@@ -60,7 +53,7 @@ public enum VelocityConnector {
 
     @SneakyThrows
     public void init() {
-        initialized.set(true);
+        initialized = true;
 
         try {
             this.authMeAPI = (AuthMeVelocityAPI) server.getPluginManager()
@@ -72,12 +65,6 @@ public enum VelocityConnector {
 
         this.reloadConfiguration();
 
-        RankSqlHandler.INSTANCE.setLuckPerms(
-                LuckPermsRestClient.builder()
-                        .baseUrl(configuration.getString("luckperms-url"))
-                        .apiKey(configuration.getString("luckperms-api-key"))
-                        .build()
-        );
         this.connection = new VelocityLocalClientConnection(
                 new InetSocketAddress(configuration.getString("coordinatorHost"), configuration.getInt("coordinatorPort")),
                 2

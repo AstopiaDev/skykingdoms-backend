@@ -40,6 +40,11 @@ public final class NeoProtectManager {
         Logging.IMP.info("[NeoProtect] Loading backend servers from remote ...");
         loadedBackends.addAll(NeoProtectHttpUtil.retrieveBackends());
         Logging.IMP.info("[NeoProtect] Loaded in total {} backends", loadedBackends.size());
+
+        NeoProtectManager.INSTANCE.requestBackendId(
+                "5.9.150.40",
+                40056
+        );
     }
 
     public Backend requestBackendId(final @NonNull String ip,
@@ -48,10 +53,14 @@ public final class NeoProtectManager {
                 .findAny()
                 .orElseGet(() -> {
                     val requestBody = RequestBody.create(MediaType.parse("application/json"), new JsonBuilder()
-                            .appendField("ipv4", ip)
+                            .appendField("host", ip)
                             .appendField("port", port)
-                            .appendField("geyser", false)
                             .build().toString());
+                    Logging.IMP.info(NeoProtectModule.INSTANCE.getBackendGroupId());
+                    val response = NeoProtectHttpUtil.request(NeoRequestType.POST_BACKEND, requestBody, NeoProtectModule.INSTANCE.getServerId(), NeoProtectModule.INSTANCE.getBackendGroupId());
+
+                    Logging.IMP.info("[NeoProtect] Requested backend ID for {}:{} -> {}", ip, port, response.getResponse().toString());
+
                     //val response = NeoProtectHttpUtil.request(NeoRequestType.POST_BACKEND, requestBody, NeoProtectModule.INSTANCE.getServerId(), );
                     /*return new NetworkPlayerLoad.Response()*/
                     // todo: implement dynamic routing
@@ -62,6 +71,18 @@ public final class NeoProtectManager {
                             false
                     );
                 });
+    }
+
+    public void removeBackend(final @NonNull String id) {
+        final Backend backend = loadedBackends.stream().filter(b -> b.getId().equals(id)).findAny().orElse(null);
+        if (backend == null) return;
+
+        loadedBackends.remove(backend);
+        RequestBody.create(MediaType.parse("application/json"), new JsonBuilder()
+                .appendField("serverId", NeoProtectModule.INSTANCE.getServerId())
+                .appendField("groupId", id)
+                .appendField("backendId", backend.getIp())
+                .build().toString());
     }
 
 }

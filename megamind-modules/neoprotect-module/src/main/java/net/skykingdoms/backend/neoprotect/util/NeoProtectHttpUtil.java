@@ -1,5 +1,6 @@
 package net.skykingdoms.backend.neoprotect.util;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
@@ -66,19 +67,23 @@ public final class NeoProtectHttpUtil {
 
     public Collection<Backend> retrieveBackends() {
         Collection<Backend> ret = new HashSet<>();
-        Logging.IMP.info(request(NeoRequestType.GET_BACKENDS, null, NeoProtectModule.INSTANCE.getServerId()).response.message());
-        /*Logging.IMP.info(jsonObject.getAsString());*/
-/*            val elements = backendgroup.getAsJsonArray("backends");
-            for (val ele : elements) {
-                val element = ele.getAsJsonObject();
+        JsonArray backendGroupsArray = request(NeoRequestType.GET_BACKENDS, null, NeoProtectModule.INSTANCE.getServerId()).getResponseBodyArray();
+        for (val backendGroupElement : backendGroupsArray) {
+            JsonObject backendGroup = backendGroupElement.getAsJsonObject();
+            if (backendGroup.get("useDefault").getAsBoolean()) {
+                NeoProtectModule.INSTANCE.setBackendGroupId(backendGroup.get("id").getAsString());
+            }
+            JsonArray backends = backendGroup.getAsJsonArray("backends");
+            for (val backendElement : backends) {
+                JsonObject backend = backendElement.getAsJsonObject();
                 ret.add(new Backend(
-                        element.get("id").getAsString(),
-                        element.get("ipv4").getAsString(),
-                        element.get("port").getAsInt(),
-                        element.get("geyser").getAsBoolean()
+                        backend.get("id").getAsString(),
+                        backend.get("ipv4").getAsString(),
+                        backend.get("port").getAsInt(),
+                        backend.has("geyser") && !backend.get("geyser").isJsonNull() && backend.get("geyser").getAsBoolean()
                 ));
-            }*//*
-        });*/
+            }
+        }
         return ret;
     }
 
@@ -87,10 +92,13 @@ public final class NeoProtectHttpUtil {
 
         switch (type) {
             case POST_BACKEND: {
-                return TextFormat.formatText("/gameshields/{}/backendGroups", values);
+                return TextFormat.formatText("/gameshields/{}/backendGroups/{}/backends", values);
             }
             case GET_BACKENDS: {
-                return TextFormat.formatText("/gameshields/{}/backendGroups/{}/backends", values);
+                return TextFormat.formatText("/gameshields/{}/backendGroups", values);
+            }
+            case DELETE_BACKEND: {
+                return TextFormat.formatText("/gameshields/{}/backendGroups/{}/backends/{}", values);
             }
         }
 

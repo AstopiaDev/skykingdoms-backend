@@ -36,7 +36,7 @@ public final class FriendManager {
      * Invoked once. Loads all shit from database here.
      */
     public void postBootstrap() {
-        friendshipMetas.addAll(FriendsSqlHandler.INSTANCE.getFriendships());
+        /*friendshipMetas.addAll(FriendsSqlHandler.INSTANCE.getFriendships());*/
         Logging.IMP.info("[FriendManager] Loaded {} friendship metas", friendshipMetas.size());
     }
 

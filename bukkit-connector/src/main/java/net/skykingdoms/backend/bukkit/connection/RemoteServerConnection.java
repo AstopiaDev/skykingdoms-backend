@@ -25,6 +25,8 @@ import net.skykingdoms.backend.protocol.type.RemoteConnectedType;
 import net.skykingdoms.backend.protocol.type.reconnect.impl.FluentBukkitDataImpl;
 import org.bukkit.Bukkit;
 
+import java.util.EnumSet;
+
 /**
  * @author Vihara
  */
@@ -36,6 +38,7 @@ public final class RemoteServerConnection extends AbstractRemoteServerChannel { 
     @Override
     public void onServerDisconnect() {
         BukkitConnector.INSTANCE.plugin().getServer().getPluginManager().callEvent(new ServerInactiveEvent());
+        BukkitConnector.INSTANCE.reconnecting(true);
     }
 
     @Override
@@ -46,34 +49,19 @@ public final class RemoteServerConnection extends AbstractRemoteServerChannel { 
             Logging.IMP.stacktrace(t, "Can't call active event");
         }
 
+        EnumSet<Handshake.RequestFlag> flags = EnumSet.noneOf(Handshake.RequestFlag.class);
+        if (BukkitConnector.INSTANCE.reconnecting()) {
+            flags.add(Handshake.RequestFlag.IS_RECONNECT);
+        }
+        flags.add(Handshake.RequestFlag.HAS_FLUENT_DATA);
+
         sendPacket(new Handshake.Request(
                 RemoteConnectedType.SERVER,
                 BukkitConnector.INSTANCE.secret(),
                 BukkitConnector.INSTANCE.transactionId(),
-                _getReconnectMask(),
+                flags,
                 BukkitConnector.INSTANCE.fluentBukkitData(),
                 BukkitConnector.INSTANCE.testFlowId()));
-    }
-
-    private int _getReconnectMask() {
-        int mask = 0;
-
-        // bukkit always has fluent data
-        mask |= Handshake.Request.HAS_FLUENT_DATA;
-
-        if (BukkitConnector.INSTANCE.serverScaleType() == ServerScaleType.PERSISTENT) {
-            return mask;
-        }
-
-        if (!BukkitConnector.INSTANCE.fluentBukkitData().getNodeName().equals("N/A")) {
-            mask |= Handshake.Request.IS_RECONNECT;
-        }
-
-        if (BukkitConnector.INSTANCE.testFlowId() > 0) {
-            mask |= Handshake.Request.IS_TESTFLOW;
-        }
-
-        return mask;
     }
 
     @Override
@@ -97,6 +85,7 @@ public final class RemoteServerConnection extends AbstractRemoteServerChannel { 
         });
 
         BukkitConnector.INSTANCE.plugin().getServer().getPluginManager().callEvent(new ConnectionEstablishedEvent(this));
+        BukkitConnector.INSTANCE.reconnecting(false);
     }
 
     @Override

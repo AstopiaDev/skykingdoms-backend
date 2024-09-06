@@ -42,7 +42,7 @@ public final class PartyManager {
      * Restores all persistent parties from database
      */
     public void postBootstrap() {
-        PartySqlHandler.INSTANCE.loadAllParties().whenComplete((_parties, throwable) -> {
+/*        PartySqlHandler.INSTANCE.loadAllParties().whenComplete((_parties, throwable) -> {
 
             if (throwable != null) {
                 Logging.IMP.stacktrace(throwable, "[PartyManager] Error raised on persistent party loading");
@@ -77,7 +77,7 @@ public final class PartyManager {
                     parties.keySet().size(), parties.values().stream()
                             .map(party -> Arrays.stream(party.getPartyMembers().keySet().toIntArray()).sum())
                             .reduce(0, Integer::sum));
-        }).join();
+        }).join();*/
 
         AsyncExecution.INSTANCE.runTimer(() -> {
             for (val party : parties.values()) {

@@ -164,7 +164,7 @@ public abstract class AbstractGamer implements IGamer {
             return;
         }
 
-        ranks = RankSqlHandler.INSTANCE.loadUserRanks(playerUniqueId).join();
+  /*      ranks = RankSqlHandler.INSTANCE.loadUserRanks(playerUniqueId).join();*/
     }
 
     // this saves us some brain cells

@@ -37,10 +37,9 @@ public final class NodeListCommand {
         for (val node : nodes) {
             val servers = ServerManager.INSTANCE.getServers();
             val proxies = ProxyManager.INSTANCE.getProxyServers();
-
             val cocked = Streams.concat(
                     servers.stream(),
-                    proxies.stream()
+                    proxies.values().stream()
                             .filter(p -> node == p.getNode())
                     ).distinct().collect(Collectors.toList());
 
