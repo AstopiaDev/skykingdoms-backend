@@ -1,0 +1,5 @@
+tasks {
+    shadowJar {
+        archiveFileName = "PartyMind.jar"
+    }
+}

@@ -15,4 +15,6 @@ include 'megamind-modules:luckperms-module'
 findProject(':megamind-modules:luckperms-module')?.name = 'luckperms-module'
 include 'megamind-modules:votifier-module'
 findProject(':megamind-modules:votifier-module')?.name = 'votifier-module'
-
+include 'minimind'
+include 'minimind:party-mind'
+findProject(':minimind:party-mind')?.name = 'party-mind'
