@@ -20,10 +20,7 @@ import net.skykingdoms.backend.megamind.manager.*;
 import net.skykingdoms.backend.megamind.manager.deployment.DeploymentResponse;
 import net.skykingdoms.backend.megamind.server.AbstractPlayerHolder;
 import net.skykingdoms.backend.megamind.server.AbstractScalable;
-import net.skykingdoms.backend.megamind.server.impl.BukkitServer;
-import net.skykingdoms.backend.megamind.server.impl.NodeServer;
-import net.skykingdoms.backend.megamind.server.impl.PersistentServer;
-import net.skykingdoms.backend.megamind.server.impl.ProxyServer;
+import net.skykingdoms.backend.megamind.server.impl.*;
 import net.skykingdoms.backend.protocol.channel.AbstractRemoteClientChannel;
 import net.skykingdoms.backend.protocol.logging.Logging;
 import net.skykingdoms.backend.protocol.packet.ChannelProcessorContext;
@@ -75,6 +72,11 @@ public final class RemoteClientConnection extends AbstractRemoteClientChannel {
 
     @Override
     protected void onDisconnect() {
+        if (connectable instanceof ServiceServer) {
+            val ss = (ServiceServer) connectable;
+            ServiceManager.INSTANCE.removeService(ss);
+        }
+
         if (connectable instanceof NodeServer) {
             val ns = (NodeServer) connectable;
             NodeManager.INSTANCE.removeNode(ns);

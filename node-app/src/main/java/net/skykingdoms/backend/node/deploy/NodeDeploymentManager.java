@@ -48,7 +48,7 @@ public enum NodeDeploymentManager {
     INSTANCE;
 
     final DockerClientConfig cockerConfig = DefaultDockerClientConfig.createDefaultConfigBuilder()
-            .withDockerHost("unix:///var/run/docker.sock")
+            .withDockerHost("npipe:////./pipe/podman-machine-default")
             .withDockerTlsVerify(false)
             .withRegistryUsername(System.getProperty("docker.user"))
             .withRegistryPassword(System.getProperty("docker.pass"))

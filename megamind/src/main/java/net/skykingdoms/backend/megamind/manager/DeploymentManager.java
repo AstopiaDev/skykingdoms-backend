@@ -25,6 +25,7 @@ import net.skykingdoms.backend.protocol.type.RemoteConnectedType;
 import net.skykingdoms.backend.protocol.type.reconnect.impl.FluentBukkitDataImpl;
 import net.skykingdoms.backend.protocol.type.reconnect.impl.FluentNodeDataImpl;
 import net.skykingdoms.backend.protocol.type.reconnect.impl.FluentProxyDataImpl;
+import net.skykingdoms.backend.protocol.type.reconnect.impl.FluentServiceDataImpl;
 import net.skykingdoms.backend.protocol.util.TextFormat;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -153,6 +154,17 @@ public final class DeploymentManager {
         }
     }
 
+    private void _handleServiceHandshake(final @NonNull RemoteClientConnection rcc,
+                                      final @NonNull Handshake.Request handshake) {
+        val service = ServiceManager.INSTANCE.registerService(
+                new ServiceServer(
+                        ((FluentServiceDataImpl) handshake.getFluentData()).getServiceName(),
+                        rcc)
+        );
+
+        rcc.setConnectable(service);
+    }
+
     /**
      * Invoked on handshake request packet with Transaction ID
      */
@@ -197,7 +209,7 @@ public final class DeploymentManager {
         }
 
         if (!isTransactionExists(transaction)
-                && type != RemoteConnectedType.NODE
+                && type != RemoteConnectedType.NODE || type != RemoteConnectedType.SERVICE
                 && !handshake.isReconnect()) {
             Logging.IMP.info("[Deploy] Declined invalid transaction #{} @ {} @ {}", transaction.toString(), type.name(), isTransactionExists(transaction));
             return false;
@@ -395,9 +407,14 @@ public final class DeploymentManager {
                                        final @NonNull Handshake.Request handshake) {
 
         val type = handshake.getType();
-        if (type == RemoteConnectedType.NODE) {
-            _handleNodeHandshake(rcc, handshake);
-            return;
+
+        switch (type) {
+            case NODE:
+                _handleNodeHandshake(rcc, handshake);
+                return;
+            case SERVICE:
+                _handleServiceHandshake(rcc, handshake);
+                return;
         }
 
         val transactionId = handshake.getTransactionId();

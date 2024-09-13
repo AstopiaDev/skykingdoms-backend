@@ -6,7 +6,8 @@ public enum RemoteConnectedType {
 
     SERVER,
     PROXY,
-    NODE
+    NODE,
+    SERVICE
     ;
 
     final int mask = 1 << ordinal();

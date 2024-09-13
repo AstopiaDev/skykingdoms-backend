@@ -53,7 +53,7 @@ public enum DeploymentManager {
      */
 
     DockerClientConfig dockerClientConfig = DefaultDockerClientConfig.createDefaultConfigBuilder()
-            .withDockerHost("unix:///var/run/docker.sock")
+            .withDockerHost("npipe:////./pipe/dockerDesktopLinuxEngine")
             .withDockerTlsVerify(false)
             .withRegistryUsername(System.getProperty("docker.user"))
             .withRegistryPassword(System.getProperty("docker.pass"))
@@ -83,6 +83,8 @@ public enum DeploymentManager {
     public void postBootstrap() {
         Logging.IMP.info("[Deploy/PB] Updating external address ...");
         Logging.IMP.info("[Deploy/PB] External address: {}", getExternalHost());
+
+        //Logging.IMP.info("[Deploy/PB] " + client.authCmd().exec().toString());
 
         // Removing all containers, because we need only our shit :3
         client.listContainersCmd().withShowAll(true).exec().forEach(container -> {

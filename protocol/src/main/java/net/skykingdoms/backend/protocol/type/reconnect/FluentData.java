@@ -7,6 +7,7 @@ import net.skykingdoms.backend.protocol.type.RemoteConnectedType;
 import net.skykingdoms.backend.protocol.type.reconnect.impl.FluentBukkitDataImpl;
 import net.skykingdoms.backend.protocol.type.reconnect.impl.FluentNodeDataImpl;
 import net.skykingdoms.backend.protocol.type.reconnect.impl.FluentProxyDataImpl;
+import net.skykingdoms.backend.protocol.type.reconnect.impl.FluentServiceDataImpl;
 
 /**
  * A basic class that represents basic fluent information on server
@@ -26,6 +27,9 @@ public interface FluentData extends Serializable<FluentData> {
     static <T extends FluentData> T deserialize(final @NonNull RemoteConnectedType type,
                                                 final @NonNull ByteBuf buf) {
         switch (type) {
+            case SERVICE: {
+                return (T) new FluentServiceDataImpl().deserialize(buf);
+            }
             case NODE: {
                 return (T) new FluentNodeDataImpl().deserialize(buf);
             }
