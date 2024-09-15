@@ -28,6 +28,7 @@ public final class PlayerDataEndpoint implements IEndpoint {
         }
 
         response.status(200);
+        response.type("application/json");
 
         return createJson(gamer).toString();
     }

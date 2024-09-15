@@ -65,6 +65,8 @@ public final class StatsEndpoint implements IEndpoint {
             return terminate(response, 400, "No player found!");
         }
 
+        response.type("application/json");
+
         return createJson(gamer, gameModes).toString();
     }
 

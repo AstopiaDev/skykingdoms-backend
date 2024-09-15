@@ -27,6 +27,8 @@ public final class PlayerStatusEndpoint implements IEndpoint {
             return terminate(response, 400, "No playerName param!");
         }
 
+        response.type("application/json");
+
         return createJson(gamer).toString();
     }
 
