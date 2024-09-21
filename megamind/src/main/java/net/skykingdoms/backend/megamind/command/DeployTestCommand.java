@@ -9,12 +9,12 @@ import net.skykingdoms.backend.base.command.tabcomplete.Tabcomplete;
 import net.skykingdoms.backend.megamind.api.command.CoreExecutionSession;
 import net.skykingdoms.backend.megamind.manager.DeploymentManager;
 import net.skykingdoms.backend.protocol.packet.play.ServerDeploy;
-import net.skykingdoms.backend.protocol.server.GameType;
-import net.skykingdoms.backend.protocol.server.ServerScaleType;
+import net.skykingdoms.backend.api.protocol.server.GameType;
+import net.skykingdoms.backend.api.protocol.server.ServerScaleType;
 import net.skykingdoms.backend.protocol.server.deploy.impl.BukkitDeployRequest;
 import net.skykingdoms.backend.protocol.server.deploy.impl.ProxyDeployRequest;
-import net.skykingdoms.backend.protocol.server.impl.ScalableDataImpl;
-import net.skykingdoms.backend.protocol.type.RemoteConnectedType;
+import net.skykingdoms.backend.api.protocol.server.impl.ScalableDataImpl;
+import net.skykingdoms.backend.api.protocol.type.RemoteConnectedType;
 
 @NamedCommand("deploytest")
 public final class DeployTestCommand {

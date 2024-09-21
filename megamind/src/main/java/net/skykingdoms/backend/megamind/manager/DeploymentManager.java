@@ -3,6 +3,10 @@ package net.skykingdoms.backend.megamind.manager;
 import com.google.common.collect.Streams;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import net.skykingdoms.backend.api.protocol.server.GameState;
+import net.skykingdoms.backend.api.protocol.server.GameType;
+import net.skykingdoms.backend.api.protocol.server.ServerScaleType;
+import net.skykingdoms.backend.api.protocol.type.GameMode;
 import net.skykingdoms.backend.base.command.dependency.Dependency;
 import net.skykingdoms.backend.base.data.network.PersistentServerMeta;
 import net.skykingdoms.backend.base.util.collection.CollectionUtil;
@@ -20,13 +24,13 @@ import net.skykingdoms.backend.protocol.server.deploy.IDeployRequest;
 import net.skykingdoms.backend.protocol.server.deploy.impl.BukkitDeployRequest;
 import net.skykingdoms.backend.protocol.server.deploy.impl.PersistentBukkitDeployRequest;
 import net.skykingdoms.backend.protocol.server.deploy.impl.ProxyDeployRequest;
-import net.skykingdoms.backend.protocol.server.impl.ScalableDataImpl;
-import net.skykingdoms.backend.protocol.type.RemoteConnectedType;
+import net.skykingdoms.backend.api.protocol.server.impl.ScalableDataImpl;
+import net.skykingdoms.backend.api.protocol.type.RemoteConnectedType;
 import net.skykingdoms.backend.protocol.type.reconnect.impl.FluentBukkitDataImpl;
 import net.skykingdoms.backend.protocol.type.reconnect.impl.FluentNodeDataImpl;
 import net.skykingdoms.backend.protocol.type.reconnect.impl.FluentProxyDataImpl;
 import net.skykingdoms.backend.protocol.type.reconnect.impl.FluentServiceDataImpl;
-import net.skykingdoms.backend.protocol.util.TextFormat;
+import net.skykingdoms.backend.api.protocol.util.TextFormat;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -156,12 +160,14 @@ public final class DeploymentManager {
 
     private void _handleServiceHandshake(final @NonNull RemoteClientConnection rcc,
                                       final @NonNull Handshake.Request handshake) {
+        val fluentData = (FluentServiceDataImpl) handshake.getFluentData();
         val service = ServiceManager.INSTANCE.registerService(
                 new ServiceServer(
-                        ((FluentServiceDataImpl) handshake.getFluentData()).getServiceName(),
+                        fluentData.getServiceName(),
                         rcc)
         );
 
+        MegamindApp.INSTANCE.pluginManager().registerListener(fluentData.getServiceName(), fluentData.getEventSubscriptions());
         rcc.setConnectable(service);
     }
 
@@ -195,6 +201,7 @@ public final class DeploymentManager {
 
         // Checks if NODE server that deployed this server also came online.
         if (handshake.isReconnect()) {
+            Logging.IMP.info("it is reconnect");
             if (handshake.getType() == RemoteConnectedType.PROXY
                     && !NodeManager.INSTANCE.isNodeRegistered(((FluentProxyDataImpl) handshake.getFluentData()).getNodeName())) {
                 /*Logging.IMP.info("[Deploy] Denied: RCON: "
@@ -209,7 +216,8 @@ public final class DeploymentManager {
         }
 
         if (!isTransactionExists(transaction)
-                && type != RemoteConnectedType.NODE || type != RemoteConnectedType.SERVICE
+                && type != RemoteConnectedType.NODE
+                && type != RemoteConnectedType.SERVICE
                 && !handshake.isReconnect()) {
             Logging.IMP.info("[Deploy] Declined invalid transaction #{} @ {} @ {}", transaction.toString(), type.name(), isTransactionExists(transaction));
             return false;

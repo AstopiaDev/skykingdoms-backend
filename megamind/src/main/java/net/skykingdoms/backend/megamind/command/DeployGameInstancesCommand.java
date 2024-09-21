@@ -10,8 +10,8 @@ import net.skykingdoms.backend.megamind.manager.DeploymentManager;
 import net.skykingdoms.backend.megamind.manager.ServerManager;
 import net.skykingdoms.backend.megamind.manager.deployment.DeploymentResponse;
 import net.skykingdoms.backend.protocol.packet.play.ServerDeploy;
-import net.skykingdoms.backend.protocol.server.GameMode;
-import net.skykingdoms.backend.protocol.server.GameType;
+import net.skykingdoms.backend.api.protocol.type.GameMode;
+import net.skykingdoms.backend.api.protocol.server.GameType;
 import net.skykingdoms.backend.protocol.server.deploy.impl.BukkitDeployRequest;
 import net.skykingdoms.backend.protocol.type.GameBootResponse;
 

@@ -1,3 +1,4 @@
+/*
 package net.skykingdoms.minimind.social.party.command;
 
 import lombok.val;
@@ -15,7 +16,6 @@ import net.skykingdoms.backend.base.data.settings.SettingType;
 import net.skykingdoms.backend.base.data.settings.enums.Privacy;
 import net.skykingdoms.backend.base.gamer.AbstractGamer;
 import net.skykingdoms.backend.base.util.color.ChatColor;
-import net.skykingdoms.backend.megamind.api.command.CoreExecutionSession;
 import net.skykingdoms.backend.megamind.data.gamer.Gamer;
 import net.skykingdoms.minimind.command.MinimindExecutionSession;
 import net.skykingdoms.minimind.social.party.Party;
@@ -24,9 +24,11 @@ import net.skykingdoms.minimind.social.party.PartyRemoveReason;
 
 import java.util.stream.Collectors;
 
+*/
 /**
  * @author Vihara
- */
+ *//*
+
 @WithAlias("p")
 @NamedCommand("party")
 public final class PartyCommand {
@@ -40,9 +42,11 @@ public final class PartyCommand {
         }
     }
 
-    /**
+    */
+/**
      * Basically sends invitation to arg gamer
-     */
+     *//*
+
     @WithCondition("disableConsole")
     @Tabcomplete("[playerName]")
     @WithAlias("invite")
@@ -168,9 +172,11 @@ public final class PartyCommand {
     @WithCondition("group: admin")
     @SubcommandExecutor("private")
     public static void privateGamesCommand(final MinimindExecutionSession session) throws CommandTranslationException {
+*/
 /*        if (!session.getRanks().canApply(Group.GODLIKE) && !session.getRanks().canApply(Group.YOUTUBER)) {
             throw new CommandTranslationException("party_private_noperms");
-        }*/
+        }*//*
+
 
         PartyManager.INSTANCE.updatePartySetting(session.getGamer(), Party.Setting.PRIVATE_GAMES, !session.getGamer().getParty().getSetting(Party.Setting.PRIVATE_GAMES));
     }
@@ -342,3 +348,4 @@ public final class PartyCommand {
     }
 
 }
+*/

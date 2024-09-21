@@ -8,9 +8,9 @@ import net.skykingdoms.backend.base.command.execution.Executor;
 import net.skykingdoms.backend.megamind.MegamindApp;
 import net.skykingdoms.backend.megamind.api.command.CoreExecutionSession;
 import net.skykingdoms.backend.megamind.data.gamer.Gamer;
-import net.skykingdoms.backend.megamind.event.gamer.PlayerVanishEvent;
+import net.skykingdoms.backend.api.megamind.event.impl.gamer.PlayerVanishEvent;
 import net.skykingdoms.backend.megamind.server.AbstractScalable;
-import net.skykingdoms.backend.protocol.server.ServerScaleType;
+import net.skykingdoms.backend.api.protocol.server.ServerScaleType;
 
 @WithAlias("v")
 @NamedCommand("vanish")

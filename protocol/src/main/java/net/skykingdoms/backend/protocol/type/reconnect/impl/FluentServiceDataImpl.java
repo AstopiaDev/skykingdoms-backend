@@ -12,18 +12,20 @@ import net.skykingdoms.backend.protocol.type.reconnect.FluentData;
 @Data
 public final class FluentServiceDataImpl implements FluentData {
 
-    String serviceName;
-    int[] eventSubscriptions;
+    @Setter String serviceName;
+    @Setter String[] eventSubscriptions;
 
     @Override
     public FluentServiceDataImpl serialize(@NonNull ByteBuf out) {
         PacketUtils.writeString(out, serviceName);
+        PacketUtils.writeArray(out, eventSubscriptions, eventSubscription -> PacketUtils.writeString(out, eventSubscription));
         return this;
     }
 
     @Override
     public FluentServiceDataImpl deserialize(@NonNull ByteBuf in) {
         this.serviceName = PacketUtils.readString(in);
+        this.eventSubscriptions = PacketUtils.readArray(in, String[]::new, () -> PacketUtils.readString(in));
         return this;
     }
 }

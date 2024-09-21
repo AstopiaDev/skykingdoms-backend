@@ -10,10 +10,9 @@ import net.skykingdoms.backend.megamind.AsyncExecution;
 import net.skykingdoms.backend.megamind.api.command.CoreExecutionSession;
 import net.skykingdoms.backend.megamind.data.gamer.Gamer;
 import net.skykingdoms.backend.megamind.manager.DuelManager;
-import net.skykingdoms.backend.megamind.manager.DuelRequest;
 import net.skykingdoms.backend.megamind.manager.ServerManager;
 import net.skykingdoms.backend.megamind.server.AbstractScalable;
-import net.skykingdoms.backend.protocol.server.GameMode;
+import net.skykingdoms.backend.api.protocol.type.GameMode;
 import net.skykingdoms.backend.protocol.type.duel.KitFluentRequestData;
 
 import java.util.concurrent.TimeUnit;

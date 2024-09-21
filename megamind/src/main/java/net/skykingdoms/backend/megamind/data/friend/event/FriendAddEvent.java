@@ -1,11 +1,9 @@
 package net.skykingdoms.backend.megamind.data.friend.event;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import io.netty.buffer.ByteBuf;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
-import net.skykingdoms.backend.megamind.api.plugin.Event;
+import net.skykingdoms.backend.api.megamind.event.Event;
 import net.skykingdoms.backend.megamind.data.gamer.Gamer;
 
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -18,4 +16,13 @@ public class FriendAddEvent extends Event {
     Gamer gamer;
 
 
+    @Override
+    public Event serialize(@NonNull ByteBuf out) {
+        return null;
+    }
+
+    @Override
+    public Event deserialize(@NonNull ByteBuf in) {
+        return null;
+    }
 }

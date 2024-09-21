@@ -9,9 +9,9 @@ import net.skykingdoms.backend.protocol.packet.Packet;
 import net.skykingdoms.backend.protocol.packet.PacketProcessor;
 import net.skykingdoms.backend.protocol.packet.PacketUtils;
 import net.skykingdoms.backend.protocol.packet.play.processor.PlayServerProcessor;
-import net.skykingdoms.backend.protocol.server.GameType;
+import net.skykingdoms.backend.api.protocol.server.GameType;
 import net.skykingdoms.backend.protocol.server.ServerConnectionInfo;
-import net.skykingdoms.backend.protocol.server.ServerScaleType;
+import net.skykingdoms.backend.api.protocol.server.ServerScaleType;
 import org.jetbrains.annotations.NotNull;
 
 @EqualsAndHashCode(callSuper = true)

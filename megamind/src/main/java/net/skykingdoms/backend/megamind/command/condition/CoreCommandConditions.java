@@ -1,11 +1,5 @@
 package net.skykingdoms.backend.megamind.command.condition;
 
-import lombok.val;
-import net.skykingdoms.backend.base.command.condition.ConditionProvider;
-import net.skykingdoms.backend.base.command.exception.CommandTranslationException;
-import net.skykingdoms.backend.megamind.api.command.CoreExecutionSession;
-import net.skykingdoms.backend.megamind.data.party.Party;
-
 /**
  * @author Vihara
  */
@@ -36,7 +30,7 @@ public final class CoreCommandConditions {
     }
 */
 
-    @ConditionProvider(value = "partyLeaderOnly", priority = 15)
+/*    @ConditionProvider(value = "partyLeaderOnly", priority = 15)
     public static void partyLeaderOnly(CoreExecutionSession session, String meta) throws CommandTranslationException {
         val senderParty = (Party) session.getProvidedObject(0);
 
@@ -69,5 +63,5 @@ public final class CoreCommandConditions {
                 && !senderParty.getAllByRole(Party.PartyRole.MODERATOR, false).contains(session.getGamer()))) {
             throw new CommandTranslationException("party_not_moderation");
         }
-    }
+    }*/
 }

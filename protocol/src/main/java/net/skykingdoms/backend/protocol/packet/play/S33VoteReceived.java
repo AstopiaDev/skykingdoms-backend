@@ -7,7 +7,6 @@ import net.skykingdoms.backend.protocol.packet.ChannelProcessorContext;
 import net.skykingdoms.backend.protocol.packet.Packet;
 import net.skykingdoms.backend.protocol.packet.PacketProcessor;
 import net.skykingdoms.backend.protocol.packet.play.processor.PlayServerProcessor;
-import net.skykingdoms.backend.protocol.util.PacketUtils;
 import org.jetbrains.annotations.NotNull;
 
 @FieldDefaults(level = AccessLevel.PRIVATE)

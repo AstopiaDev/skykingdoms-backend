@@ -1,8 +1,11 @@
 package net.skykingdoms.backend.megamind.data.gamer;
 
-
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import net.skykingdoms.backend.api.megamind.event.impl.gamer.GamerQuitEvent;
+import net.skykingdoms.backend.api.megamind.event.impl.gamer.OfflineGamerLoadedEvent;
+import net.skykingdoms.backend.api.megamind.event.impl.gamer.PlayerGameRedirectEvent;
+import net.skykingdoms.backend.api.megamind.gamer.MegamindGamer;
 import net.skykingdoms.backend.base.data.network.NetworkSqlHandler;
 import net.skykingdoms.backend.base.data.property.PropertySqlHandler;
 import net.skykingdoms.backend.base.data.settings.Setting;
@@ -12,8 +15,6 @@ import net.skykingdoms.backend.base.gamer.AbstractGamer;
 import net.skykingdoms.backend.base.gamer.IGamer;
 import net.skykingdoms.backend.megamind.MegamindApp;
 import net.skykingdoms.backend.megamind.api.command.CommandSender;
-import net.skykingdoms.backend.megamind.data.party.Party;
-import net.skykingdoms.backend.megamind.event.gamer.*;
 import net.skykingdoms.backend.megamind.lookup.LookupManager;
 import net.skykingdoms.backend.megamind.server.AbstractPlayerHolder;
 import net.skykingdoms.backend.megamind.server.AbstractScalable;
@@ -22,8 +23,7 @@ import net.skykingdoms.backend.protocol.logging.Logging;
 import net.skykingdoms.backend.protocol.packet.Packet;
 import net.skykingdoms.backend.protocol.packet.play.*;
 import net.skykingdoms.backend.protocol.server.IPlayableBukkitServer;
-import net.skykingdoms.backend.protocol.server.ServerScaleType;
-import net.skykingdoms.backend.protocol.type.PropertyType;
+import net.skykingdoms.backend.api.protocol.type.PropertyType;
 import net.skykingdoms.backend.protocol.type.connect.ConnectStatus;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,14 +33,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public final class Gamer extends AbstractGamer implements CommandSender, IGamer {
+public final class Gamer extends MegamindGamer implements CommandSender {
 
     /**
      * Which hostname user used to connect to le server
@@ -55,12 +54,6 @@ public final class Gamer extends AbstractGamer implements CommandSender, IGamer 
     LocalDateTime firstLogin;
     @Getter @Setter
     LocalDateTime lastLogin;
-
-    /**
-     * Current gamer's party
-     */
-    @Getter @Setter
-    Party party;
 
     /**
      * If the player is online
@@ -104,14 +97,13 @@ public final class Gamer extends AbstractGamer implements CommandSender, IGamer 
     @Getter @Setter
     boolean justJoined = true;
 
-    public Gamer(final @NonNull UUID playerUniqueId) {
+    public Gamer(@NonNull UUID playerUniqueId) {
         super(playerUniqueId);
     }
 
     private Gamer(final @NonNull String username) {
         super(username);
     }
-
     // tab
 
     public void updateServer(AbstractScalable serverInstance) {
@@ -161,9 +153,9 @@ public final class Gamer extends AbstractGamer implements CommandSender, IGamer 
             gs.addPlayer(this);
 
             val gameRedirectEvent = MegamindApp.INSTANCE.pluginManager().callEvent(new PlayerGameRedirectEvent(this));
-            for (val addition : gameRedirectEvent.getAdditionalGamerList()) {
+/*            for (val addition : gameRedirectEvent.getAdditionalGamerList()) {
                 addition.sendTo(gs);
-            }
+            }*/
         }
 
         if (serverInstance instanceof LobbyServer) {
@@ -562,7 +554,6 @@ public final class Gamer extends AbstractGamer implements CommandSender, IGamer 
         AbstractGamer.kickAll();
     }
 
-    // relay
     public static Collection<Gamer> getGamers() {
         return AbstractGamer.getGamers();
     }

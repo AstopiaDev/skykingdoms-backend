@@ -1,11 +1,10 @@
 package net.skykingdoms.backend.restapi.endpoints.impl;
 
 import lombok.NonNull;
-import lombok.extern.java.Log;
 import lombok.val;
 import net.skykingdoms.backend.megamind.manager.StashManager;
 import net.skykingdoms.backend.protocol.logging.Logging;
-import net.skykingdoms.backend.protocol.server.GameType;
+import net.skykingdoms.backend.api.protocol.server.GameType;
 import net.skykingdoms.backend.restapi.endpoints.*;
 import spark.Request;
 import spark.Response;

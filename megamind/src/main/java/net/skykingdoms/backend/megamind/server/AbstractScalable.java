@@ -9,8 +9,8 @@ import net.skykingdoms.backend.megamind.data.gamer.Gamer;
 import net.skykingdoms.backend.megamind.lookup.LookupManager;
 import net.skykingdoms.backend.protocol.server.IDeployable;
 import net.skykingdoms.backend.protocol.server.IPlayableBukkitServer;
-import net.skykingdoms.backend.protocol.server.IScalable;
-import net.skykingdoms.backend.protocol.server.impl.ScalableDataImpl;
+import net.skykingdoms.backend.api.protocol.server.IScalable;
+import net.skykingdoms.backend.api.protocol.server.impl.ScalableDataImpl;
 
 
 @Getter

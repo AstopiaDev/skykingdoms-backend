@@ -8,8 +8,7 @@ import net.skykingdoms.backend.base.command.execution.Executor;
 import net.skykingdoms.backend.megamind.api.command.CoreExecutionSession;
 import net.skykingdoms.backend.megamind.manager.ServerManager;
 import net.skykingdoms.backend.megamind.server.AbstractPlayerHolder;
-import net.skykingdoms.backend.protocol.server.GameMode;
-import net.skykingdoms.backend.protocol.server.GameType;
+import net.skykingdoms.backend.api.protocol.type.GameMode;
 
 @NamedCommand("survivalbees")
 public class SurvivalBeesCommand {

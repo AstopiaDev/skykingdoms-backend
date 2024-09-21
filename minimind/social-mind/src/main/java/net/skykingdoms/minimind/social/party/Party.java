@@ -11,7 +11,7 @@ import lombok.experimental.FieldDefaults;
 import net.skykingdoms.backend.base.gamer.AbstractGamer;
 import net.skykingdoms.backend.base.language.LanguageContext;
 import net.skykingdoms.backend.base.util.string.ObjectLinkedBuf;
-import net.skykingdoms.backend.megamind.data.gamer.Gamer;
+import net.skykingdoms.minimind.social.SocialGamer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -103,7 +103,7 @@ public final class Party {
     /**
      * Returns a Gamer object based on leader ID
      */
-    public @Nullable Gamer getLeaderGamer() {
+    public @Nullable SocialGamer getLeaderGamer() {
         // shouldn't throw, actually :nerd:
         // we are sure that leader exists in database, otherwise
         // how the fuck the party was created
@@ -115,11 +115,11 @@ public final class Party {
      * This includes LEADER, MODERATORS and other MEMBERS
      */
     @SuppressWarnings("SimplifyStreamApiCallChains") // different schemas
-    public Collection<Gamer> getAllMembers() {
-        val ret = new HashSet<Gamer>();
+    public Collection<SocialGamer> getAllMembers() {
+        val ret = new HashSet<SocialGamer>();
 
         // Adding each member instance to ret list
-        partyMembers.keySet().stream().forEach(memberId -> ret.add(Gamer.getOfflineGamer(memberId, AbstractGamer::loadGroupsAndName)));
+        partyMembers.keySet().stream().forEach(memberId -> ret.add(SocialGamer.getOfflineGamer(memberId, AbstractGamer::loadGroupsAndName)));
 
         return ret;
     }
@@ -138,13 +138,13 @@ public final class Party {
         return PartyRole.byId(partyMembers.get(gamerId));
     }
 
-    public Collection<Gamer> getAllByRole(final @NonNull PartyRole role) {
+    public Collection<SocialGamer> getAllByRole(final @NonNull PartyRole role) {
         return getAllByRole(role, false);
     }
 
-    public Collection<Gamer> getAllByRole(final @NonNull PartyRole role,
+    public Collection<SocialGamer> getAllByRole(final @NonNull PartyRole role,
                                           final boolean onlyOnline) {
-        val ret = new HashSet<Gamer>();
+        val ret = new HashSet<SocialGamer>();
         for (val partyMember : partyMembers.int2IntEntrySet()) {
             if (role.ordinal() != partyMember.getIntValue()) {
                 continue;
@@ -157,7 +157,7 @@ public final class Party {
                 continue;
             }
 
-            ret.add(Gamer.getOfflineGamer(partyMember.getIntKey(), AbstractGamer::loadGroupsAndName));
+            ret.add(SocialGamer.getOfflineGamer(partyMember.getIntKey(), AbstractGamer::loadGroupsAndName));
         }
 
         return ret;
@@ -259,7 +259,7 @@ public final class Party {
         return removed;
     }
 
-    public boolean isLeader(final @NonNull Gamer gamer) {
+    public boolean isLeader(final @NonNull SocialGamer gamer) {
         return getLeaderGamer().getGamerId() == gamer.getGamerId();
     }
 

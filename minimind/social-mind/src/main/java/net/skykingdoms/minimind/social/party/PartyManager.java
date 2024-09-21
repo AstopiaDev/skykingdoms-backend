@@ -8,10 +8,9 @@ import lombok.val;
 import net.skykingdoms.backend.base.command.dependency.Dependency;
 import net.skykingdoms.backend.base.gamer.AbstractGamer;
 import net.skykingdoms.backend.base.util.color.ChatColor;
-import net.skykingdoms.backend.megamind.AsyncExecution;
-import net.skykingdoms.backend.megamind.MegamindApp;
-import net.skykingdoms.backend.megamind.data.gamer.Gamer;
 import net.skykingdoms.backend.protocol.logging.Logging;
+import net.skykingdoms.minimind.AsyncExecution;
+import net.skykingdoms.minimind.social.SocialGamer;
 import net.skykingdoms.minimind.social.party.event.PartyCreateEvent;
 import net.skykingdoms.minimind.social.party.event.PartyDisbandEvent;
 import net.skykingdoms.minimind.social.party.event.PartyLeaveEvent;
@@ -41,6 +40,7 @@ public final class PartyManager {
      * Restores all persistent parties from database
      */
     public void postBootstrap() {
+        new PartyListener();
 /*        PartySqlHandler.INSTANCE.loadAllParties().whenComplete((_parties, throwable) -> {
 
             if (throwable != null) {
@@ -82,8 +82,8 @@ public final class PartyManager {
             for (val party : parties.values()) {
                 val removedInvites = party.tickInvitations();
                 for (val invite : removedInvites) {
-                    val invitedGamer = Gamer.getOfflineGamer(invite.getInvitedId(), AbstractGamer::loadGroupsAndName);
-                    val senderGamer = Gamer.getOfflineGamer(invite.getInviterId(), AbstractGamer::loadGroupsAndName);
+                    val invitedGamer = SocialGamer.getOfflineGamer(invite.getInvitedId(), AbstractGamer::loadGroupsAndName);
+                    val senderGamer = SocialGamer.getOfflineGamer(invite.getInviterId(), AbstractGamer::loadGroupsAndName);
                     if (invitedGamer.isOnline()) {
                         invitedGamer.sendLocalizedMessage("party_invite_expired",
                                 "%player%", senderGamer.getDisplayName());
@@ -104,7 +104,7 @@ public final class PartyManager {
                 }
 
                 val removedOfflineNigger = party.tickOfflineMembers();
-                removedOfflineNigger.forEach((IntConsumer) nigger -> removeMember(Gamer.getOfflineGamer(nigger, AbstractGamer::loadGroupsAndName), PartyRemoveReason.LONG_OFFLINE));
+                removedOfflineNigger.forEach((IntConsumer) nigger -> removeMember(SocialGamer.getOfflineGamer(nigger, AbstractGamer::loadGroupsAndName), PartyRemoveReason.LONG_OFFLINE));
 
                 if (!party.validate()) {
                     // avoiding CME by running this in separate thread
@@ -138,9 +138,9 @@ public final class PartyManager {
         }
 
         // we know tact sender != null, and he's online
-        val senderGamer = Gamer.getGamer(senderId);
+        val senderGamer = SocialGamer.getGamer(senderId);
 
-        val targetGamer = Gamer.getOfflineGamer(targetId, AbstractGamer::loadGroupsAndName);
+        val targetGamer = SocialGamer.getOfflineGamer(targetId, AbstractGamer::loadGroupsAndName);
         // this shouldn't happen, because we validate shit in command
         // but added just "in case"
         if (targetGamer == null || !targetGamer.isOnline()) {
@@ -182,11 +182,11 @@ public final class PartyManager {
 
         // we are sure that acceptor is online
         // because he just accepted the invite kekw
-        val acceptorGamer = Gamer.getGamer(acceptorId);
+        val acceptorGamer = SocialGamer.getGamer(acceptorId);
 
         // Actually, an inviter might go offline
         // while invite was accepted, so he may be offline
-        val inviterGamer = Gamer.getOfflineGamer(inviterId, AbstractGamer::loadGroupsAndName);
+        val inviterGamer = SocialGamer.getOfflineGamer(inviterId, AbstractGamer::loadGroupsAndName);
 
         if (inviterParty.getActiveInvites().stream().noneMatch(partyInvitation -> {
             return partyInvitation.getInvitedId() == acceptorId && partyInvitation.getInviterId() == inviterGamer.getGamerId();
@@ -220,7 +220,7 @@ public final class PartyManager {
         // adding party to parties registry
         parties.put(party.getPartyId(), party);
 
-        MegamindApp.INSTANCE.pluginManager().callEvent(new PartyCreateEvent(party));
+      //  MegamindApp.INSTANCE.pluginManager().callEvent(new PartyCreateEvent(party));
 
         Logging.IMP.info("[PartyManager] Party #{} registered", party.getPartyId());
     }
@@ -228,7 +228,7 @@ public final class PartyManager {
     // basically we could create just a promote method
     // that automatically would calculate next role,
     // but we have only 3 of them, so i don't really care
-    public boolean promote(final Gamer pendingModerator) {
+    public boolean promote(final SocialGamer pendingModerator) {
         val party = getParty(pendingModerator.getGamerId());
         if (party == null) {
             return false;
@@ -245,7 +245,7 @@ public final class PartyManager {
         return true;
     }
 
-    public boolean demote(final Gamer pendingModerator) {
+    public boolean demote(final SocialGamer pendingModerator) {
         val party = getParty(pendingModerator.getGamerId());
         if (party == null) {
             return false;
@@ -265,7 +265,7 @@ public final class PartyManager {
     /**
      * Warps each party member to gamer's server
      */
-    public void warpTo(final @NonNull Gamer gamer) {
+    public void warpTo(final @NonNull SocialGamer gamer) {
         val party = getParty(gamer.getGamerId());
         if (party == null) {
             return;
@@ -273,12 +273,12 @@ public final class PartyManager {
 
         val server = gamer.getCurrentServer();
 
-        Logging.IMP.info(server.getName() + " is the name of the server btw" + server.canJoin() + " apparently thats the joinable");
+        //Logging.IMP.info(server.getName() + " is the name of the server btw" + server.canJoin() + " apparently thats the joinable");
 
         val needWarp = party.getAllMembers().stream()
-                .filter(member -> member.getCurrentServer() != server)
+                .filter(member -> !member.getCurrentServer().equalsIgnoreCase(server))
                 .filter(member -> member != gamer)
-                .filter(Gamer::isOnline)
+                .filter(SocialGamer::isOnline)
                 .collect(Collectors.toSet());
 
         if (needWarp.size() > 0) {
@@ -292,11 +292,11 @@ public final class PartyManager {
         needWarp.forEach(player -> {
             player.sendLocalizedMessage("party_warp_summoned",
                     "%player%", gamer.getDisplayName());
-            player.sendTo(server);
+           // todo: fix this player.connectExact(server);
         });
     }
 
-    public boolean transferParty(final Gamer pendingLeader) {
+    public boolean transferParty(final SocialGamer pendingLeader) {
         val party = getParty(pendingLeader.getGamerId());
         if (party == null) {
             return false;
@@ -342,7 +342,7 @@ public final class PartyManager {
      * @param setting   which setting we update
      * @param value     new setting value
      */
-    public boolean updatePartySetting(final @NonNull Gamer updater,
+    public boolean updatePartySetting(final @NonNull SocialGamer updater,
                                       final Party.Setting setting,
                                       final boolean value) {
         val party = getParty(updater.getGamerId());
@@ -364,10 +364,10 @@ public final class PartyManager {
 
         // if changes applied we call update event >w<
         if (updated) {
-            MegamindApp.INSTANCE.pluginManager().callEvent(new PartySettingUpdateEvent(party,
+/*            MegamindApp.INSTANCE.pluginManager().callEvent(new PartySettingUpdateEvent(party,
                     setting,
                     oldValue,
-                    value));
+                    value));*/
         }
 
         return updated;
@@ -387,11 +387,11 @@ public final class PartyManager {
         if (party.getPartyMembers().size() <= 1) {
             party.broadcastParty("party_disbanded_empty_broadcast");
 
-            MegamindApp.INSTANCE.pluginManager().callEvent(new PartyDisbandEvent(party, PartyDisbandEvent.DisbandReason.EVERYONE_LEFT));
+            //MegamindApp.INSTANCE.pluginManager().callEvent(new PartyDisbandEvent(party, PartyDisbandEvent.DisbandReason.EVERYONE_LEFT));
         } else {
             party.broadcastParty("party_disbanded_broadcast");
 
-            MegamindApp.INSTANCE.pluginManager().callEvent(new PartyDisbandEvent(party, PartyDisbandEvent.DisbandReason.LEADER_DISBANDED));
+            //MegamindApp.INSTANCE.pluginManager().callEvent(new PartyDisbandEvent(party, PartyDisbandEvent.DisbandReason.LEADER_DISBANDED));
         }
 
         // updating all gamers with null party
@@ -410,7 +410,7 @@ public final class PartyManager {
         }
     }
 
-    public boolean removeMember(final @NonNull Gamer member,
+    public boolean removeMember(final @NonNull SocialGamer member,
                                 final @NonNull PartyRemoveReason removeReason) {
         val party = getParty(member.getGamerId());
         if (party == null) {
@@ -421,7 +421,7 @@ public final class PartyManager {
 
         party.removePartyMember(member.getGamerId());
 
-        MegamindApp.INSTANCE.pluginManager().callEvent(new PartyLeaveEvent(party, member));
+        //MegamindApp.INSTANCE.pluginManager().callEvent(new PartyLeaveEvent(party, member));
 
         val valid = party.validate();
 
@@ -442,7 +442,7 @@ public final class PartyManager {
 
         // leader left, choosing new one
         if (party.getAllByRole(Party.PartyRole.LEADER).isEmpty() && valid) {
-            Gamer newLeader;
+            SocialGamer newLeader;
 
             // shouldn't throw, actually
             if (party.getAllByRole(Party.PartyRole.MODERATOR).isEmpty()) {
@@ -467,7 +467,7 @@ public final class PartyManager {
     /**
      * Invoked when a gamer disconnects
      */
-    public void handleDisconnect(final Gamer gamer) {
+    public void handleDisconnect(final SocialGamer gamer) {
         val party = getParty(gamer.getGamerId());
         if (party == null) {
             return;
@@ -482,7 +482,7 @@ public final class PartyManager {
     /**
      * Invoked when player joins the server
      */
-    public void handleJoin(final @NonNull Gamer gamer) {
+    public void handleJoin(final @NonNull SocialGamer gamer) {
         val party = getParty(gamer.getGamerId());
         if (party == null) {
             return;

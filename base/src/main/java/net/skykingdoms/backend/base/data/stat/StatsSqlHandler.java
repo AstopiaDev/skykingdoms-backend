@@ -14,8 +14,8 @@ import net.skykingdoms.backend.base.mysql.impl.MySQL;
 import net.skykingdoms.backend.base.util.pair.NumberPair;
 import net.skykingdoms.backend.base.util.time.TimeUtil;
 import net.skykingdoms.backend.protocol.logging.Logging;
-import net.skykingdoms.backend.protocol.server.GameMode;
-import net.skykingdoms.backend.protocol.server.GameType;
+import net.skykingdoms.backend.api.protocol.type.GameMode;
+import net.skykingdoms.backend.api.protocol.server.GameType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;

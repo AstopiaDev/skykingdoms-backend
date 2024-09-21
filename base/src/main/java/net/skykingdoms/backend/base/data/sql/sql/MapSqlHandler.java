@@ -11,8 +11,8 @@ import net.skykingdoms.backend.base.mysql.Database;
 import net.skykingdoms.backend.base.mysql.DatabaseCredentials;
 import net.skykingdoms.backend.base.mysql.impl.MySQL;
 import net.skykingdoms.backend.base.util.pair.Pair;
-import net.skykingdoms.backend.protocol.server.GameMode;
-import net.skykingdoms.backend.protocol.server.GameType;
+import net.skykingdoms.backend.api.protocol.type.GameMode;
+import net.skykingdoms.backend.api.protocol.server.GameType;
 
 import java.util.ArrayList;
 import java.util.Arrays;

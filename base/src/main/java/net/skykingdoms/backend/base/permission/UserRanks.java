@@ -2,8 +2,10 @@ package net.skykingdoms.backend.base.permission;
 
 import com.google.common.collect.Multimaps;
 import com.google.common.collect.SortedSetMultimap;
+import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import lombok.val;
+import net.skykingdoms.backend.protocol.serialize.Serializable;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -98,5 +100,4 @@ public final class UserRanks extends AbstractSet<UserRank> {
     public boolean canApply(final @NonNull Group other) {
         return ranks.values().stream().anyMatch(rank -> rank.canApply(other));
     }
-
 }

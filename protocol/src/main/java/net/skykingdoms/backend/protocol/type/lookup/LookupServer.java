@@ -4,9 +4,9 @@ import io.netty.buffer.ByteBuf;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import net.skykingdoms.backend.protocol.packet.PacketUtils;
-import net.skykingdoms.backend.protocol.packet.serialize.Serializable;
-import net.skykingdoms.backend.protocol.server.GameState;
-import net.skykingdoms.backend.protocol.server.impl.ScalableDataImpl;
+import net.skykingdoms.backend.api.protocol.packet.serialize.Serializable;
+import net.skykingdoms.backend.api.protocol.server.GameState;
+import net.skykingdoms.backend.api.protocol.server.impl.ScalableDataImpl;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

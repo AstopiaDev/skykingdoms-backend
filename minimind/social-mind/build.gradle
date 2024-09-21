@@ -1,5 +1,10 @@
 tasks {
     shadowJar {
-        archiveFileName = "PartyMind.jar"
+        archiveFileName = "SocialMind.jar"
+        manifest {
+            attributes(
+                    "Main-Class": "net.skykingdoms.minimind.social.boot.SocialMindBoot"
+            )
+        }
     }
 }

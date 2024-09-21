@@ -20,9 +20,9 @@ import net.skykingdoms.backend.protocol.logging.Logging;
 import net.skykingdoms.backend.protocol.packet.ChannelProcessorContext;
 import net.skykingdoms.backend.protocol.packet.play.ServerDeploy;
 import net.skykingdoms.backend.protocol.packet.play.ServerDestroy;
-import net.skykingdoms.backend.protocol.server.GameMode;
+import net.skykingdoms.backend.api.protocol.type.GameMode;
 import net.skykingdoms.backend.protocol.server.deploy.IDeployRequest;
-import net.skykingdoms.backend.protocol.type.DeploymentVersion;
+import net.skykingdoms.backend.api.protocol.type.DeploymentVersion;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.*;

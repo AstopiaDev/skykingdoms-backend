@@ -11,7 +11,7 @@ import net.skykingdoms.backend.base.data.network.NetworkSqlHandler;
 import net.skykingdoms.backend.base.gamer.AbstractGamer;
 import net.skykingdoms.backend.megamind.api.command.CoreExecutionSession;
 import net.skykingdoms.backend.megamind.data.gamer.Gamer;
-import net.skykingdoms.backend.protocol.type.PropertyType;
+import net.skykingdoms.backend.api.protocol.type.PropertyType;
 
 @WithMultipleAliases({@WithAlias("p"), @WithAlias("point")})
 @NamedCommand("points")

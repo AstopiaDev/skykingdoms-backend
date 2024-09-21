@@ -1,6 +1,6 @@
 package net.skykingdoms.backend.protocol.server.deploy;
 
-import net.skykingdoms.backend.protocol.packet.serialize.Serializable;
+import net.skykingdoms.backend.api.protocol.packet.serialize.Serializable;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;

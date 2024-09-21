@@ -1,6 +1,7 @@
 package net.skykingdoms.minimind.social;
 
 import net.skykingdoms.minimind.Minimind;
+import net.skykingdoms.minimind.social.party.PartyListener;
 import net.skykingdoms.minimind.social.party.PartyManager;
 
 public class SocialMind extends Minimind {
@@ -17,12 +18,14 @@ public class SocialMind extends Minimind {
 
     @Override
     public void preBootstrap() {
-        PartyManager.INSTANCE.postBootstrap();
+        this.serviceData.setEventSubscriptions(new String[] {
+                "net.skykingdoms.backend.megamind.event.gamer.GamerJoinEvent"
+        });
     }
 
     @Override
     public void postBootstrap() {
-
+        PartyManager.INSTANCE.postBootstrap();
     }
 
     @Override

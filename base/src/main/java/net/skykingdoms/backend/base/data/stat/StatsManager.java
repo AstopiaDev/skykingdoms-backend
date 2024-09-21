@@ -5,9 +5,8 @@ import lombok.NonNull;
 import net.skykingdoms.backend.base.util.time.Duration;
 import net.skykingdoms.backend.base.util.time.DurationField;
 import net.skykingdoms.backend.base.util.time.DurationFormatter;
-import net.skykingdoms.backend.protocol.logging.Logging;
-import net.skykingdoms.backend.protocol.server.GameMode;
-import net.skykingdoms.backend.protocol.server.GameType;
+import net.skykingdoms.backend.api.protocol.type.GameMode;
+import net.skykingdoms.backend.api.protocol.server.GameType;
 
 import java.util.Collection;
 import java.util.Map;

@@ -6,6 +6,9 @@ import net.skykingdoms.backend.protocol.packet.play.*;
 
 
 public interface PlayProcessor extends PacketProcessor {
+    default void process(PostEventPacket packet, ChannelProcessorContext ctx) {
+        //override me
+    }
 
     default void process(B109UpdateSetting packet, ChannelProcessorContext ctx) {
         // override me

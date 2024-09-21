@@ -13,12 +13,9 @@ import net.skykingdoms.backend.protocol.packet.ChannelProcessorContext;
 import net.skykingdoms.backend.protocol.packet.PacketProtocol;
 import net.skykingdoms.backend.protocol.packet.handshake.Handshake;
 import net.skykingdoms.backend.protocol.packet.play.*;
-import net.skykingdoms.backend.protocol.server.deploy.impl.BukkitDeployRequest;
-import net.skykingdoms.backend.protocol.server.deploy.impl.ProxyDeployRequest;
-import net.skykingdoms.backend.protocol.type.RemoteConnectedType;
+import net.skykingdoms.backend.api.protocol.type.RemoteConnectedType;
 import net.skykingdoms.backend.protocol.type.WrappedNodeSnapshot;
 import net.skykingdoms.backend.protocol.type.reconnect.impl.FluentNodeDataImpl;
-import net.skykingdoms.backend.protocol.util.Consumer;
 
 import java.util.EnumSet;
 import java.util.UUID;

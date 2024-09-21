@@ -5,7 +5,6 @@ import net.skykingdoms.backend.protocol.packet.play.*;
 
 
 public interface PlayServerProcessor extends PlayProcessor {
-
     default void process(SecurityToken.Response packet, ChannelProcessorContext ctx) {
         // override me
     }

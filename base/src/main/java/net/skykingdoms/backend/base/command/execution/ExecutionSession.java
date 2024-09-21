@@ -10,8 +10,8 @@ import net.skykingdoms.backend.base.gamer.IGamer;
 import net.skykingdoms.backend.base.language.Language;
 import net.skykingdoms.backend.base.permission.UserRanks;
 import net.skykingdoms.backend.base.util.color.ChatColor;
-import net.skykingdoms.backend.protocol.type.PropertyType;
-import net.skykingdoms.backend.protocol.util.TextFormat;
+import net.skykingdoms.backend.api.protocol.type.PropertyType;
+import net.skykingdoms.backend.api.protocol.util.TextFormat;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;

@@ -11,7 +11,6 @@ import net.skykingdoms.backend.base.util.config.ConfigurationProvider;
 import net.skykingdoms.backend.base.util.config.YamlConfiguration;
 import net.skykingdoms.backend.protocol.exception.ConnectException;
 import net.skykingdoms.backend.protocol.logging.Logging;
-import net.skykingdoms.backend.protocol.server.ServerScaleType;
 import net.skykingdoms.backend.protocol.type.reconnect.impl.FluentServiceDataImpl;
 import net.skykingdoms.minimind.command.CommandSender;
 import net.skykingdoms.minimind.config.MinimindConfiguration;
@@ -44,11 +43,12 @@ public abstract class Minimind implements IMinimind {
     @NonFinal @Getter @Setter boolean reconnecting = false;
 
     public void bootstrap(String[] args) {
-        preBootstrap();
-        AsyncExecution.INSTANCE.init(this);
-
         this.reloadConfiguration();
-        this.serviceData = new FluentServiceDataImpl();
+        AsyncExecution.INSTANCE.init(this);
+        this.serviceData = new FluentServiceDataImpl(name, new String[0]);
+
+        preBootstrap();
+
         this.address = new InetSocketAddress(
                 configuration.getRemoteCoordinatorHost(),
                 configuration.getRemoteCoordinatorPort()

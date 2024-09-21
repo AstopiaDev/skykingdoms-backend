@@ -10,8 +10,8 @@ import net.skykingdoms.backend.megamind.data.gamer.Gamer;
 import net.skykingdoms.backend.megamind.manager.ServerManager;
 import net.skykingdoms.backend.megamind.server.impl.GameServer;
 import net.skykingdoms.backend.protocol.logging.Logging;
-import net.skykingdoms.backend.protocol.server.GameState;
-import net.skykingdoms.backend.protocol.type.PropertyType;
+import net.skykingdoms.backend.api.protocol.server.GameState;
+import net.skykingdoms.backend.api.protocol.type.PropertyType;
 
 import java.util.Calendar;
 import java.util.Map;

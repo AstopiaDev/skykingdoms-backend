@@ -13,7 +13,6 @@ import net.skykingdoms.backend.megamind.AsyncExecution;
 import net.skykingdoms.backend.megamind.api.command.CommandSender;
 import net.skykingdoms.backend.megamind.api.command.CoreExecutionSession;
 import net.skykingdoms.backend.megamind.data.gamer.Gamer;
-import net.skykingdoms.backend.megamind.data.party.PartyManager;
 import net.skykingdoms.backend.megamind.manager.ServerManager;
 import net.skykingdoms.backend.megamind.manager.TestFlowManager;
 import net.skykingdoms.backend.protocol.type.connect.ConnectStatus;
@@ -108,10 +107,10 @@ public final class TestFlowCommand {
                     if (sender instanceof Gamer) {
                         val gamer = (Gamer) sender;
 
-                        val party = gamer.getParty();
+/*                        val party = gamer.getParty();
                         if (party == null) {
                             sender.sendMessage(ChatColor.GRAY + "Btw you dont have a party!");
-                        }
+                        }*/
 
                         val result = gamer.sendTo(ServerManager.INSTANCE.getPlayableServer(server));
 
@@ -119,9 +118,9 @@ public final class TestFlowCommand {
                             AsyncExecution.INSTANCE.runLater(() -> {
                                 // delay to let party manager warp ppl property
 
-                                if (party != null) {
+           /*                     if (party != null) {
                                     PartyManager.INSTANCE.warpTo(gamer);
-                                }
+                                }*/
 
                                 sender.sendMessage(ChatColor.GRAY + "Done executing test flow " + name + "!");
 

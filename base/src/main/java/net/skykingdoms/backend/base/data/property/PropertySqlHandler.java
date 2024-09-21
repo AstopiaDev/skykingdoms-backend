@@ -9,8 +9,8 @@ import lombok.val;
 import net.skykingdoms.backend.base.mysql.Database;
 import net.skykingdoms.backend.base.mysql.DatabaseCredentials;
 import net.skykingdoms.backend.base.mysql.impl.MySQL;
-import net.skykingdoms.backend.protocol.type.PropertyType;
-import net.skykingdoms.backend.protocol.util.TextFormat;
+import net.skykingdoms.backend.api.protocol.type.PropertyType;
+import net.skykingdoms.backend.api.protocol.util.TextFormat;
 
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;

@@ -1,6 +1,6 @@
 package net.skykingdoms.backend.protocol.logging;
 
-import net.skykingdoms.backend.protocol.util.TextFormat;
+import net.skykingdoms.backend.api.protocol.util.TextFormat;
 import net.skykingdoms.impl.Impls;
 
 public abstract class Logging {

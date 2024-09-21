@@ -21,8 +21,7 @@ import net.skykingdoms.backend.base.util.color.ChatColor;
 import net.skykingdoms.backend.megamind.api.command.CoreExecutionSession;
 import net.skykingdoms.backend.megamind.data.friend.FriendManager;
 import net.skykingdoms.backend.megamind.data.gamer.Gamer;
-import net.skykingdoms.backend.megamind.data.party.PartyManager;
-import net.skykingdoms.backend.protocol.type.PropertyType;
+import net.skykingdoms.backend.api.protocol.type.PropertyType;
 
 import java.util.Arrays;
 import java.util.stream.Collectors;
@@ -179,7 +178,7 @@ public final class DebugCommand {
         session.sendMessage("W -> " + session.getExecutor().toString());
     }
 
-    @WithCondition("group: admin")
+/*    @WithCondition("group: admin")
     
     @SubcommandExecutor("party")
     public static void executePartyDebug(final CoreExecutionSession session) {
@@ -191,5 +190,5 @@ public final class DebugCommand {
         for (val party : PartyManager.INSTANCE.getParties().int2ObjectEntrySet()) {
             session.sendMessage("#" + party.getIntKey() + " - " + party.getValue());
         }
-    }
+    }*/
 }

@@ -7,14 +7,11 @@ import lombok.val;
 import net.skykingdoms.backend.base.data.settings.SettingType;
 import net.skykingdoms.backend.base.data.settings.enums.PmPrivacy;
 import net.skykingdoms.backend.base.language.Language;
-import net.skykingdoms.backend.base.language.LanguageContext;
-import net.skykingdoms.backend.megamind.api.event.EventHandler;
-import net.skykingdoms.backend.megamind.api.plugin.Listener;
+import net.skykingdoms.backend.api.megamind.event.EventHandler;
+import net.skykingdoms.backend.api.megamind.event.Listener;
 import net.skykingdoms.backend.megamind.data.gamer.Gamer;
-import net.skykingdoms.backend.megamind.event.gamer.GamerQuitEvent;
-import net.skykingdoms.backend.megamind.manager.StaffChatManager;
-import net.skykingdoms.backend.protocol.logging.Logging;
-import net.skykingdoms.backend.protocol.type.PropertyType;
+import net.skykingdoms.backend.api.megamind.event.impl.gamer.GamerQuitEvent;
+import net.skykingdoms.backend.api.protocol.type.PropertyType;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

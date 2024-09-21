@@ -6,7 +6,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import net.skykingdoms.backend.base.gamer.AbstractGamer;
-import net.skykingdoms.backend.protocol.util.Consumer;
+import net.skykingdoms.backend.api.protocol.util.Consumer;
 
 import java.util.Arrays;
 

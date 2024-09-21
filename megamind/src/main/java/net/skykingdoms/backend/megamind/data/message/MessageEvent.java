@@ -1,12 +1,13 @@
 package net.skykingdoms.backend.megamind.data.message;
 
+import io.netty.buffer.ByteBuf;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
-import net.skykingdoms.backend.megamind.api.plugin.Cancellable;
-import net.skykingdoms.backend.megamind.api.plugin.Event;
+import net.skykingdoms.backend.api.megamind.event.Cancellable;
+import net.skykingdoms.backend.api.megamind.event.Event;
 import net.skykingdoms.backend.megamind.data.gamer.Gamer;
 
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -27,4 +28,13 @@ public final class MessageEvent extends Event implements Cancellable {
         this.message = msg;
     }
 
+    @Override
+    public Event serialize(@NonNull ByteBuf out) {
+        return null;
+    }
+
+    @Override
+    public Event deserialize(@NonNull ByteBuf in) {
+        return null;
+    }
 }

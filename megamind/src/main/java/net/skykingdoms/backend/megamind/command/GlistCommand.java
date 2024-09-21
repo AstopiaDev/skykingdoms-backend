@@ -7,12 +7,7 @@ import net.skykingdoms.backend.base.command.condition.WithCondition;
 import net.skykingdoms.backend.base.command.execution.Executor;
 import net.skykingdoms.backend.megamind.api.command.CoreExecutionSession;
 import net.skykingdoms.backend.megamind.data.gamer.Gamer;
-import net.skykingdoms.backend.megamind.manager.ServerManager;
 import net.skykingdoms.backend.megamind.server.AbstractPlayerHolder;
-import net.skykingdoms.backend.megamind.server.AbstractScalable;
-import net.skykingdoms.backend.megamind.server.impl.BukkitServer;
-import net.skykingdoms.backend.megamind.server.impl.LobbyServer;
-import net.skykingdoms.backend.protocol.server.GameType;
 
 import java.util.ArrayList;
 import java.util.HashMap;

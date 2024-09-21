@@ -7,7 +7,7 @@ import lombok.val;
 import net.skykingdoms.backend.base.mysql.Database;
 import net.skykingdoms.backend.base.mysql.DatabaseCredentials;
 import net.skykingdoms.backend.base.mysql.impl.MySQL;
-import net.skykingdoms.backend.protocol.server.GameMode;
+import net.skykingdoms.backend.api.protocol.type.GameMode;
 
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;

@@ -5,12 +5,12 @@ import lombok.val;
 import net.skykingdoms.backend.base.data.settings.SettingType;
 import net.skykingdoms.backend.base.data.settings.enums.Notifications;
 import net.skykingdoms.backend.megamind.MegamindApp;
-import net.skykingdoms.backend.megamind.api.event.EventHandler;
-import net.skykingdoms.backend.megamind.api.plugin.Listener;
+import net.skykingdoms.backend.api.megamind.event.EventHandler;
+import net.skykingdoms.backend.api.megamind.event.Listener;
 import net.skykingdoms.backend.megamind.data.gamer.Gamer;
-import net.skykingdoms.backend.megamind.event.gamer.GamerJoinEvent;
-import net.skykingdoms.backend.megamind.event.gamer.GamerQuitEvent;
-import net.skykingdoms.backend.megamind.event.gamer.PlayerVanishEvent;
+import net.skykingdoms.backend.api.megamind.event.impl.gamer.GamerJoinEvent;
+import net.skykingdoms.backend.api.megamind.event.impl.gamer.GamerQuitEvent;
+import net.skykingdoms.backend.api.megamind.event.impl.gamer.PlayerVanishEvent;
 
 import java.util.List;
 
@@ -25,7 +25,7 @@ public final class FriendListener implements Listener {
 
     @EventHandler
     public void onPlayerQuit(GamerQuitEvent event) {
-        Gamer gamer = event.getGamer();
+        Gamer gamer = (Gamer) event.getGamer();
 
         FriendManager.INSTANCE.handlePlayerQuit(gamer);
 
@@ -35,7 +35,7 @@ public final class FriendListener implements Listener {
 
     @EventHandler
     public void onPlayerVanish(PlayerVanishEvent event) {
-        Gamer gamer = event.getGamer();
+        Gamer gamer = (Gamer) event.getGamer();
 
         notifyFriendStatus(gamer, true, false);
     }
@@ -65,7 +65,7 @@ public final class FriendListener implements Listener {
 
     @EventHandler
     public void onPlayerJoin(GamerJoinEvent event) {
-        Gamer gamer = event.getGamer();
+        Gamer gamer = (Gamer) event.getGamer();
 
         notifyFriendStatus(gamer, true, true);
 

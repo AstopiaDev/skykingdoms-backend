@@ -1,7 +1,7 @@
 package net.skykingdoms.backend.base.data.network;
 
 import lombok.Getter;
-import net.skykingdoms.backend.protocol.server.GameMode;
+import net.skykingdoms.backend.api.protocol.type.GameMode;
 
 import java.util.UUID;
 

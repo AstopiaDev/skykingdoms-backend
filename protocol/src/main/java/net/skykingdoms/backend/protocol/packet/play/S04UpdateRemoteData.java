@@ -8,7 +8,7 @@ import net.skykingdoms.backend.protocol.packet.Packet;
 import net.skykingdoms.backend.protocol.packet.PacketProcessor;
 import net.skykingdoms.backend.protocol.packet.PacketUtils;
 import net.skykingdoms.backend.protocol.packet.play.processor.PlayServerProcessor;
-import net.skykingdoms.backend.protocol.type.RemoteConnectedType;
+import net.skykingdoms.backend.api.protocol.type.RemoteConnectedType;
 import net.skykingdoms.backend.protocol.type.reconnect.FluentData;
 import org.jetbrains.annotations.NotNull;
 

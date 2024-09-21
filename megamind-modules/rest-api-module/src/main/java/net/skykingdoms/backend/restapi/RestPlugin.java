@@ -1,6 +1,6 @@
 package net.skykingdoms.backend.restapi;
 
-import net.skykingdoms.backend.megamind.api.plugin.Plugin;
+import net.skykingdoms.backend.megamind.plugin.Plugin;
 import net.skykingdoms.backend.restapi.manager.RestApiManager;
 
 public final class RestPlugin extends Plugin {

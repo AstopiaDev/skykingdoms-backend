@@ -4,7 +4,6 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
-import net.skykingdoms.backend.megamind.api.plugin.Event;
 import net.skykingdoms.minimind.social.party.Party;
 
 /**
@@ -13,7 +12,7 @@ import net.skykingdoms.minimind.social.party.Party;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @AllArgsConstructor
 @Getter
-public abstract class PartyEvent extends Event {
+public abstract class PartyEvent {
 
     Party party;
 

@@ -8,7 +8,7 @@ import net.skykingdoms.backend.protocol.packet.Packet;
 import net.skykingdoms.backend.protocol.packet.PacketProcessor;
 import net.skykingdoms.backend.protocol.packet.PacketUtils;
 import net.skykingdoms.backend.protocol.packet.play.processor.PlayClientProcessor;
-import net.skykingdoms.backend.protocol.server.impl.ScalableDataImpl;
+import net.skykingdoms.backend.api.protocol.server.impl.ScalableDataImpl;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.InetAddress;

@@ -15,11 +15,11 @@ import net.skykingdoms.backend.megamind.server.AbstractScalable;
 import net.skykingdoms.backend.megamind.server.impl.LobbyServer;
 import net.skykingdoms.backend.protocol.logging.Logging;
 import net.skykingdoms.backend.protocol.packet.play.ServerDeploy;
-import net.skykingdoms.backend.protocol.server.GameMode;
-import net.skykingdoms.backend.protocol.server.GameType;
-import net.skykingdoms.backend.protocol.server.ServerScaleType;
+import net.skykingdoms.backend.api.protocol.type.GameMode;
+import net.skykingdoms.backend.api.protocol.server.GameType;
+import net.skykingdoms.backend.api.protocol.server.ServerScaleType;
 import net.skykingdoms.backend.protocol.server.deploy.impl.BukkitDeployRequest;
-import net.skykingdoms.backend.protocol.server.impl.ScalableDataImpl;
+import net.skykingdoms.backend.api.protocol.server.impl.ScalableDataImpl;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;

@@ -18,7 +18,7 @@ import net.skykingdoms.backend.protocol.packet.Packet;
 import net.skykingdoms.backend.protocol.packet.play.B102SetProperty;
 import net.skykingdoms.backend.protocol.packet.play.B103RemoveProperty;
 import net.skykingdoms.backend.protocol.packet.play.B109UpdateSetting;
-import net.skykingdoms.backend.protocol.type.PropertyType;
+import net.skykingdoms.backend.api.protocol.type.PropertyType;
 import net.skykingdoms.backend.velocity.VelocityConnector;
 import net.skykingdoms.backend.velocity.command.ProxiedCommandSender;
 import net.skykingdoms.backend.velocity.connection.Connection;
@@ -26,7 +26,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.UUID;
 import java.util.function.Consumer;

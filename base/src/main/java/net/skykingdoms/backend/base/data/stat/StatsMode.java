@@ -2,8 +2,8 @@ package net.skykingdoms.backend.base.data.stat;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import net.skykingdoms.backend.protocol.server.GameMode;
-import net.skykingdoms.backend.protocol.server.GameType;
+import net.skykingdoms.backend.api.protocol.type.GameMode;
+import net.skykingdoms.backend.api.protocol.server.GameType;
 
 import java.util.*;
 

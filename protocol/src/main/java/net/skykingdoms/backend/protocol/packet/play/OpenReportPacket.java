@@ -11,7 +11,7 @@ import net.skykingdoms.backend.protocol.packet.PacketProcessor;
 import net.skykingdoms.backend.protocol.packet.PacketUtils;
 import net.skykingdoms.backend.protocol.packet.play.processor.PlayClientProcessor;
 import net.skykingdoms.backend.protocol.packet.play.processor.PlayServerProcessor;
-import net.skykingdoms.backend.protocol.type.ReportType;
+import net.skykingdoms.backend.api.protocol.type.ReportType;
 import org.jetbrains.annotations.NotNull;
 
 /**

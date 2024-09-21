@@ -4,7 +4,7 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import net.skykingdoms.backend.protocol.server.impl.ScalableDataImpl;
+import net.skykingdoms.backend.api.protocol.server.impl.ScalableDataImpl;
 
 /**
  * Data-class representing necessary information for testflow deployment

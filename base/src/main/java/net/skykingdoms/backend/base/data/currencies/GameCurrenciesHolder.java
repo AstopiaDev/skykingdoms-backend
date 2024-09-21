@@ -2,7 +2,7 @@ package net.skykingdoms.backend.base.data.currencies;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import net.skykingdoms.backend.protocol.server.GameType;
+import net.skykingdoms.backend.api.protocol.server.GameType;
 
 import java.util.HashMap;
 import java.util.Map;

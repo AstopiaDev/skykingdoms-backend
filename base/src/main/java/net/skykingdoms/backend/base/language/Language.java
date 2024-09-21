@@ -17,18 +17,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-/**
- * Типы языков
- */
 @Getter
 @RequiredArgsConstructor
 public enum Language implements UserLocale {
-
-    // ================== Языки ======================
     RUSSIAN("Русский", "ru", 'а', 'я'),
     ENGLISH("English", "en", 'a', 'z'),
     SLOVENIAN("Slovenian", "slo", 'a', 'z');
-    // ===============================================
 
     @Getter
     private final int mask = 1 << ordinal();
@@ -282,17 +276,11 @@ public enum Language implements UserLocale {
     public static void addFlag(String flag) {
     }
 
-    /**
-     * Перезагрузить сообщения языков
-     */
     @SneakyThrows
     public static void reloadLanguages() {
         DEFAULT_LOADER.loadLanguages();
     }
 
-    /**
-     * Перезагрузить сообщения языков
-     */
     @SneakyThrows
     public static void reloadLanguages(final @Nullable LanguageLoader loader) {
         if (loader == null) {
@@ -303,9 +291,6 @@ public enum Language implements UserLocale {
         loader.loadLanguages();
     }
 
-    /**
-     * Получить язык по ID
-     */
     public static Language getById(int id) {
         return id >= 1 && id <= VALUES.length ? VALUES[id - 1] : DEFAULT;
     }

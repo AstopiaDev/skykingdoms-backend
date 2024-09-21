@@ -3,8 +3,8 @@ package net.skykingdoms.backend.protocol.type.lookup;
 import io.netty.buffer.ByteBuf;
 import lombok.Getter;
 import net.skykingdoms.backend.protocol.packet.PacketUtils;
-import net.skykingdoms.backend.protocol.server.GameState;
-import net.skykingdoms.backend.protocol.util.ArrayIterator;
+import net.skykingdoms.backend.api.protocol.server.GameState;
+import net.skykingdoms.backend.api.protocol.util.ArrayIterator;
 
 import java.util.Iterator;
 

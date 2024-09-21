@@ -9,7 +9,6 @@ import com.github.dockerjava.core.DockerClientImpl;
 import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
 import com.github.dockerjava.transport.DockerHttpClient;
 import com.google.common.collect.Lists;
-import com.mysql.cj.log.Log;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.SneakyThrows;
@@ -19,13 +18,12 @@ import net.skykingdoms.backend.protocol.logging.Logging;
 import net.skykingdoms.backend.protocol.packet.ChannelProcessorContext;
 import net.skykingdoms.backend.protocol.packet.play.ServerDeploy;
 import net.skykingdoms.backend.protocol.packet.play.ServerDestroy;
-import net.skykingdoms.backend.protocol.server.GameMode;
-import net.skykingdoms.backend.protocol.server.GameType;
+import net.skykingdoms.backend.api.protocol.type.GameMode;
 import net.skykingdoms.backend.protocol.server.deploy.IDeployRequest;
 import net.skykingdoms.backend.protocol.server.deploy.impl.BukkitDeployRequest;
 import net.skykingdoms.backend.protocol.server.deploy.impl.ProxyDeployRequest;
-import net.skykingdoms.backend.protocol.type.DeploymentVersion;
-import net.skykingdoms.backend.protocol.util.Consumer;
+import net.skykingdoms.backend.api.protocol.type.DeploymentVersion;
+import net.skykingdoms.backend.api.protocol.util.Consumer;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
@@ -33,10 +31,8 @@ import java.net.*;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
 
 /**
  * Manager that responds to managing coordinator's deployment requests

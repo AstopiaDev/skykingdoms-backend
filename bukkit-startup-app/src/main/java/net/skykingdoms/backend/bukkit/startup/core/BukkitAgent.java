@@ -6,9 +6,9 @@ import lombok.SneakyThrows;
 import lombok.val;
 import net.skykingdoms.backend.base.util.config.Configuration;
 import net.skykingdoms.backend.protocol.logging.Logging;
-import net.skykingdoms.backend.protocol.server.GameMode;
-import net.skykingdoms.backend.protocol.server.GameType;
-import net.skykingdoms.backend.protocol.server.ServerScaleType;
+import net.skykingdoms.backend.api.protocol.type.GameMode;
+import net.skykingdoms.backend.api.protocol.server.GameType;
+import net.skykingdoms.backend.api.protocol.server.ServerScaleType;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.*;

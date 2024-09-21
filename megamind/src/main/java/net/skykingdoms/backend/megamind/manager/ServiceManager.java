@@ -4,6 +4,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.FieldDefaults;
+import net.skykingdoms.backend.megamind.MegamindApp;
 import net.skykingdoms.backend.megamind.server.impl.NodeServer;
 import net.skykingdoms.backend.megamind.server.impl.ServiceServer;
 import net.skykingdoms.backend.megamind.service.IService;
@@ -19,11 +20,11 @@ public enum ServiceManager {
     ConcurrentHashMap<String, ServiceServer> serviceServers = new ConcurrentHashMap<>();
 
     /**
-     * Basically, registers a node in the set
+     * Basically, registers a service in the hashmap
      */
     public ServiceServer registerService(final @NonNull ServiceServer service) {
         if (isServiceRegistered(service.getName())) {
-            throw new IllegalStateException("Node with this name is already registered!");
+            throw new IllegalStateException("Service with this name is already registered!");
         }
 
         Logging.IMP.info("[Service] Registered service {}", service.getName());
@@ -39,6 +40,7 @@ public enum ServiceManager {
     public void removeService(final @NonNull ServiceServer server) {
         Logging.IMP.info("[Service] Unregistered service {}", server.getName());
 
+        MegamindApp.INSTANCE.pluginManager().unregisterListener(server.getName());
         serviceServers.remove(server.getName());
     }
 

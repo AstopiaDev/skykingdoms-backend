@@ -3,8 +3,8 @@ package net.skykingdoms.backend.protocol.type.lookup;
 import io.netty.buffer.ByteBuf;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import net.skykingdoms.backend.protocol.packet.serialize.Serializable;
-import net.skykingdoms.backend.protocol.server.impl.ScalableDataImpl;
+import net.skykingdoms.backend.api.protocol.packet.serialize.Serializable;
+import net.skykingdoms.backend.api.protocol.server.impl.ScalableDataImpl;
 
 import java.util.HashMap;
 import java.util.Map;

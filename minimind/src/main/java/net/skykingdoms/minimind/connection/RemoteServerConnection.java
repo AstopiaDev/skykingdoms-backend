@@ -9,7 +9,7 @@ import net.skykingdoms.backend.protocol.logging.Logging;
 import net.skykingdoms.backend.protocol.packet.ChannelProcessorContext;
 import net.skykingdoms.backend.protocol.packet.PacketProtocol;
 import net.skykingdoms.backend.protocol.packet.handshake.Handshake;
-import net.skykingdoms.backend.protocol.type.RemoteConnectedType;
+import net.skykingdoms.backend.api.protocol.type.RemoteConnectedType;
 import net.skykingdoms.minimind.Minimind;
 
 import java.util.EnumSet;
@@ -37,7 +37,7 @@ public final class RemoteServerConnection extends AbstractRemoteServerChannel {
         sendPacket(
                 new Handshake.Request(
                         RemoteConnectedType.SERVICE,
-                        "",
+                        minimind.getConfiguration().getSecret(),
                         UUID.randomUUID(), // any value for SERVICE, doesn't matter
                         flags,
                         minimind.getServiceData(),

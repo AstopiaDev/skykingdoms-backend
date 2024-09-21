@@ -2,6 +2,7 @@ package net.skykingdoms.backend.base.gamer;
 
 import gnu.trove.TCollections;
 import gnu.trove.map.TObjectIntMap;
+import io.netty.buffer.ByteBuf;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import net.skykingdoms.backend.base.data.friends.FriendsSqlHandler;
@@ -16,24 +17,25 @@ import net.skykingdoms.backend.base.data.tags.TagsSqlHandler;
 import net.skykingdoms.backend.base.language.Language;
 import net.skykingdoms.backend.base.leveling.Leveling;
 import net.skykingdoms.backend.base.permission.Group;
-import net.skykingdoms.backend.base.permission.RankSqlHandler;
 import net.skykingdoms.backend.base.permission.UserRanks;
 import net.skykingdoms.backend.base.util.map.CachingIndexMap;
 import net.skykingdoms.backend.base.util.map.IndexMap;
+import net.skykingdoms.backend.protocol.logging.Logging;
 import net.skykingdoms.backend.protocol.packet.Packet;
-import net.skykingdoms.backend.protocol.type.PropertyType;
+import net.skykingdoms.backend.protocol.packet.PacketUtils;
+import net.skykingdoms.backend.protocol.serialize.Serializable;
+import net.skykingdoms.backend.api.protocol.type.PropertyType;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.InetAddress;
-import java.time.LocalDateTime;
+import java.net.UnknownHostException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 @FieldDefaults(level = AccessLevel.PROTECTED)
 @Getter @Setter
-public abstract class AbstractGamer implements IGamer {
+public abstract class AbstractGamer implements IGamer, Serializable<AbstractGamer> {
 
     /**
      * Unique ID of player in database
@@ -570,4 +572,25 @@ public abstract class AbstractGamer implements IGamer {
     }
 
     // endregion
+    @Override
+    public AbstractGamer serialize(@NonNull ByteBuf out) {
+        PacketUtils.writeVarInt(out, gamerId);
+        PacketUtils.writeString(out, name);
+        PacketUtils.writeString(out, playerUniqueId.toString());
+        PacketUtils.writeAddress(out, address);
+        return this;
+    }
+
+    @Override
+    public AbstractGamer deserialize(@NonNull ByteBuf in) {
+        this.gamerId = PacketUtils.readVarInt(in);
+        this.name = PacketUtils.readString(in);
+        this.playerUniqueId = UUID.fromString(PacketUtils.readString(in));
+        try {
+            this.address = PacketUtils.readAddress(in);
+        } catch (UnknownHostException e) {
+            Logging.IMP.error("Unknown host when deserializing a gamer: {}", e);
+        }
+        return this;
+    }
 }

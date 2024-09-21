@@ -4,8 +4,8 @@ import io.netty.buffer.ByteBuf;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import net.skykingdoms.backend.protocol.packet.PacketUtils;
-import net.skykingdoms.backend.protocol.packet.serialize.Serializable;
-import net.skykingdoms.backend.protocol.server.GameMode;
+import net.skykingdoms.backend.api.protocol.packet.serialize.Serializable;
+import net.skykingdoms.backend.api.protocol.type.GameMode;
 
 /**
  * @author Vihara

@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.experimental.FieldDefaults;
 import net.skykingdoms.backend.protocol.server.deploy.AbstractDeployRequest;
-import net.skykingdoms.backend.protocol.server.impl.ScalableDataImpl;
+import net.skykingdoms.backend.api.protocol.server.impl.ScalableDataImpl;
 
 import java.util.UUID;
 

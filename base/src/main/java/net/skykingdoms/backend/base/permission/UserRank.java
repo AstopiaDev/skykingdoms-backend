@@ -1,5 +1,6 @@
 package net.skykingdoms.backend.base.permission;
 
+import io.netty.buffer.ByteBuf;
 import lombok.Getter;
 import lombok.NonNull;
 import org.jetbrains.annotations.NotNull;

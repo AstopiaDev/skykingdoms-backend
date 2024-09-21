@@ -20,8 +20,7 @@ import net.skykingdoms.backend.protocol.packet.PacketProtocol;
 import net.skykingdoms.backend.protocol.packet.handshake.Handshake;
 import net.skykingdoms.backend.protocol.packet.play.S04UpdateRemoteData;
 import net.skykingdoms.backend.protocol.packet.play.S15ReloadLanguages;
-import net.skykingdoms.backend.protocol.server.ServerScaleType;
-import net.skykingdoms.backend.protocol.type.RemoteConnectedType;
+import net.skykingdoms.backend.api.protocol.type.RemoteConnectedType;
 import net.skykingdoms.backend.protocol.type.reconnect.impl.FluentBukkitDataImpl;
 import org.bukkit.Bukkit;
 

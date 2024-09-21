@@ -15,9 +15,8 @@ import net.skykingdoms.backend.megamind.server.impl.LobbyServer;
 import net.skykingdoms.backend.protocol.logging.Logging;
 import net.skykingdoms.backend.protocol.packet.play.S06RegisterServers;
 import net.skykingdoms.backend.protocol.packet.play.ServerDeploy;
-import net.skykingdoms.backend.protocol.server.GameType;
+import net.skykingdoms.backend.api.protocol.server.GameType;
 import net.skykingdoms.backend.protocol.server.deploy.impl.BukkitDeployRequest;
-import net.skykingdoms.backend.protocol.server.deploy.impl.ProxyDeployRequest;
 
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;

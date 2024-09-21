@@ -5,8 +5,8 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 import net.skykingdoms.backend.protocol.packet.PacketUtils;
 import net.skykingdoms.backend.protocol.type.reconnect.FluentData;
-import net.skykingdoms.backend.protocol.server.GameType;
-import net.skykingdoms.backend.protocol.server.ServerScaleType;
+import net.skykingdoms.backend.api.protocol.server.GameType;
+import net.skykingdoms.backend.api.protocol.server.ServerScaleType;
 
 
 @FieldDefaults(level = AccessLevel.PRIVATE)

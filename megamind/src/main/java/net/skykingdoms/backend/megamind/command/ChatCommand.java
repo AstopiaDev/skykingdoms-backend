@@ -6,10 +6,9 @@ import net.skykingdoms.backend.base.command.RelayExecutorAlias;
 import net.skykingdoms.backend.base.command.WithAlias;
 import net.skykingdoms.backend.base.command.condition.WithCondition;
 import net.skykingdoms.backend.base.command.execution.SubcommandExecutor;
-import net.skykingdoms.backend.base.permission.Group;
 import net.skykingdoms.backend.megamind.api.command.CoreExecutionSession;
 import net.skykingdoms.backend.megamind.data.gamer.Gamer;
-import net.skykingdoms.backend.protocol.type.PropertyType;
+import net.skykingdoms.backend.api.protocol.type.PropertyType;
 
 @NamedCommand("chat")
 public class ChatCommand {

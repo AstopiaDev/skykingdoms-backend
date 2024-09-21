@@ -9,11 +9,12 @@ import net.skykingdoms.backend.protocol.packet.PacketProcessor;
 import net.skykingdoms.backend.protocol.packet.PacketUtils;
 import net.skykingdoms.backend.protocol.packet.handshake.processor.HandshakeClientProcessor;
 import net.skykingdoms.backend.protocol.packet.handshake.processor.HandshakeServerProcessor;
-import net.skykingdoms.backend.protocol.type.RemoteConnectedType;
+import net.skykingdoms.backend.api.protocol.type.RemoteConnectedType;
 import net.skykingdoms.backend.protocol.type.reconnect.FluentData;
 import net.skykingdoms.backend.protocol.type.reconnect.impl.FluentBukkitDataImpl;
 import net.skykingdoms.backend.protocol.type.reconnect.impl.FluentNodeDataImpl;
 import net.skykingdoms.backend.protocol.type.reconnect.impl.FluentProxyDataImpl;
+import net.skykingdoms.backend.protocol.type.reconnect.impl.FluentServiceDataImpl;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.EnumSet;
@@ -82,6 +83,10 @@ public final class Handshake {
                 switch (type) {
                     case PROXY: {
                         fluentData = new FluentProxyDataImpl().deserialize(buf);
+                        break;
+                    }
+                    case SERVICE: {
+                        fluentData = new FluentServiceDataImpl().deserialize(buf);
                         break;
                     }
                     case NODE: {

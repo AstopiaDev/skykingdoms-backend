@@ -3,6 +3,7 @@ import com.github.jengelman.gradle.plugins.shadow.transformers.Log4j2PluginsCach
 dependencies {
     api project(":base")
     api project(':protocol')
+    api project(":megamind-api")
 
     implementation 'com.google.code.gson:gson:2.11.0'
     implementation 'org.apache.logging.log4j:log4j-slf4j-impl:2.20.0'

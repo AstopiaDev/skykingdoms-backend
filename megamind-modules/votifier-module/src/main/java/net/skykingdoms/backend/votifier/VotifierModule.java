@@ -1,18 +1,15 @@
 package net.skykingdoms.backend.votifier;
 
 import lombok.val;
-import net.skykingdoms.backend.base.data.state.NetworkState;
-import net.skykingdoms.backend.base.language.Lang;
 import net.skykingdoms.backend.base.util.config.Configuration;
 import net.skykingdoms.backend.base.util.config.ConfigurationProvider;
 import net.skykingdoms.backend.base.util.config.YamlConfiguration;
-import net.skykingdoms.backend.megamind.MegamindApp;
-import net.skykingdoms.backend.megamind.api.plugin.Plugin;
+import net.skykingdoms.backend.megamind.plugin.Plugin;
 import net.skykingdoms.backend.megamind.data.gamer.Gamer;
 import net.skykingdoms.backend.megamind.manager.ServerManager;
 import net.skykingdoms.backend.protocol.logging.Logging;
 import net.skykingdoms.backend.protocol.packet.play.S33VoteReceived;
-import net.skykingdoms.backend.protocol.type.PropertyType;
+import net.skykingdoms.backend.api.protocol.type.PropertyType;
 import net.skykingdoms.backend.votifier.model.Vote;
 import net.skykingdoms.backend.votifier.net.VotifierServerBootstrap;
 import net.skykingdoms.backend.votifier.net.VotifierSession;
@@ -23,21 +20,15 @@ import net.skykingdoms.backend.votifier.platform.LoggingAdapter;
 import net.skykingdoms.backend.votifier.platform.VotifierPlugin;
 import net.skykingdoms.backend.votifier.platform.scheduler.VotifierScheduler;
 import net.skykingdoms.backend.votifier.support.forwarding.ForwardedVoteListener;
-import net.skykingdoms.backend.votifier.support.forwarding.ForwardingVoteSink;
-import net.skykingdoms.backend.votifier.util.IOUtil;
 import net.skykingdoms.backend.votifier.util.KeyCreator;
 import net.skykingdoms.backend.votifier.util.TokenUtil;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.security.Key;
 import java.security.KeyPair;
 import java.util.*;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static org.fusesource.jansi.Ansi.setEnabled;

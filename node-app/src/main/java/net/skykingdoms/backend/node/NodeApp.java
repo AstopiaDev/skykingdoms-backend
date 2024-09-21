@@ -16,8 +16,8 @@ import net.skykingdoms.backend.node.connection.NodeConnection;
 import net.skykingdoms.backend.node.manager.DeploymentManager;
 import net.skykingdoms.backend.protocol.exception.ConnectException;
 import net.skykingdoms.backend.protocol.logging.Logging;
-import net.skykingdoms.backend.protocol.server.ServerScaleType;
-import net.skykingdoms.backend.protocol.type.NetworkType;
+import net.skykingdoms.backend.api.protocol.server.ServerScaleType;
+import net.skykingdoms.backend.api.protocol.type.NetworkType;
 import net.skykingdoms.backend.protocol.type.reconnect.impl.FluentNodeDataImpl;
 
 import java.io.File;

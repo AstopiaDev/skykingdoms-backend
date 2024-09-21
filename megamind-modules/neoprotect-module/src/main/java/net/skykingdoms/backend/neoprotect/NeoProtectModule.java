@@ -6,7 +6,7 @@ import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 import lombok.val;
 import net.skykingdoms.backend.megamind.MegamindApp;
-import net.skykingdoms.backend.megamind.api.plugin.Plugin;
+import net.skykingdoms.backend.megamind.plugin.Plugin;
 import net.skykingdoms.backend.neoprotect.command.NeoBackendsCommand;
 import net.skykingdoms.backend.neoprotect.listener.ProxyDeploymentListener;
 import net.skykingdoms.backend.neoprotect.manager.NeoProtectManager;

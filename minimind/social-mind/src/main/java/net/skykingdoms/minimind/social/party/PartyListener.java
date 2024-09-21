@@ -1,43 +1,43 @@
 package net.skykingdoms.minimind.social.party;
 
-import net.skykingdoms.backend.megamind.MegamindApp;
-import net.skykingdoms.backend.megamind.api.event.EventHandler;
-import net.skykingdoms.backend.megamind.api.plugin.Listener;
-import net.skykingdoms.backend.megamind.event.gamer.GamerJoinEvent;
-import net.skykingdoms.backend.megamind.event.gamer.GamerLoadEvent;
-import net.skykingdoms.backend.megamind.event.gamer.GamerQuitEvent;
-import net.skykingdoms.backend.megamind.event.gamer.PlayerGameRedirectEvent;
+import net.skykingdoms.backend.protocol.logging.Logging;
+import net.skykingdoms.backend.protocol.packet.ChannelProcessorContext;
+import net.skykingdoms.backend.protocol.packet.play.processor.PlayServerProcessor;
+import net.skykingdoms.minimind.social.SocialGamer;
+import net.skykingdoms.minimind.social.SocialMind;
 
 /**
  * @author Vihara
  */
-public final class PartyListener implements Listener {
+public final class PartyListener implements PlayServerProcessor {
 
     public PartyListener() {
-        MegamindApp.INSTANCE.pluginManager().registerListener(this);
+        SocialMind.getInstance().getConnection().getChannel().registerProcessor(this);
     }
 
-    @EventHandler
-    public void onPlayerDisconnect(final GamerQuitEvent event) {
-        PartyManager.INSTANCE.handleDisconnect(event.getGamer());
+/*    @Evve
+    public void process(final GamerQuitEventPacket packet, ChannelProcessorContext ctx) {
+        SocialGamer gamer = (SocialGamer) SocialGamer.getGamer(packet.getGamerId());
+        gamer.setOnline(false);
+        PartyManager.INSTANCE.handleDisconnect(gamer);
     }
 
-    @EventHandler
-    public void onPlayerJoin(final GamerJoinEvent event) {
-        PartyManager.INSTANCE.handleJoin(event.getGamer());
-    }
+    @Override
+    public void process(final GamerJoinEventPacket packet, ChannelProcessorContext ctx) {
+        SocialGamer gamer = (SocialGamer) SocialGamer.getGamer(packet.getGamerId());
+        gamer.setOnline(true);
+        gamer.setCurrentServer(packet.getServer());
+        gamer.setParty(PartyManager.INSTANCE.getParty(gamer.getGamerId()));
+        Logging.IMP.info("{}, {}", gamer.isOnline(), gamer.getCurrentServer());
+        PartyManager.INSTANCE.handleJoin(gamer);
+    }*/
 
-    @EventHandler
-    public void onLoad(final GamerLoadEvent event) {
-        event.getGamer().setParty(PartyManager.INSTANCE.getParty(event.getGamer().getGamerId()));
-    }
-
-    @EventHandler
+/*    @EventHandler
     public void onPlayerRedirect(PlayerGameRedirectEvent event) {
         Party party = event.getGamer().getParty();
 
         if (party != null && party.isLeader(event.getGamer())) {
             event.getAdditionalGamerList().addAll(party.getAllMembers());
         }
-    }
+    }*/
 }

@@ -2,7 +2,7 @@ package net.skykingdoms.backend.base.gamer;
 
 import net.skykingdoms.backend.base.language.Language;
 import net.skykingdoms.backend.base.permission.UserRanks;
-import net.skykingdoms.backend.protocol.type.PropertyType;
+import net.skykingdoms.backend.api.protocol.type.PropertyType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;

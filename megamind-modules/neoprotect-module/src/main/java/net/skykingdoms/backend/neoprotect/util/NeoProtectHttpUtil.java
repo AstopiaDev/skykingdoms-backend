@@ -9,18 +9,15 @@ import com.squareup.okhttp.Response;
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
 import lombok.val;
-import net.skykingdoms.backend.base.util.collection.CollectionUtil;
 import net.skykingdoms.backend.neoprotect.NeoProtectModule;
 import net.skykingdoms.backend.neoprotect.dao.Backend;
 import net.skykingdoms.backend.protocol.logging.Logging;
-import net.skykingdoms.backend.protocol.util.TextFormat;
+import net.skykingdoms.backend.api.protocol.util.TextFormat;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 @UtilityClass
 public final class NeoProtectHttpUtil {

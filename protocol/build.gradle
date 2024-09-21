@@ -1,7 +1,5 @@
 dependencies {
-    api 'io.netty:netty-handler:4.1.90.Final'
-    api 'io.netty:netty-transport-native-epoll:4.1.90.Final:linux-x86_64'
-    api 'io.netty:netty-codec:4.1.90.Final'
+    compileOnly project(":megamind-api")
 
     api 'it.unimi.dsi:fastutil:8.1.0'
 
@@ -9,6 +7,7 @@ dependencies {
     // TODO: migrate to fast util
     api "net.sf.trove4j:trove4j:3.0.3"
 
+    api project(":protocol-api")
     api project(":impl-loader")
     annotationProcessor project(":impl-loader")
 }

@@ -9,7 +9,7 @@ import net.skykingdoms.backend.megamind.api.command.CoreExecutionSession;
 import net.skykingdoms.backend.megamind.manager.DeploymentManager;
 import net.skykingdoms.backend.megamind.manager.deployment.DeploymentResponse;
 import net.skykingdoms.backend.protocol.packet.play.ServerDeploy;
-import net.skykingdoms.backend.protocol.server.GameType;
+import net.skykingdoms.backend.api.protocol.server.GameType;
 import net.skykingdoms.backend.protocol.server.deploy.impl.BukkitDeployRequest;
 
 import java.util.Arrays;

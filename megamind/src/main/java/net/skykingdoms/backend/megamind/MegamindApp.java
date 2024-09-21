@@ -5,8 +5,10 @@ import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
-import net.luckperms.rest.LuckPermsRestClient;
+import net.skykingdoms.backend.api.megamind.MegamindAPI;
+import net.skykingdoms.backend.api.megamind.gamer.MegamindGamer;
 import net.skykingdoms.backend.base.command.ICommand;
+import net.skykingdoms.backend.base.command.dependency.Dependency;
 import net.skykingdoms.backend.base.command.tabcomplete.AbstractTabcompleter;
 import net.skykingdoms.backend.base.command.tabcomplete.TabcompleteManager;
 import net.skykingdoms.backend.base.data.settings.SettingType;
@@ -14,16 +16,14 @@ import net.skykingdoms.backend.base.data.stat.StatsManager;
 import net.skykingdoms.backend.base.data.state.NetworkState;
 import net.skykingdoms.backend.base.gamer.ICommandSender;
 import net.skykingdoms.backend.base.language.Language;
-import net.skykingdoms.backend.base.mysql.DatabaseCredentials;
-import net.skykingdoms.backend.base.permission.RankSqlHandler;
 import net.skykingdoms.backend.base.util.collection.CollectionUtil;
 import net.skykingdoms.backend.base.util.color.ChatColor;
 import net.skykingdoms.backend.base.util.config.Configuration;
 import net.skykingdoms.backend.base.util.config.ConfigurationProvider;
 import net.skykingdoms.backend.base.util.config.YamlConfiguration;
+import net.skykingdoms.backend.megamind.plugin.PluginManager;
 import net.skykingdoms.backend.megamind.api.command.CommandSender;
 import net.skykingdoms.backend.megamind.api.command.CoreCommandManager;
-import net.skykingdoms.backend.megamind.api.plugin.PluginManager;
 import net.skykingdoms.backend.megamind.command.*;
 import net.skykingdoms.backend.megamind.command.condition.CoreCommandConditions;
 import net.skykingdoms.backend.megamind.connection.LocalServerConnection;
@@ -31,23 +31,19 @@ import net.skykingdoms.backend.megamind.data.friend.FriendListener;
 import net.skykingdoms.backend.megamind.data.friend.FriendManager;
 import net.skykingdoms.backend.megamind.data.gamer.Gamer;
 import net.skykingdoms.backend.megamind.data.message.command.*;
-import net.skykingdoms.backend.megamind.data.party.PartyListener;
-import net.skykingdoms.backend.megamind.data.party.PartyManager;
-import net.skykingdoms.backend.megamind.data.party.command.PartyCommand;
 import net.skykingdoms.backend.megamind.data.staffchat.StaffChatListener;
-import net.skykingdoms.backend.megamind.event.gamer.CommandEvent;
+import net.skykingdoms.backend.api.megamind.event.impl.gamer.CommandEvent;
 import net.skykingdoms.backend.megamind.lookup.LookupManager;
 import net.skykingdoms.backend.megamind.manager.*;
 import net.skykingdoms.backend.megamind.server.impl.NodeServer;
 import net.skykingdoms.backend.megamind.server.impl.ProxyServer;
 import net.skykingdoms.backend.protocol.exception.BindException;
 import net.skykingdoms.backend.protocol.logging.Logging;
-import net.skykingdoms.backend.protocol.server.GameMode;
-import net.skykingdoms.backend.protocol.server.GameType;
+import net.skykingdoms.backend.api.protocol.type.GameMode;
 import net.skykingdoms.backend.protocol.server.IConnectable;
-import net.skykingdoms.backend.protocol.type.NetworkType;
-import net.skykingdoms.backend.protocol.type.PropertyType;
-import net.skykingdoms.backend.protocol.type.RemoteConnectedType;
+import net.skykingdoms.backend.api.protocol.type.NetworkType;
+import net.skykingdoms.backend.api.protocol.type.PropertyType;
+import net.skykingdoms.backend.api.protocol.type.RemoteConnectedType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -68,8 +64,12 @@ import java.util.concurrent.TimeUnit;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Accessors(fluent = true)
 @Getter
-public enum MegamindApp {
-    INSTANCE;
+public class MegamindApp extends MegamindAPI {
+
+    // ----------------------------------------------------------------------
+    @Dependency
+    public static final MegamindApp INSTANCE = new MegamindApp();
+    // ----------------------------------------------------------------------
 
     NetworkType networkType = NetworkType.valueOf(System.getProperty("network.type", NetworkType.PRODUCTION.name()));
     Map<String, ICommand> commands = CollectionUtil.createConcurrentMap();
@@ -113,7 +113,6 @@ public enum MegamindApp {
         ProxyManager.INSTANCE.postBootstrap();
         LobbyManager.INSTANCE.postBootstrap();
         FriendManager.INSTANCE.postBootstrap();
-        PartyManager.INSTANCE.postBootstrap();
         TestFlowManager.INSTANCE.postBootstrap();
         StatsManager.INSTANCE.postBootstrap();
         DuelManager.INSTANCE.postBootstrap();
@@ -148,9 +147,6 @@ public enum MegamindApp {
         // Disable lookups to avoid sending to servers online etc.
         Logging.IMP.info("Clearing lookups ...");
         LookupManager.INSTANCE.clearLookups();
-
-        Logging.IMP.info("Persisting parties ...");
-        PartyManager.INSTANCE.persistParties();
 
         // kicking faggots
         Logging.IMP.info("Kicking players ...");
@@ -274,8 +270,7 @@ public enum MegamindApp {
             @Override
             public List<String> complete(final @NonNull ICommandSender sender,
                                          final @NonNull String label) {
-                return any(label, Gamer.getGamers().stream()
-                        .map(Gamer::getName));
+                return any(label, Gamer.getGamers().stream().map(MegamindGamer::getName));
             }
         });
 
@@ -374,7 +369,6 @@ public enum MegamindApp {
     private void registerListeners() {
         new FriendListener();
         new StaffChatListener();
-        new PartyListener();
     }
 
     public void registerCommands() {
@@ -413,7 +407,6 @@ public enum MegamindApp {
         commandManager.addCommand(SetPropertyCommand.class);
         commandManager.addCommand(FriendCommand.class);
         commandManager.addCommand(StaffChatCommand.class);
-        commandManager.addCommand(PartyCommand.class);
         commandManager.addCommand(HubCommand.class);
         commandManager.addCommand(TestFlowCommand.class);
         commandManager.addCommand(ImportTagsCommand.class);
@@ -428,6 +421,7 @@ public enum MegamindApp {
         commandManager.addCommand(SkywarsCommand.class);
         commandManager.addCommand(ChatCommand.class);
         commandManager.addCommand(InsertMapCommand.class);
+        commandManager.addCommand(TestCommand.class);
 /*
         commandManager.addCommand(InternalRankCommand.class);
 */
