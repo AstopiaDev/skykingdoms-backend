@@ -1,7 +1,7 @@
 package net.skykingdoms.backend.base.command.tabcomplete;
 
 import lombok.NonNull;
-import net.skykingdoms.backend.base.gamer.ICommandSender;
+import net.skykingdoms.api.backend.gamer.ICommandSender;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

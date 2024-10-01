@@ -3,19 +3,27 @@ package net.skykingdoms.backend.megamind.connection;
 import io.netty.channel.socket.SocketChannel;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import net.skykingdoms.backend.api.megamind.event.impl.gamer.*;
+import net.skykingdoms.api.backend.setting.SettingType;
+import net.skykingdoms.api.backend.setting.impl.BooleanSetting;
+import net.skykingdoms.api.backend.setting.impl.EnumSetting;
+import net.skykingdoms.api.megamind.event.impl.gamer.GamerJoinEvent;
+import net.skykingdoms.api.megamind.event.impl.gamer.GamerLoadEvent;
+import net.skykingdoms.api.megamind.event.impl.gamer.GamerProxyLoginEvent;
+import net.skykingdoms.api.megamind.event.impl.gamer.PlayerLoginEvent;
+import net.skykingdoms.api.protocol.logging.Logging;
+import net.skykingdoms.api.protocol.server.GameType;
+import net.skykingdoms.api.protocol.server.ServerScaleType;
+import net.skykingdoms.api.protocol.type.ReportType;
 import net.skykingdoms.backend.base.data.network.NetworkSqlHandler;
-import net.skykingdoms.backend.base.data.settings.SettingType;
-import net.skykingdoms.backend.base.data.settings.impl.BooleanSetting;
-import net.skykingdoms.backend.base.data.settings.impl.EnumSetting;
 import net.skykingdoms.backend.base.data.sql.sql.MapSqlHandler;
 import net.skykingdoms.backend.base.language.Language;
 import net.skykingdoms.backend.base.util.color.ChatColor;
 import net.skykingdoms.backend.megamind.AsyncExecution;
+import net.skykingdoms.backend.megamind.MegamindApp;
 import net.skykingdoms.backend.megamind.data.gamer.Gamer;
-import net.skykingdoms.backend.api.megamind.event.impl.core.ClientActiveEvent;
 import net.skykingdoms.backend.megamind.event.GetBestServerEvent;
 import net.skykingdoms.backend.megamind.event.PlayerRedirectEvent;
+import net.skykingdoms.backend.megamind.event.core.ClientActiveEvent;
 import net.skykingdoms.backend.megamind.lookup.LookupManager;
 import net.skykingdoms.backend.megamind.manager.*;
 import net.skykingdoms.backend.megamind.manager.deployment.DeploymentResponse;
@@ -23,20 +31,15 @@ import net.skykingdoms.backend.megamind.server.AbstractPlayerHolder;
 import net.skykingdoms.backend.megamind.server.AbstractScalable;
 import net.skykingdoms.backend.megamind.server.impl.*;
 import net.skykingdoms.backend.protocol.channel.AbstractRemoteClientChannel;
-import net.skykingdoms.backend.protocol.logging.Logging;
 import net.skykingdoms.backend.protocol.packet.ChannelProcessorContext;
 import net.skykingdoms.backend.protocol.packet.PacketProtocol;
 import net.skykingdoms.backend.protocol.packet.handshake.Handshake;
 import net.skykingdoms.backend.protocol.packet.play.*;
-import net.skykingdoms.backend.api.protocol.server.GameType;
 import net.skykingdoms.backend.protocol.server.IConnectable;
-import net.skykingdoms.backend.api.protocol.server.ServerScaleType;
 import net.skykingdoms.backend.protocol.server.deploy.impl.BukkitDeployRequest;
 import net.skykingdoms.backend.protocol.type.GameBootResponse;
-import net.skykingdoms.backend.api.protocol.type.ReportType;
 import net.skykingdoms.backend.protocol.type.connect.ConnectStatus;
 import net.skykingdoms.backend.protocol.type.reconnect.FailedReconnectGamer;
-import net.skykingdoms.backend.megamind.MegamindApp;
 
 import java.net.InetAddress;
 import java.util.*;
@@ -855,7 +858,7 @@ public final class RemoteClientConnection extends AbstractRemoteClientChannel {
             return;
         }
 
-        gamer.updateProperty(packet.getProperty(), packet.getValue());
+        gamer.updateProperty(packet.getKey(), packet.getProperty());
 
         if (connectable instanceof BukkitServer) {
             gamer.sendToProxy(packet);

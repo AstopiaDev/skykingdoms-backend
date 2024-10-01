@@ -1,9 +1,9 @@
 package net.skykingdoms.backend.megamind.command;
 
 import lombok.NonNull;
-import net.skykingdoms.backend.base.command.NamedCommand;
-import net.skykingdoms.backend.base.command.condition.WithCondition;
-import net.skykingdoms.backend.base.command.execution.Executor;
+import net.skykingdoms.api.backend.command.NamedCommand;
+import net.skykingdoms.api.backend.command.condition.WithCondition;
+import net.skykingdoms.api.backend.command.execution.Executor;
 import net.skykingdoms.backend.megamind.api.command.CoreExecutionSession;
 
 /**

@@ -2,7 +2,7 @@ package net.skykingdoms.backend.base.command.condition;
 
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
-import net.skykingdoms.backend.base.command.CommandExecutor;
+import net.skykingdoms.api.backend.command.CommandExecutor;
 import net.skykingdoms.backend.base.command.execution.ExecutionSession;
 
 /**

@@ -1,9 +1,9 @@
 package net.skykingdoms.backend.votifier.support.forwarding.proxy.client;
 
 import com.google.gson.JsonObject;
-import net.skykingdoms.backend.votifier.util.GsonInst;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import net.skykingdoms.backend.votifier.util.GsonInst;
 
 public class VotifierProtocol2ResponseHandler extends SimpleChannelInboundHandler<String> {
     private final VotifierResponseHandler responseHandler;

@@ -2,7 +2,7 @@ package net.skykingdoms.backend.base.util;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import net.skykingdoms.backend.protocol.logging.Logging;
+import net.skykingdoms.api.protocol.logging.Logging;
 import org.jetbrains.annotations.NotNull;
 
 import javax.net.ssl.HttpsURLConnection;

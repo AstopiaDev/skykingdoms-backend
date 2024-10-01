@@ -2,19 +2,19 @@ package net.skykingdoms.backend.megamind.command;
 
 import lombok.NonNull;
 import lombok.val;
-import net.skykingdoms.backend.base.command.NamedCommand;
-import net.skykingdoms.backend.base.command.condition.WithCondition;
-import net.skykingdoms.backend.base.command.execution.Executor;
-import net.skykingdoms.backend.base.command.tabcomplete.Tabcomplete;
+import net.skykingdoms.api.backend.command.NamedCommand;
+import net.skykingdoms.api.backend.command.condition.WithCondition;
+import net.skykingdoms.api.backend.command.execution.Executor;
+import net.skykingdoms.api.backend.command.tabcomplete.Tabcomplete;
+import net.skykingdoms.api.protocol.server.GameType;
+import net.skykingdoms.api.protocol.server.ServerScaleType;
+import net.skykingdoms.api.protocol.server.impl.ScalableDataImpl;
+import net.skykingdoms.api.protocol.type.RemoteConnectedType;
 import net.skykingdoms.backend.megamind.api.command.CoreExecutionSession;
 import net.skykingdoms.backend.megamind.manager.DeploymentManager;
 import net.skykingdoms.backend.protocol.packet.play.ServerDeploy;
-import net.skykingdoms.backend.api.protocol.server.GameType;
-import net.skykingdoms.backend.api.protocol.server.ServerScaleType;
 import net.skykingdoms.backend.protocol.server.deploy.impl.BukkitDeployRequest;
 import net.skykingdoms.backend.protocol.server.deploy.impl.ProxyDeployRequest;
-import net.skykingdoms.backend.api.protocol.server.impl.ScalableDataImpl;
-import net.skykingdoms.backend.api.protocol.type.RemoteConnectedType;
 
 @NamedCommand("deploytest")
 public final class DeployTestCommand {

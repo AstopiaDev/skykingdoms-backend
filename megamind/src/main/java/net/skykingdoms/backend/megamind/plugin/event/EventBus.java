@@ -2,12 +2,12 @@ package net.skykingdoms.backend.megamind.plugin.event;
 
 import lombok.NonNull;
 import lombok.val;
-import net.skykingdoms.backend.protocol.packet.play.PostEventPacket;
-import net.skykingdoms.backend.api.megamind.event.IEventBus;
-import net.skykingdoms.backend.api.megamind.event.Event;
+import net.skykingdoms.api.megamind.event.Event;
+import net.skykingdoms.api.megamind.event.IEventBus;
+import net.skykingdoms.api.protocol.logging.Logging;
 import net.skykingdoms.backend.megamind.manager.ServiceManager;
 import net.skykingdoms.backend.megamind.server.impl.ServiceServer;
-import net.skykingdoms.backend.protocol.logging.Logging;
+import net.skykingdoms.backend.protocol.packet.play.PostEventPacket;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -34,16 +34,11 @@ public class EventBus implements IEventBus {
         }
     }
 
-    public void register(final @NonNull String service, final @NonNull String[] eventNames) {
-        try {
-            for (String eventName : eventNames) {
-                Class<?> eventClazz = Class.forName(eventName);
-                bySubscribedServices
-                        .computeIfAbsent(eventClazz, k -> new HashSet<>())
-                        .add(service);
-            }
-        } catch (ClassNotFoundException e) {
-            Logging.IMP.error("Class not found! {}", e);
+    public void register(final @NonNull String service, final @NonNull Class<? extends Event>[] events) {
+        for (Class<? extends Event> eventClazz : events) {
+            bySubscribedServices
+                    .computeIfAbsent(eventClazz, k -> new HashSet<>())
+                    .add(service);
         }
     }
 

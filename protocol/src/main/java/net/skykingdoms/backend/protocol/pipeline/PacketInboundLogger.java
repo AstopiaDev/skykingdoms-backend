@@ -2,7 +2,7 @@ package net.skykingdoms.backend.protocol.pipeline;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import net.skykingdoms.backend.protocol.logging.Logging;
+import net.skykingdoms.api.protocol.logging.Logging;
 import net.skykingdoms.backend.protocol.packet.Packet;
 import org.jetbrains.annotations.NotNull;
 

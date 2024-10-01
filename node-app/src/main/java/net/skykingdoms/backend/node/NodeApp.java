@@ -7,17 +7,17 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
 import lombok.val;
-import net.skykingdoms.backend.base.util.config.Configuration;
-import net.skykingdoms.backend.base.util.config.ConfigurationProvider;
-import net.skykingdoms.backend.base.util.config.YamlConfiguration;
+import net.skykingdoms.api.backend.util.config.Configuration;
+import net.skykingdoms.api.backend.util.config.ConfigurationProvider;
+import net.skykingdoms.api.backend.util.config.YamlConfiguration;
+import net.skykingdoms.api.protocol.logging.Logging;
+import net.skykingdoms.api.protocol.server.ServerScaleType;
+import net.skykingdoms.api.protocol.type.NetworkType;
 import net.skykingdoms.backend.node.config.BaseNodeConfiguration;
 import net.skykingdoms.backend.node.connection.LocalClientConnection;
 import net.skykingdoms.backend.node.connection.NodeConnection;
 import net.skykingdoms.backend.node.manager.DeploymentManager;
 import net.skykingdoms.backend.protocol.exception.ConnectException;
-import net.skykingdoms.backend.protocol.logging.Logging;
-import net.skykingdoms.backend.api.protocol.server.ServerScaleType;
-import net.skykingdoms.backend.api.protocol.type.NetworkType;
 import net.skykingdoms.backend.protocol.type.reconnect.impl.FluentNodeDataImpl;
 
 import java.io.File;
@@ -66,7 +66,7 @@ public enum NodeApp {
 
     private void loadConfig() {
         reloadConfiguration();
-        networkType = NetworkType.valueOf(System.getProperty("network.type", NetworkType.PRODUCTION.name()));
+        networkType = NetworkType.valueOf(System.getProperty("network.type", NetworkType.DEVELOPMENT.name()));
         Logging.IMP.info("Network type for this coordinator instance is: {}", networkType.name());
     }
 
@@ -130,6 +130,7 @@ public enum NodeApp {
                     yamlConfiguration.getString("coordinatorHost"),
                     yamlConfiguration.getInt("coordinatorPort"),
                     yamlConfiguration.getString("coordinatorSecret"),
+                    NetworkType.fromName(yamlConfiguration.getString("network"), NetworkType.DEVELOPMENT),
                     yamlConfiguration.getStringList("scaleTypes").stream()
                             .map(ServerScaleType::valueOf).distinct().toArray(ServerScaleType[]::new)
             );
@@ -143,7 +144,7 @@ public enum NodeApp {
         int maxRamMB = (int) (Runtime.getRuntime().maxMemory() / (1024 * 1024));
 
         if (nodeData == null) {
-            nodeData = new FluentNodeDataImpl(null, nodeConfiguration.getScaleTypes(), allocatedRamMB, maxRamMB);
+            nodeData = new FluentNodeDataImpl("", nodeConfiguration.getScaleTypes(), allocatedRamMB, maxRamMB);
         } else {
             nodeData.setScaleTypes(nodeConfiguration.getScaleTypes());
             nodeData.setAllocatedRamMB(allocatedRamMB);

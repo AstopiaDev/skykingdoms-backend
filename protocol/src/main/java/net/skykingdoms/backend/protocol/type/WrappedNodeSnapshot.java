@@ -3,7 +3,7 @@ package net.skykingdoms.backend.protocol.type;
 import io.netty.buffer.ByteBuf;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import net.skykingdoms.backend.api.protocol.packet.serialize.Serializable;
+import net.skykingdoms.api.protocol.packet.serialize.Serializable;
 
 
 @FieldDefaults(level = AccessLevel.PRIVATE)

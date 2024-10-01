@@ -8,7 +8,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectList;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import net.skykingdoms.backend.base.gamer.AbstractGamer;
+import net.skykingdoms.backend.base.gamer.CommonGamer;
 import net.skykingdoms.backend.base.language.LanguageContext;
 import net.skykingdoms.backend.base.util.string.ObjectLinkedBuf;
 import net.skykingdoms.minimind.social.SocialGamer;
@@ -119,7 +119,7 @@ public final class Party {
         val ret = new HashSet<SocialGamer>();
 
         // Adding each member instance to ret list
-        partyMembers.keySet().stream().forEach(memberId -> ret.add(SocialGamer.getOfflineGamer(memberId, AbstractGamer::loadGroupsAndName)));
+        partyMembers.keySet().stream().forEach(memberId -> ret.add(SocialGamer.getOfflineGamer(memberId, CommonGamer::loadGroupsAndName)));
 
         return ret;
     }
@@ -157,7 +157,7 @@ public final class Party {
                 continue;
             }
 
-            ret.add(SocialGamer.getOfflineGamer(partyMember.getIntKey(), AbstractGamer::loadGroupsAndName));
+            ret.add(SocialGamer.getOfflineGamer(partyMember.getIntKey(), CommonGamer::loadGroupsAndName));
         }
 
         return ret;

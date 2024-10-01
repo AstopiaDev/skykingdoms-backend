@@ -1,6 +1,6 @@
+// todo: make this beautiful
+
 dependencies {
-    // Libraries related to MySQL database API
-    api 'net.luckperms:rest-api-client:0.1-SNAPSHOT'
     api 'com.zaxxer:HikariCP:5.0.1'
     api 'mysql:mysql-connector-java:8.0.33'
 
@@ -19,6 +19,7 @@ dependencies {
     // Bytecode library
     api 'org.ow2.asm:asm:9.4'
 
+    api project (":backend-api")
     api project(":impl-loader")
     implementation project(path: ':protocol')
     annotationProcessor project(":impl-loader")

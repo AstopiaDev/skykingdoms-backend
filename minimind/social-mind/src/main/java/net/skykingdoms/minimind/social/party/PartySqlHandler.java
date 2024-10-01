@@ -2,7 +2,7 @@ package net.skykingdoms.minimind.social.party;
 
 import lombok.NonNull;
 import lombok.val;
-import net.skykingdoms.backend.base.gamer.AbstractGamer;
+import net.skykingdoms.backend.base.gamer.CommonGamer;
 import net.skykingdoms.backend.base.mysql.DatabaseCredentials;
 import net.skykingdoms.backend.base.mysql.impl.MySQL;
 import net.skykingdoms.backend.base.util.string.StringUtil;
@@ -78,8 +78,8 @@ public final class PartySqlHandler {
         database.executeUpdate(PERSIST_PARTY,
                 party.getPartyId(),
                 party.getLeaderGamer().getGamerId(),
-                Arrays.toString(party.getAllByRole(Party.PartyRole.MODERATOR, true).stream().mapToInt(AbstractGamer::getGamerId).toArray()),
-                Arrays.toString(party.getAllByRole(Party.PartyRole.MEMBER, true).stream().mapToInt(AbstractGamer::getGamerId).toArray()),
+                Arrays.toString(party.getAllByRole(Party.PartyRole.MODERATOR, true).stream().mapToInt(CommonGamer::getGamerId).toArray()),
+                Arrays.toString(party.getAllByRole(Party.PartyRole.MEMBER, true).stream().mapToInt(CommonGamer::getGamerId).toArray()),
                 Arrays.toString(party.getKickedGamers().toIntArray()),
                 party.getSettings());
     }

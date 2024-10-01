@@ -5,15 +5,16 @@ import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.experimental.FieldDefaults;
 import lombok.val;
+import net.skykingdoms.api.protocol.logging.Logging;
+import net.skykingdoms.api.protocol.type.RemoteConnectedType;
 import net.skykingdoms.backend.node.NodeApp;
+import net.skykingdoms.backend.node.deploy.NodeDeploymentManager;
 import net.skykingdoms.backend.node.manager.DeploymentManager;
 import net.skykingdoms.backend.protocol.channel.AbstractRemoteServerChannel;
-import net.skykingdoms.backend.protocol.logging.Logging;
 import net.skykingdoms.backend.protocol.packet.ChannelProcessorContext;
 import net.skykingdoms.backend.protocol.packet.PacketProtocol;
 import net.skykingdoms.backend.protocol.packet.handshake.Handshake;
 import net.skykingdoms.backend.protocol.packet.play.*;
-import net.skykingdoms.backend.api.protocol.type.RemoteConnectedType;
 import net.skykingdoms.backend.protocol.type.WrappedNodeSnapshot;
 import net.skykingdoms.backend.protocol.type.reconnect.impl.FluentNodeDataImpl;
 
@@ -52,7 +53,7 @@ public final class RemoteServerConnection extends AbstractRemoteServerChannel {
 
     @Override
     public void process(S05UpdateNodeContainerInformation packet, ChannelProcessorContext ctx) {
-        DeploymentManager.INSTANCE.handleContainerNameUpdate(
+        NodeDeploymentManager.INSTANCE.handleContainerNameUpdate(
                 packet.getTransactionId(),
                 packet.getServerName().toLowerCase()
         );

@@ -1,13 +1,13 @@
 package net.skykingdoms.backend.votifier.net.protocol;
 
 import com.google.gson.JsonObject;
-import net.skykingdoms.backend.votifier.platform.VotifierPlugin;
-import net.skykingdoms.backend.votifier.model.Vote;
-import net.skykingdoms.backend.votifier.net.VotifierSession;
-import net.skykingdoms.backend.votifier.util.GsonInst;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.CorruptedFrameException;
 import io.netty.handler.codec.MessageToMessageDecoder;
+import net.skykingdoms.backend.votifier.model.Vote;
+import net.skykingdoms.backend.votifier.net.VotifierSession;
+import net.skykingdoms.backend.votifier.platform.VotifierPlugin;
+import net.skykingdoms.backend.votifier.util.GsonInst;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;

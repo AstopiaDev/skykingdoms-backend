@@ -1,8 +1,8 @@
 package net.skykingdoms.backend.votifier.platform;
 
+import io.netty.util.AttributeKey;
 import net.skykingdoms.backend.votifier.VoteHandler;
 import net.skykingdoms.backend.votifier.platform.scheduler.VotifierScheduler;
-import io.netty.util.AttributeKey;
 
 import java.security.Key;
 import java.security.KeyPair;

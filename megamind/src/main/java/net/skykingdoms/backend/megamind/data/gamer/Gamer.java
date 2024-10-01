@@ -2,28 +2,27 @@ package net.skykingdoms.backend.megamind.data.gamer;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import net.skykingdoms.backend.api.megamind.event.impl.gamer.GamerQuitEvent;
-import net.skykingdoms.backend.api.megamind.event.impl.gamer.OfflineGamerLoadedEvent;
-import net.skykingdoms.backend.api.megamind.event.impl.gamer.PlayerGameRedirectEvent;
-import net.skykingdoms.backend.api.megamind.gamer.MegamindGamer;
+import net.skykingdoms.api.backend.gamer.IGamer;
+import net.skykingdoms.api.backend.setting.Setting;
+import net.skykingdoms.api.backend.setting.SettingType;
+import net.skykingdoms.api.backend.type.property.PropertyType;
+import net.skykingdoms.api.megamind.event.impl.gamer.GamerQuitEvent;
+import net.skykingdoms.api.megamind.event.impl.gamer.OfflineGamerLoadedEvent;
+import net.skykingdoms.api.megamind.event.impl.gamer.PlayerGameRedirectEvent;
+import net.skykingdoms.api.megamind.gamer.IMegamindGamer;
+import net.skykingdoms.api.protocol.logging.Logging;
 import net.skykingdoms.backend.base.data.network.NetworkSqlHandler;
-import net.skykingdoms.backend.base.data.property.PropertySqlHandler;
-import net.skykingdoms.backend.base.data.settings.Setting;
-import net.skykingdoms.backend.base.data.settings.SettingType;
 import net.skykingdoms.backend.base.data.settings.SettingsSqlHandler;
-import net.skykingdoms.backend.base.gamer.AbstractGamer;
-import net.skykingdoms.backend.base.gamer.IGamer;
+import net.skykingdoms.backend.base.gamer.CommonGamer;
 import net.skykingdoms.backend.megamind.MegamindApp;
 import net.skykingdoms.backend.megamind.api.command.CommandSender;
 import net.skykingdoms.backend.megamind.lookup.LookupManager;
 import net.skykingdoms.backend.megamind.server.AbstractPlayerHolder;
 import net.skykingdoms.backend.megamind.server.AbstractScalable;
 import net.skykingdoms.backend.megamind.server.impl.*;
-import net.skykingdoms.backend.protocol.logging.Logging;
 import net.skykingdoms.backend.protocol.packet.Packet;
 import net.skykingdoms.backend.protocol.packet.play.*;
 import net.skykingdoms.backend.protocol.server.IPlayableBukkitServer;
-import net.skykingdoms.backend.api.protocol.type.PropertyType;
 import net.skykingdoms.backend.protocol.type.connect.ConnectStatus;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,7 +38,7 @@ import java.util.stream.IntStream;
 
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public final class Gamer extends MegamindGamer implements CommandSender {
+public final class Gamer extends CommonGamer implements CommandSender, IMegamindGamer {
 
     /**
      * Which hostname user used to connect to le server
@@ -237,8 +236,6 @@ public final class Gamer extends MegamindGamer implements CommandSender {
         return bukkitServer;
     }
 
-    // region settings
-
     @Override
     public void setSetting(final @NonNull SettingType settingType,
                            final @NonNull Setting<?, ?> value) {
@@ -271,13 +268,9 @@ public final class Gamer extends MegamindGamer implements CommandSender {
         return 100;
     }
 
-    // endregion
-
-    // region properties
-
     @Override
-    public void addProperty(@NonNull PropertyType property, int value) {
-        int oldValue = getProperty(property);
+    public void addProperty(@NonNull String property, int value) {
+        int oldValue = getPropertyOrDefault(property, 0);
         int newValue = oldValue + value;
 
         updateProperty(property, newValue);
@@ -285,32 +278,35 @@ public final class Gamer extends MegamindGamer implements CommandSender {
     }
 
     @Override
-    public void setProperty(final @NonNull PropertyType property,
-                            final int value) {
+    public <T> void setProperty(final @NonNull String property,
+                            final T value) {
         updateProperty(property, value);
         sendPropertyChange(property, value);
     }
 
-    private void sendPropertyChange(final @NonNull PropertyType property,
-                                    final int value) {
-        Packet<?> packet = new B102SetProperty(gamerId, property, value);
+    private <T> void sendPropertyChange(final @NonNull String property,
+                                    final T value) {
+        PropertyType<T> propertyType = (PropertyType<T>) properties.get(property);
+        propertyType.setValue(value);
+        Packet<?> packet = new B102SetProperty(gamerId, property, propertyType);
         sendToServer(packet);
         sendToProxy(packet);
     }
 
-    public void updateProperty(final @NonNull PropertyType key,
-                               final int value) {
+    public <T> void updateProperty(final @NonNull String key,
+                               final T value) {
         if (gamerId < 0 || properties == null) {
             return;
         }
 
-        properties.put(key, value);
+        PropertyType<T> propertyType = (PropertyType<T>) properties.get(key);
+        propertyType.setValue(value);
 
-        PropertySqlHandler.INSTANCE.setPropertyValue(gamerId, key, value);
+        //PropertySqlHandler.INSTANCE.setPropertyValue(gamerId, key, value);
     }
 
     @Override
-    public void removeProperty(final @NonNull PropertyType key) {
+    public void removeProperty(final @NonNull String key) {
         if (gamerId < 0 || properties == null) {
             return;
         }
@@ -323,14 +319,13 @@ public final class Gamer extends MegamindGamer implements CommandSender {
     }
 
     @Override
-    public void dropProperty(final @NonNull PropertyType key) {
+    public void dropProperty(final @NonNull String key) {
         if (gamerId < 0 || properties == null) {
             return;
         }
 
         properties.remove(key);
-
-        PropertySqlHandler.INSTANCE.removeProperty(gamerId, key);
+        //PropertySqlHandler.INSTANCE.removeProperty(gamerId, key);
     }
 
     // endregion
@@ -414,7 +409,7 @@ public final class Gamer extends MegamindGamer implements CommandSender {
         }
 
         // all shit validated, so we send vanish packet to server
-        setProperty(PropertyType.VANISHED, vanished ? 1 : 0);
+        setProperty("vanished", vanished ? 1 : 0);
 
         val server = getCurrentServer();
 
@@ -434,7 +429,7 @@ public final class Gamer extends MegamindGamer implements CommandSender {
         }
 
         // all shit validated, so we send vanish packet to server
-        setProperty(PropertyType.BUILD_MODE, buildMode ? 1 : 0);
+        setProperty("build_mode", buildMode ? 1 : 0);
 
         val server = getCurrentServer();
 
@@ -457,7 +452,7 @@ public final class Gamer extends MegamindGamer implements CommandSender {
 
     // relay
     public static Gamer getGamer(final @NonNull String name) {
-        return AbstractGamer.getGamer(name);
+        return CommonGamer.getGamer(name);
     }
 
     // non-relay
@@ -531,37 +526,37 @@ public final class Gamer extends MegamindGamer implements CommandSender {
 
     // relay
     public static Gamer getOfflineGamer(final @NonNull String name) {
-        return AbstractGamer.getOfflineGamer(name);
+        return CommonGamer.getOfflineGamer(name);
     }
 
     // relay
     public static Gamer getOfflineGamer(final @NonNull UUID uuid) {
-        return AbstractGamer.getOfflineGamer(uuid);
+        return CommonGamer.getOfflineGamer(uuid);
     }
 
     // relay
     public static Gamer getOfflineGamer(final int playerId) {
-        return AbstractGamer.getOfflineGamer(playerId);
+        return CommonGamer.getOfflineGamer(playerId);
     }
 
     // relay
     public static Gamer getGamer(final int playerId) {
-        return AbstractGamer.getGamer(playerId);
+        return CommonGamer.getGamer(playerId);
     }
 
     // relay
     public static void kickAll() {
-        AbstractGamer.kickAll();
+        CommonGamer.kickAll();
     }
 
     public static Collection<Gamer> getGamers() {
-        return AbstractGamer.getGamers();
+        return CommonGamer.getGamers();
     }
 
     public static List<IGamer> getGamersByIp(final @NonNull InetAddress address) {
         synchronized (GAMERS) {
             return GAMERS.values().stream()
-                    .filter(player -> ((AbstractGamer) player).getAddress().equals(address))
+                    .filter(player -> ((CommonGamer) player).getAddress().equals(address))
                     .collect(Collectors.toList());
         }
     }
@@ -588,7 +583,7 @@ public final class Gamer extends MegamindGamer implements CommandSender {
     // relay
     public static void addGamer(final @NonNull Gamer gamer) {
         Logging.IMP.info("[DEBUG] Added {}/{}", gamer.getName(), gamer.getGamerId());
-        AbstractGamer.addGamer(gamer);
+        CommonGamer.addGamer(gamer);
         LookupManager.INSTANCE.handleGlobalOnlineChange(getTotalOnline());
     }
 
@@ -615,12 +610,12 @@ public final class Gamer extends MegamindGamer implements CommandSender {
 
     // relay
     public static void invalidateOfflinePlayer(final @NonNull Gamer gamer) {
-        AbstractGamer.invalidateOfflinePlayer(gamer);
+        CommonGamer.invalidateOfflinePlayer(gamer);
     }
 
     // relay
     public static int getTotalOnline() {
-        return AbstractGamer.getTotalOnline();
+        return CommonGamer.getTotalOnline();
     }
     // endregion
 }

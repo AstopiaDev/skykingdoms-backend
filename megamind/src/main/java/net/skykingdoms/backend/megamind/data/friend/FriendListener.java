@@ -2,15 +2,15 @@ package net.skykingdoms.backend.megamind.data.friend;
 
 import lombok.NonNull;
 import lombok.val;
-import net.skykingdoms.backend.base.data.settings.SettingType;
-import net.skykingdoms.backend.base.data.settings.enums.Notifications;
+import net.skykingdoms.api.backend.setting.SettingType;
+import net.skykingdoms.api.backend.setting.enums.Notifications;
+import net.skykingdoms.api.megamind.event.EventHandler;
+import net.skykingdoms.api.megamind.event.Listener;
+import net.skykingdoms.api.megamind.event.impl.gamer.GamerJoinEvent;
+import net.skykingdoms.api.megamind.event.impl.gamer.GamerQuitEvent;
+import net.skykingdoms.api.megamind.event.impl.gamer.PlayerVanishEvent;
 import net.skykingdoms.backend.megamind.MegamindApp;
-import net.skykingdoms.backend.api.megamind.event.EventHandler;
-import net.skykingdoms.backend.api.megamind.event.Listener;
 import net.skykingdoms.backend.megamind.data.gamer.Gamer;
-import net.skykingdoms.backend.api.megamind.event.impl.gamer.GamerJoinEvent;
-import net.skykingdoms.backend.api.megamind.event.impl.gamer.GamerQuitEvent;
-import net.skykingdoms.backend.api.megamind.event.impl.gamer.PlayerVanishEvent;
 
 import java.util.List;
 

@@ -1,8 +1,9 @@
 package net.skykingdoms.backend.megamind.plugin;
 
 import lombok.Getter;
-import net.skykingdoms.backend.api.megamind.plugin.MegamindPlugin;
+import net.skykingdoms.api.megamind.plugin.MegamindPlugin;
 import net.skykingdoms.backend.megamind.MegamindApp;
+
 import java.nio.file.Path;
 
 /**

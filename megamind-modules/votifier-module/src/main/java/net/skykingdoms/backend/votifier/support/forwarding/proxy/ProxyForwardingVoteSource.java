@@ -1,12 +1,5 @@
 package net.skykingdoms.backend.votifier.support.forwarding.proxy;
 
-import net.skykingdoms.backend.votifier.model.Vote;
-import net.skykingdoms.backend.votifier.platform.VotifierPlugin;
-import net.skykingdoms.backend.votifier.support.forwarding.ForwardingVoteSource;
-import net.skykingdoms.backend.votifier.support.forwarding.cache.VoteCache;
-import net.skykingdoms.backend.votifier.support.forwarding.proxy.client.VotifierProtocol2Encoder;
-import net.skykingdoms.backend.votifier.support.forwarding.proxy.client.VotifierProtocol2HandshakeHandler;
-import net.skykingdoms.backend.votifier.support.forwarding.proxy.client.VotifierResponseHandler;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelInitializer;
@@ -15,6 +8,13 @@ import io.netty.handler.codec.DelimiterBasedFrameDecoder;
 import io.netty.handler.codec.Delimiters;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.timeout.ReadTimeoutHandler;
+import net.skykingdoms.backend.votifier.model.Vote;
+import net.skykingdoms.backend.votifier.platform.VotifierPlugin;
+import net.skykingdoms.backend.votifier.support.forwarding.ForwardingVoteSource;
+import net.skykingdoms.backend.votifier.support.forwarding.cache.VoteCache;
+import net.skykingdoms.backend.votifier.support.forwarding.proxy.client.VotifierProtocol2Encoder;
+import net.skykingdoms.backend.votifier.support.forwarding.proxy.client.VotifierProtocol2HandshakeHandler;
+import net.skykingdoms.backend.votifier.support.forwarding.proxy.client.VotifierResponseHandler;
 
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;

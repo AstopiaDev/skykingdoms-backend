@@ -1,27 +1,26 @@
 package net.skykingdoms.backend.megamind.command;
 
 import lombok.val;
-import net.skykingdoms.backend.base.command.NamedCommand;
-import net.skykingdoms.backend.base.command.RelayExecutor;
-import net.skykingdoms.backend.base.command.RelayExecutorAlias;
-import net.skykingdoms.backend.base.command.WithAlias;
-import net.skykingdoms.backend.base.command.condition.WithCondition;
-import net.skykingdoms.backend.base.command.exception.CommandException;
-import net.skykingdoms.backend.base.command.exception.CommandMessageException;
+import net.skykingdoms.api.backend.command.NamedCommand;
+import net.skykingdoms.api.backend.command.RelayExecutor;
+import net.skykingdoms.api.backend.command.RelayExecutorAlias;
+import net.skykingdoms.api.backend.command.WithAlias;
+import net.skykingdoms.api.backend.command.condition.WithCondition;
+import net.skykingdoms.api.backend.command.exception.CommandException;
+import net.skykingdoms.api.backend.command.exception.CommandMessageException;
+import net.skykingdoms.api.backend.command.execution.Executor;
+import net.skykingdoms.api.backend.command.execution.SubcommandExecutor;
+import net.skykingdoms.api.backend.command.tabcomplete.Tabcomplete;
+import net.skykingdoms.api.backend.permission.Group;
+import net.skykingdoms.api.backend.setting.SettingType;
+import net.skykingdoms.api.backend.setting.impl.BooleanSetting;
+import net.skykingdoms.api.backend.setting.impl.EnumSetting;
 import net.skykingdoms.backend.base.command.exception.CommandTranslationException;
-import net.skykingdoms.backend.base.command.execution.Executor;
-import net.skykingdoms.backend.base.command.execution.SubcommandExecutor;
-import net.skykingdoms.backend.base.command.tabcomplete.Tabcomplete;
 import net.skykingdoms.backend.base.data.friends.FriendshipMeta;
-import net.skykingdoms.backend.base.data.settings.SettingType;
-import net.skykingdoms.backend.base.data.settings.impl.BooleanSetting;
-import net.skykingdoms.backend.base.data.settings.impl.EnumSetting;
-import net.skykingdoms.backend.base.permission.Group;
 import net.skykingdoms.backend.base.util.color.ChatColor;
 import net.skykingdoms.backend.megamind.api.command.CoreExecutionSession;
 import net.skykingdoms.backend.megamind.data.friend.FriendManager;
 import net.skykingdoms.backend.megamind.data.gamer.Gamer;
-import net.skykingdoms.backend.api.protocol.type.PropertyType;
 
 import java.util.Arrays;
 import java.util.stream.Collectors;
@@ -80,12 +79,12 @@ public final class DebugCommand {
     @SubcommandExecutor("prop")
     public static void getProperty(final CoreExecutionSession session) throws CommandMessageException {
         val target = session.getOfflineGamer(0, Gamer::loadProperties);
-        val prop = PropertyType.valueOf(session.getArgument(1), null);
+        val prop = session.getArgument(1);
         if (prop == null) {
             throw new CommandMessageException("dolbaeb");
         }
 
-        session.sendMessage(prop.name() + " -> " + target.getProperty(prop));
+        session.sendMessage(prop + " -> " + target.getProperty(prop));
     }
 
     @WithCondition("group: admin")

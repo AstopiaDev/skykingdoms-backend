@@ -22,4 +22,5 @@ findProject(':minimind:social-mind')?.name = 'social-mind'
 include 'minimind:gamer-mind'
 findProject(':minimind:gamer-mind')?.name = 'gamer-mind'
 include 'protocol-api'
+include 'backend-api'
 

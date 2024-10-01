@@ -5,7 +5,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageCodec;
 import io.netty.handler.codec.CorruptedFrameException;
 import lombok.NonNull;
-import net.skykingdoms.backend.api.protocol.util.PacketUtils;
+import net.skykingdoms.api.protocol.util.PacketUtils;
 
 import java.util.List;
 

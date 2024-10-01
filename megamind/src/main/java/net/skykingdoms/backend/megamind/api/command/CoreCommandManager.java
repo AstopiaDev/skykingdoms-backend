@@ -1,11 +1,11 @@
 package net.skykingdoms.backend.megamind.api.command;
 
 import lombok.NonNull;
+import net.skykingdoms.api.backend.command.ICommand;
+import net.skykingdoms.api.backend.gamer.ICommandSender;
+import net.skykingdoms.api.backend.gamer.IGamer;
 import net.skykingdoms.backend.base.command.CommandManager;
-import net.skykingdoms.backend.base.command.ICommand;
 import net.skykingdoms.backend.base.command.execution.WrappedCommandExecutor;
-import net.skykingdoms.backend.base.gamer.ICommandSender;
-import net.skykingdoms.backend.base.gamer.IGamer;
 import net.skykingdoms.backend.megamind.MegamindApp;
 import net.skykingdoms.backend.megamind.data.gamer.Gamer;
 import org.jetbrains.annotations.Nullable;

@@ -7,8 +7,8 @@ import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.experimental.FieldDefaults;
 import lombok.val;
+import net.skykingdoms.api.protocol.logging.Logging;
 import net.skykingdoms.backend.bukkit.security.BukkitSecurityManager;
-import net.skykingdoms.backend.protocol.logging.Logging;
 
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;

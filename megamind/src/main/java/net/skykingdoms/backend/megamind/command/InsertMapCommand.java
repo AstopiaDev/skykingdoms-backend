@@ -1,14 +1,11 @@
 package net.skykingdoms.backend.megamind.command;
 
-import net.skykingdoms.backend.base.command.NamedCommand;
-import net.skykingdoms.backend.base.command.WithAlias;
-import net.skykingdoms.backend.base.command.WithMultipleAliases;
-import net.skykingdoms.backend.base.command.condition.WithCondition;
-import net.skykingdoms.backend.base.command.execution.Executor;
+import net.skykingdoms.api.backend.command.NamedCommand;
+import net.skykingdoms.api.backend.command.condition.WithCondition;
+import net.skykingdoms.api.backend.command.execution.Executor;
 import net.skykingdoms.backend.base.data.sql.GameMap;
 import net.skykingdoms.backend.base.data.sql.sql.MapSqlHandler;
 import net.skykingdoms.backend.megamind.api.command.CoreExecutionSession;
-import net.skykingdoms.backend.megamind.data.gamer.Gamer;
 import net.skykingdoms.backend.megamind.manager.StashManager;
 
 import java.io.File;

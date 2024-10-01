@@ -3,12 +3,12 @@ package net.skykingdoms.backend.protocol.packet.play;
 import io.netty.buffer.ByteBuf;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import net.skykingdoms.api.backend.type.property.PropertyType;
 import net.skykingdoms.backend.protocol.packet.ChannelProcessorContext;
 import net.skykingdoms.backend.protocol.packet.Packet;
 import net.skykingdoms.backend.protocol.packet.PacketProcessor;
 import net.skykingdoms.backend.protocol.packet.PacketUtils;
 import net.skykingdoms.backend.protocol.packet.play.processor.PlayProcessor;
-import net.skykingdoms.backend.api.protocol.type.PropertyType;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -22,8 +22,8 @@ import org.jetbrains.annotations.NotNull;
 public final class B102SetProperty extends Packet<PlayProcessor> {
 
     int playerId;
-    PropertyType property;
-    int value;
+    String key;
+    PropertyType<?> property;
 
     @Override
     public void process(@NotNull PlayProcessor processor, @NotNull ChannelProcessorContext ctx) throws Exception {
@@ -38,16 +38,14 @@ public final class B102SetProperty extends Packet<PlayProcessor> {
     @Override
     public void read0(@NotNull ByteBuf buf) throws Exception {
         playerId = buf.readInt();
-        property = PacketUtils.readEnum(buf, PropertyType.class);
-        value = buf.readInt();
+        key = PacketUtils.readString(buf);
+        property = (PropertyType<?>) property.deserialize(PacketUtils.readString(buf));
     }
 
     @Override
     public void write0(@NotNull ByteBuf buf) throws Exception {
         buf.writeInt(playerId);
-        PacketUtils.writeEnum(buf, property);
-        buf.writeInt(value);
+        PacketUtils.writeString(buf, key);
+        PacketUtils.writeString(buf, property.serialize());
     }
-
-
 }

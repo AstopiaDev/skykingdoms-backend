@@ -4,7 +4,7 @@ import io.netty.buffer.ByteBuf;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
-import net.skykingdoms.backend.api.megamind.event.Event;
+import net.skykingdoms.api.megamind.event.Event;
 import net.skykingdoms.backend.megamind.server.AbstractPlayerHolder;
 
 import java.net.InetAddress;

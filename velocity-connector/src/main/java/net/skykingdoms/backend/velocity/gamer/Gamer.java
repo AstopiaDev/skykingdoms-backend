@@ -2,23 +2,23 @@ package net.skykingdoms.backend.velocity.gamer;
 
 import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.proxy.Player;
-import gnu.trove.TCollections;
-import gnu.trove.map.TObjectIntMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.title.Title;
+import net.skykingdoms.api.backend.gamer.IGamer;
+import net.skykingdoms.api.backend.setting.Setting;
+import net.skykingdoms.api.backend.setting.SettingType;
+import net.skykingdoms.api.backend.type.property.PropertyType;
 import net.skykingdoms.backend.base.data.network.NetworkSqlHandler;
-import net.skykingdoms.backend.base.data.settings.Setting;
-import net.skykingdoms.backend.base.data.settings.SettingType;
-import net.skykingdoms.backend.base.gamer.AbstractGamer;
-import net.skykingdoms.backend.base.gamer.IGamer;
+import net.skykingdoms.backend.base.data.property.PropertySqlHandler;
+import net.skykingdoms.backend.base.gamer.CommonGamer;
 import net.skykingdoms.backend.base.language.Language;
 import net.skykingdoms.backend.protocol.packet.Packet;
 import net.skykingdoms.backend.protocol.packet.play.B102SetProperty;
 import net.skykingdoms.backend.protocol.packet.play.B103RemoveProperty;
 import net.skykingdoms.backend.protocol.packet.play.B109UpdateSetting;
-import net.skykingdoms.backend.api.protocol.type.PropertyType;
 import net.skykingdoms.backend.velocity.VelocityConnector;
 import net.skykingdoms.backend.velocity.command.ProxiedCommandSender;
 import net.skykingdoms.backend.velocity.connection.Connection;
@@ -37,7 +37,7 @@ import java.util.function.Consumer;
  */
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Getter
-public final class Gamer extends AbstractGamer implements IGamer, ProxiedCommandSender {
+public final class Gamer extends CommonGamer implements IGamer, ProxiedCommandSender {
 
     /**
      * ProxiedPlayer instance.
@@ -109,8 +109,8 @@ public final class Gamer extends AbstractGamer implements IGamer, ProxiedCommand
 
     // region Properties
 
-    public TObjectIntMap<PropertyType> getProperties() {
-        return TCollections.unmodifiableMap(properties);
+    public Object2ObjectMap<String, PropertyType<?>> getProperties() {
+        return properties;
     }
 
     public boolean hasProperty(final @NonNull String property) {
@@ -118,30 +118,62 @@ public final class Gamer extends AbstractGamer implements IGamer, ProxiedCommand
     }
 
     @Override
-    public void addProperty(final @NonNull PropertyType property,
+    public void addProperty(final @NonNull String property,
                             final int value) {
         if (properties == null) {
             return;
         }
 
-        this.updateProperty(property, properties.get(property) + value);
+        this.updateProperty(property, ((int) properties.get(property).getValue()) + value);
     }
 
     @Override
-    public void setProperty(final @NonNull PropertyType property,
-                            final int value) {
+    public <T> void setProperty(final @NonNull String property,
+                            final T value) {
         if (updateProperty(property, value)) {
-            Connection.sendPacket(new B102SetProperty(gamerId, property, value));
+            PropertyType<T> currentProperty = (PropertyType<T>) properties.get(property);
+            Connection.sendPacket(new B102SetProperty(gamerId, property, currentProperty));
         }
     }
 
-    public boolean updateProperty(final @NonNull PropertyType property,
-                                  final int value) {
+    public <T> boolean updateProperty(final @NonNull String property, final T value) {
         if (properties == null) {
             return false;
         }
 
-        properties.put(property, value);
+        PropertyType<T> currentProperty = (PropertyType<T>) properties.get(property);
+
+        if (currentProperty == null) {
+            PropertyType<T> newProperty = PropertySqlHandler.INSTANCE.createProperty(value);
+
+            if (newProperty == null) {
+                return false;
+            }
+
+            properties.put(property, newProperty);
+        } else {
+            currentProperty.setValue(value);
+            properties.put(property, currentProperty);
+        }
+
+        return true;
+    }
+
+    public <T> boolean updateProperty(final @NonNull String key, final @NonNull PropertyType<?> property) {
+        if (properties == null) {
+            return false;
+        }
+
+        @SuppressWarnings("unchecked")
+        PropertyType<T> currentProperty = (PropertyType<T>) properties.get(key);
+
+        if (currentProperty == null) {
+            properties.put(key, property);
+        } else {
+            currentProperty.setValue((T) property.getValue());
+            properties.put(key, currentProperty);
+        }
+
         return true;
     }
 
@@ -151,11 +183,23 @@ public final class Gamer extends AbstractGamer implements IGamer, ProxiedCommand
         }
     }
 
-    public void removeProperty(@NonNull PropertyType property) {
+    public void removeProperty(@NonNull String property) {
         dropProperty(property);
 
         if (hasPlayerId()) {
             Connection.sendPacket(new B103RemoveProperty(gamerId, property));
+        }
+    }
+
+    @Override
+    public void dropProperty(@NonNull String key) {
+        if (properties == null) {
+            return;
+        }
+
+        if (properties.containsKey(key)) {
+            properties.remove(key);
+            PropertySqlHandler.INSTANCE.removeProperty(gamerId, key);
         }
     }
 
@@ -255,7 +299,7 @@ public final class Gamer extends AbstractGamer implements IGamer, ProxiedCommand
 
     // relay
     public static Collection<Gamer> getGamers() {
-        return AbstractGamer.getGamers();
+        return CommonGamer.getGamers();
     }
 
     // relay
@@ -265,17 +309,17 @@ public final class Gamer extends AbstractGamer implements IGamer, ProxiedCommand
 
     // relay
     public static Gamer getGamer(final @NonNull String name) {
-        return AbstractGamer.getGamer(name);
+        return CommonGamer.getGamer(name);
     }
 
     // relay
     public static Gamer getGamer(final @NonNull UUID uuid) {
-        return AbstractGamer.getGamer(uuid);
+        return CommonGamer.getGamer(uuid);
     }
 
     // relay
     public static Gamer getGamer(final int playerID) {
-        return AbstractGamer.getGamer(playerID);
+        return CommonGamer.getGamer(playerID);
     }
 
     @Nullable
@@ -340,17 +384,17 @@ public final class Gamer extends AbstractGamer implements IGamer, ProxiedCommand
 
     // relay
     public static Gamer getOfflineGamer(@NonNull String name) {
-        return AbstractGamer.getOfflineGamer(name);
+        return CommonGamer.getOfflineGamer(name);
     }
 
     // relay
     public static Gamer getOfflineGamer(int playerId) {
-        return AbstractGamer.getOfflineGamer(playerId);
+        return CommonGamer.getOfflineGamer(playerId);
     }
 
     // relay
     public static void addGamer(Gamer gamer) {
-        AbstractGamer.addGamer(gamer);
+        CommonGamer.addGamer(gamer);
     }
 
     // non-relay

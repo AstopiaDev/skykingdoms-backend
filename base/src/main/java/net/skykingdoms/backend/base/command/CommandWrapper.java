@@ -1,16 +1,18 @@
 package net.skykingdoms.backend.base.command;
 
 import lombok.*;
-import net.skykingdoms.backend.base.command.exception.CommandMessageException;
-import net.skykingdoms.backend.base.command.exception.CommandRelayException;
+import net.skykingdoms.api.backend.command.CommandExecutor;
+import net.skykingdoms.api.backend.command.ICommand;
+import net.skykingdoms.api.backend.command.exception.CommandMessageException;
+import net.skykingdoms.api.backend.command.exception.CommandRelayException;
+import net.skykingdoms.api.backend.gamer.ICommandSender;
+import net.skykingdoms.api.backend.gamer.IGamer;
+import net.skykingdoms.backend.base.command.condition.WrappedSubcommandExecutor;
 import net.skykingdoms.backend.base.command.execution.ExecutionSession;
 import net.skykingdoms.backend.base.command.execution.WrappedCommandExecutor;
-import net.skykingdoms.backend.base.command.execution.WrappedSubcommandExecutor;
 import net.skykingdoms.backend.base.command.execution.help.HelpCommandExecutor;
 import net.skykingdoms.backend.base.command.tabcomplete.StaticTabcompleter;
 import net.skykingdoms.backend.base.command.tabcomplete.Tabcompleter;
-import net.skykingdoms.backend.base.gamer.ICommandSender;
-import net.skykingdoms.backend.base.gamer.IGamer;
 
 import java.util.*;
 import java.util.concurrent.ExecutorService;

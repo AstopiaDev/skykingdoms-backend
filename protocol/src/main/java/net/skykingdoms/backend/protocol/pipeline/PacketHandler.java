@@ -3,7 +3,7 @@ package net.skykingdoms.backend.protocol.pipeline;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.RequiredArgsConstructor;
-import net.skykingdoms.backend.protocol.logging.Logging;
+import net.skykingdoms.api.protocol.logging.Logging;
 import net.skykingdoms.backend.protocol.packet.BossProcessor;
 import net.skykingdoms.backend.protocol.packet.ChannelProcessorContext;
 import net.skykingdoms.backend.protocol.packet.Packet;

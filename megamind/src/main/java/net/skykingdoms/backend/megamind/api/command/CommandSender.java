@@ -1,7 +1,7 @@
 package net.skykingdoms.backend.megamind.api.command;
 
 import lombok.NonNull;
-import net.skykingdoms.backend.base.gamer.ICommandSender;
+import net.skykingdoms.api.backend.gamer.ICommandSender;
 import net.skykingdoms.backend.megamind.MegamindApp;
 
 

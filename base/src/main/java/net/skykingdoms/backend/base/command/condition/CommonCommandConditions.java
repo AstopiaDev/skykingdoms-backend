@@ -3,11 +3,12 @@ package net.skykingdoms.backend.base.command.condition;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
+import net.skykingdoms.api.backend.command.condition.ConditionProvider;
+import net.skykingdoms.api.backend.permission.Group;
+import net.skykingdoms.api.backend.permission.PermissionType;
 import net.skykingdoms.backend.base.command.exception.CommandTranslationException;
 import net.skykingdoms.backend.base.command.execution.ExecutionSession;
-import net.skykingdoms.backend.base.gamer.AbstractGamer;
-import net.skykingdoms.backend.base.permission.Group;
-import net.skykingdoms.backend.base.permission.PermissionType;
+import net.skykingdoms.backend.base.gamer.CommonGamer;
 import net.skykingdoms.backend.base.permission.UserRank;
 import net.skykingdoms.backend.base.permission.UserRanks;
 import net.skykingdoms.backend.base.util.color.ChatColor;
@@ -52,7 +53,7 @@ public final class CommonCommandConditions {
 
             RankCondition condition = new RankCondition(group, mode);
 
-            if (condition.canApply(userRanks)) {
+            if (condition.canApply((UserRanks) userRanks)) {
                 return;
             }
 
@@ -94,7 +95,7 @@ public final class CommonCommandConditions {
             if (language.isMessageTranslated(usageKey)) {
                 throw new CommandTranslationException(
                         "command_usage",
-                        "%usage%", session.getExecutor().toString() + " " + language.getMessage(!session.isConsole() && ((AbstractGamer) session.getSender()).isModern(), usageKey)
+                        "%usage%", session.getExecutor().toString() + " " + language.getMessage(!session.isConsole() && ((CommonGamer) session.getSender()).isModern(), usageKey)
                 );
             } else {
                 throw new CommandTranslationException("command_incorrect_usage");
@@ -121,7 +122,7 @@ public final class CommonCommandConditions {
     @ConditionProvider(value = "antiDolbaeb", priority = 0)
     public static void antiDolbaeb(ExecutionSession session, String meta)
             throws CommandTranslationException {
-        if (session.getSender() instanceof AbstractGamer && session.getGamer().getGamerId() == 2) {
+        if (session.getSender() instanceof CommonGamer && session.getGamer().getGamerId() == 2) {
             throw new CommandTranslationException("command_dolbaeb_protection");
         }
     }

@@ -3,15 +3,15 @@ package net.skykingdoms.backend.megamind.data.friend;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.val;
+import net.skykingdoms.api.backend.util.collection.CollectionUtil;
+import net.skykingdoms.api.protocol.logging.Logging;
 import net.skykingdoms.backend.base.data.friends.FriendsSqlHandler;
 import net.skykingdoms.backend.base.data.friends.FriendshipMeta;
-import net.skykingdoms.backend.base.gamer.AbstractGamer;
-import net.skykingdoms.backend.base.util.collection.CollectionUtil;
+import net.skykingdoms.backend.base.gamer.CommonGamer;
 import net.skykingdoms.backend.megamind.MegamindApp;
 import net.skykingdoms.backend.megamind.data.friend.event.FriendAddEvent;
 import net.skykingdoms.backend.megamind.data.friend.event.FriendRemoveEvent;
 import net.skykingdoms.backend.megamind.data.gamer.Gamer;
-import net.skykingdoms.backend.protocol.logging.Logging;
 import net.skykingdoms.backend.protocol.packet.play.S23FriendshipAction;
 
 import java.time.LocalDateTime;
@@ -119,7 +119,7 @@ public final class FriendManager {
         val senderGamer = Gamer.getGamer(senderId);
 
         // but target might be offline, so we don't send him a message
-        val targetGamer = Gamer.getOfflineGamer(targetId, AbstractGamer::load);
+        val targetGamer = Gamer.getOfflineGamer(targetId, CommonGamer::load);
         if (targetGamer.isOnline()) {
             targetGamer.sendRawMessage(
                     targetGamer.getLanguage().getMessage(targetGamer.isModern(), "friend_request_received",

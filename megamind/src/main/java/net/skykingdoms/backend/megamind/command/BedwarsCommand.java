@@ -1,14 +1,14 @@
 package net.skykingdoms.backend.megamind.command;
 
 import lombok.val;
-import net.skykingdoms.backend.base.command.NamedCommand;
-import net.skykingdoms.backend.base.command.condition.WithCondition;
-import net.skykingdoms.backend.base.command.exception.CommandMessageException;
-import net.skykingdoms.backend.base.command.execution.Executor;
+import net.skykingdoms.api.backend.command.NamedCommand;
+import net.skykingdoms.api.backend.command.condition.WithCondition;
+import net.skykingdoms.api.backend.command.exception.CommandMessageException;
+import net.skykingdoms.api.backend.command.execution.Executor;
+import net.skykingdoms.api.protocol.type.GameMode;
 import net.skykingdoms.backend.megamind.api.command.CoreExecutionSession;
 import net.skykingdoms.backend.megamind.manager.ServerManager;
 import net.skykingdoms.backend.megamind.server.AbstractPlayerHolder;
-import net.skykingdoms.backend.api.protocol.type.GameMode;
 
 @NamedCommand("bedwars")
 public class BedwarsCommand {

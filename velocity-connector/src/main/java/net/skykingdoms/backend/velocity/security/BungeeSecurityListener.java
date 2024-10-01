@@ -5,7 +5,7 @@ import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.connection.LoginEvent;
 import lombok.val;
 import net.kyori.adventure.text.Component;
-import net.skykingdoms.backend.protocol.logging.Logging;
+import net.skykingdoms.api.protocol.logging.Logging;
 import net.skykingdoms.backend.velocity.security.impl.SpoofedLoginResult;
 
 public final class BungeeSecurityListener {

@@ -2,7 +2,7 @@ package net.skykingdoms.backend.protocol.packet;
 
 import io.netty.buffer.ByteBuf;
 import lombok.experimental.UtilityClass;
-import net.skykingdoms.backend.api.protocol.packet.serialize.Serializable;
+import net.skykingdoms.api.protocol.packet.serialize.Serializable;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;

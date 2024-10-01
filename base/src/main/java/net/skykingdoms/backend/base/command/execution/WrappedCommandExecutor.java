@@ -5,13 +5,13 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
-import net.skykingdoms.backend.base.command.CommandExecutor;
+import net.skykingdoms.api.backend.command.CommandExecutor;
+import net.skykingdoms.api.backend.command.cooldown.WrappedCooldown;
+import net.skykingdoms.api.backend.gamer.IGamer;
 import net.skykingdoms.backend.base.command.CommandParams;
 import net.skykingdoms.backend.base.command.CommandWrapper;
 import net.skykingdoms.backend.base.command.condition.WrappedCompiledCommandCondition;
-import net.skykingdoms.backend.base.command.cooldown.WrappedCooldown;
 import net.skykingdoms.backend.base.command.tabcomplete.Tabcompleter;
-import net.skykingdoms.backend.base.gamer.IGamer;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;

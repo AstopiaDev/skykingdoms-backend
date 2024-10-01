@@ -2,7 +2,6 @@ package net.skykingdoms.backend.votifier;
 
 import net.skykingdoms.backend.votifier.model.Vote;
 import net.skykingdoms.backend.votifier.net.VotifierSession;
-import io.netty.channel.Channel;
 
 public interface VoteHandler {
 

@@ -1,12 +1,11 @@
 package net.skykingdoms.minimind.command;
 
 import lombok.NonNull;
+import net.skykingdoms.api.backend.gamer.ICommandSender;
 import net.skykingdoms.backend.base.command.exception.CommandTranslationException;
 import net.skykingdoms.backend.base.command.execution.ExecutionSession;
 import net.skykingdoms.backend.base.command.execution.WrappedCommandExecutor;
-import net.skykingdoms.backend.base.gamer.AbstractGamer;
-import net.skykingdoms.backend.base.gamer.ICommandSender;
-import net.skykingdoms.backend.base.gamer.IGamer;
+import net.skykingdoms.backend.base.gamer.CommonGamer;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Consumer;
@@ -14,10 +13,10 @@ import java.util.function.Consumer;
 public class MinimindExecutionSession extends ExecutionSession {
 
     CommandSender sender;
-    AbstractGamer gamer;
+    CommonGamer gamer;
 
-    public AbstractGamer getOfflineGamer(final int i, final @NonNull Consumer<AbstractGamer> loader) throws CommandTranslationException {
-        AbstractGamer gamer = AbstractGamer.getOfflineGamer(getArgument(i));
+    public CommonGamer getOfflineGamer(final int i, final @NonNull Consumer<CommonGamer> loader) throws CommandTranslationException {
+        CommonGamer gamer = CommonGamer.getOfflineGamer(getArgument(i));
 
         if (gamer == null) {
             throw new CommandTranslationException("player_not_found");
@@ -26,8 +25,8 @@ public class MinimindExecutionSession extends ExecutionSession {
         return gamer;
     }
 
-    public AbstractGamer getGamer(final int i) throws CommandTranslationException {
-        AbstractGamer gamer = AbstractGamer.getGamer(getArgument(i));
+    public CommonGamer getGamer(final int i) throws CommandTranslationException {
+        CommonGamer gamer = CommonGamer.getGamer(getArgument(i));
 
         if (gamer == null) {
             throw new CommandTranslationException("player_offline");
@@ -38,7 +37,7 @@ public class MinimindExecutionSession extends ExecutionSession {
 
     public MinimindExecutionSession(final @NonNull WrappedCommandExecutor executor,
                                 final @NonNull CommandSender sender,
-                                final @Nullable AbstractGamer gamer,
+                                final @Nullable CommonGamer gamer,
                                 final String @NonNull [] arguments) {
         super(executor, arguments);
 
@@ -52,7 +51,7 @@ public class MinimindExecutionSession extends ExecutionSession {
     }
 
     @Override
-    public IGamer getGamer() {
+    public CommonGamer getGamer() {
         return gamer;
     }
 

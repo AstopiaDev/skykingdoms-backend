@@ -2,10 +2,8 @@ package net.skykingdoms.backend.base.mysql;
 
 import lombok.AccessLevel;
 import lombok.NonNull;
-import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 import lombok.val;
-import net.skykingdoms.backend.protocol.logging.Logging;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

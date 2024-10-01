@@ -39,7 +39,7 @@ public class BukkitInstanceDeployment extends InstanceDeploymentImpl {
             envVars.add("TEST_FLOW_ID=" + testFlowId);
         }
 
-        return client.createContainerCmd(data.getGameType().getVersion().image())
+        return client.createContainerCmd(data.getGameType().getVersion().image() + "-" + NodeApp.INSTANCE.nodeConfiguration().getNetworkType().getPrefix())
                 .withTty(true)
                 .withEnv(envVars)
                 .withHostConfig(config)

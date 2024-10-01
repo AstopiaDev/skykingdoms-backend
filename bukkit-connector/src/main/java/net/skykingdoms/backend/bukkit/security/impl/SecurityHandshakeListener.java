@@ -1,19 +1,10 @@
 package net.skykingdoms.backend.bukkit.security.impl;
 
-import com.destroystokyo.paper.event.player.PlayerHandshakeEvent;
 import com.destroystokyo.paper.profile.PlayerProfile;
-import lombok.val;
-import net.skykingdoms.backend.protocol.logging.Logging;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
+import net.skykingdoms.api.protocol.logging.Logging;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
-import org.bukkit.event.player.PlayerLoginEvent;
-import org.jetbrains.annotations.NotNull;
-
-import java.lang.reflect.Method;
 
 public final class SecurityHandshakeListener implements Listener {
 

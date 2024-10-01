@@ -1,7 +1,7 @@
 package net.skykingdoms.backend.votifier.net;
 
-import net.skykingdoms.backend.votifier.util.TokenUtil;
 import io.netty.util.AttributeKey;
+import net.skykingdoms.backend.votifier.util.TokenUtil;
 
 public class VotifierSession {
     public static final AttributeKey<VotifierSession> KEY = AttributeKey.valueOf("votifier_session");

@@ -1,15 +1,15 @@
 package net.skykingdoms.backend.bukkit.startup;
 
 import lombok.val;
-import net.skykingdoms.backend.base.util.config.Configuration;
-import net.skykingdoms.backend.base.util.config.ConfigurationProvider;
-import net.skykingdoms.backend.base.util.config.YamlConfiguration;
+import net.skykingdoms.api.backend.util.config.Configuration;
+import net.skykingdoms.api.backend.util.config.ConfigurationProvider;
+import net.skykingdoms.api.backend.util.config.YamlConfiguration;
+import net.skykingdoms.api.protocol.logging.Logging;
+import net.skykingdoms.api.protocol.server.GameType;
+import net.skykingdoms.api.protocol.server.ServerScaleType;
+import net.skykingdoms.api.protocol.type.GameMode;
 import net.skykingdoms.backend.bukkit.startup.core.BukkitAgent;
 import net.skykingdoms.backend.bukkit.startup.core.JavaVersion;
-import net.skykingdoms.backend.protocol.logging.Logging;
-import net.skykingdoms.backend.api.protocol.type.GameMode;
-import net.skykingdoms.backend.api.protocol.server.GameType;
-import net.skykingdoms.backend.api.protocol.server.ServerScaleType;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;

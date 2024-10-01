@@ -2,16 +2,15 @@ package net.skykingdoms.backend.megamind.command;
 
 import lombok.NonNull;
 import lombok.val;
-import net.skykingdoms.backend.base.command.NamedCommand;
-import net.skykingdoms.backend.base.command.condition.WithCondition;
-import net.skykingdoms.backend.base.command.exception.CommandMessageException;
+import net.skykingdoms.api.backend.command.NamedCommand;
+import net.skykingdoms.api.backend.command.condition.WithCondition;
+import net.skykingdoms.api.backend.command.exception.CommandMessageException;
+import net.skykingdoms.api.backend.command.execution.Executor;
+import net.skykingdoms.api.backend.command.tabcomplete.Tabcomplete;
 import net.skykingdoms.backend.base.command.exception.CommandTranslationException;
-import net.skykingdoms.backend.base.command.execution.Executor;
-import net.skykingdoms.backend.base.command.tabcomplete.Tabcomplete;
 import net.skykingdoms.backend.base.util.Patterns;
 import net.skykingdoms.backend.megamind.api.command.CoreExecutionSession;
 import net.skykingdoms.backend.megamind.data.gamer.Gamer;
-import net.skykingdoms.backend.api.protocol.type.PropertyType;
 
 /**
  * @author Vihara
@@ -50,7 +49,7 @@ public final class SetPropertyCommand {
             throw new CommandMessageException("Вы указали неверное значение");
         }
 
-        val key = PropertyType.valueOf(session.getArgument(1), null);
+        val key = session.getArgument(1);
         if (key == null) {
             throw new CommandTranslationException("command_setproperty_invalidproperty");
         }
@@ -83,7 +82,7 @@ public final class SetPropertyCommand {
             }
 
             @Override
-            public void apply(@NonNull Gamer gamer, @NonNull PropertyType key, int value) {
+            public void apply(@NonNull Gamer gamer, @NonNull String key, int value) {
                 gamer.addProperty(key, value);
             }
         },
@@ -104,7 +103,7 @@ public final class SetPropertyCommand {
             }
 
             @Override
-            public void apply(@NonNull Gamer gamer, @NonNull PropertyType key, int value) {
+            public void apply(@NonNull Gamer gamer, @NonNull String key, int value) {
                 gamer.addProperty(key, -value);
             }
         },
@@ -119,14 +118,14 @@ public final class SetPropertyCommand {
             }
 
             @Override
-            public void apply(@NonNull Gamer gamer, @NonNull PropertyType key, int value) {
+            public void apply(@NonNull Gamer gamer, @NonNull String key, int value) {
                 gamer.setProperty(key, value);
             }
         };
 
         public abstract int processArgument(@NonNull String argument) throws IllegalArgumentException;
 
-        public abstract void apply(@NonNull Gamer gamer, @NonNull PropertyType key, int value);
+        public abstract void apply(@NonNull Gamer gamer, @NonNull String key, int value);
 
     }
 }

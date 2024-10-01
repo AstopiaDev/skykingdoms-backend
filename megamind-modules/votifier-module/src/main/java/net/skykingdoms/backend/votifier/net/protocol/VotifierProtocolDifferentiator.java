@@ -1,13 +1,13 @@
 package net.skykingdoms.backend.votifier.net.protocol;
 
-import net.skykingdoms.backend.votifier.net.VotifierSession;
-import net.skykingdoms.backend.votifier.util.QuietException;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
+import net.skykingdoms.backend.votifier.net.VotifierSession;
+import net.skykingdoms.backend.votifier.util.QuietException;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;

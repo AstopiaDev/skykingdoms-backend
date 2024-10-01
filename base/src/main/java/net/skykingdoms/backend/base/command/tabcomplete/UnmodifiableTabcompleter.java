@@ -2,7 +2,7 @@ package net.skykingdoms.backend.base.command.tabcomplete;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.skykingdoms.backend.base.gamer.ICommandSender;
+import net.skykingdoms.api.backend.gamer.ICommandSender;
 
 import java.util.List;
 

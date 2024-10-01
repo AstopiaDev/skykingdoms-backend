@@ -5,7 +5,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
 import lombok.val;
-import net.skykingdoms.backend.protocol.logging.Logging;
+import net.skykingdoms.api.protocol.logging.Logging;
 
 import java.security.SecureRandom;
 

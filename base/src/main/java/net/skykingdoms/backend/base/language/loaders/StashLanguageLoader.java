@@ -2,9 +2,9 @@ package net.skykingdoms.backend.base.language.loaders;
 
 import lombok.SneakyThrows;
 import lombok.val;
+import net.skykingdoms.api.protocol.logging.Logging;
 import net.skykingdoms.backend.base.language.Language;
 import net.skykingdoms.backend.base.language.parser.I18nParserController;
-import net.skykingdoms.backend.protocol.logging.Logging;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

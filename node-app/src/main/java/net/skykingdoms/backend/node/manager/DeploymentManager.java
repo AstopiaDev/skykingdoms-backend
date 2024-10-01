@@ -2,7 +2,9 @@ package net.skykingdoms.backend.node.manager;
 
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.async.ResultCallback;
-import com.github.dockerjava.api.model.*;
+import com.github.dockerjava.api.model.Frame;
+import com.github.dockerjava.api.model.HostConfig;
+import com.github.dockerjava.api.model.PortBinding;
 import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientConfig;
 import com.github.dockerjava.core.DockerClientImpl;
@@ -11,22 +13,27 @@ import com.github.dockerjava.transport.DockerHttpClient;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
+import net.skykingdoms.api.protocol.logging.Logging;
+import net.skykingdoms.api.protocol.type.DeploymentVersion;
 import net.skykingdoms.backend.node.NodeApp;
-import net.skykingdoms.backend.node.docker.DockerImageRegistry;
+import net.skykingdoms.backend.node.config.BaseNodeConfiguration;
 import net.skykingdoms.backend.node.deploy.IInstanceDeployment;
 import net.skykingdoms.backend.node.deploy.impl.BukkitInstanceDeployment;
 import net.skykingdoms.backend.node.deploy.impl.ProxyInstanceDeployment;
-import net.skykingdoms.backend.protocol.logging.Logging;
+import net.skykingdoms.backend.node.docker.DockerImageRegistry;
 import net.skykingdoms.backend.protocol.packet.ChannelProcessorContext;
 import net.skykingdoms.backend.protocol.packet.play.ServerDeploy;
 import net.skykingdoms.backend.protocol.packet.play.ServerDestroy;
-import net.skykingdoms.backend.api.protocol.type.GameMode;
 import net.skykingdoms.backend.protocol.server.deploy.IDeployRequest;
-import net.skykingdoms.backend.api.protocol.type.DeploymentVersion;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.*;
-import java.net.*;
+import java.io.BufferedReader;
+import java.io.Closeable;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.ConnectException;
+import java.net.Socket;
+import java.net.URL;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -53,7 +60,7 @@ public enum DeploymentManager {
      */
 
     DockerClientConfig dockerClientConfig = DefaultDockerClientConfig.createDefaultConfigBuilder()
-            .withDockerHost("npipe:////./pipe/dockerDesktopLinuxEngine")
+            .withDockerHost("unix:///var/run/docker.sock")
             .withDockerTlsVerify(false)
             .withRegistryUsername(System.getProperty("docker.user"))
             .withRegistryPassword(System.getProperty("docker.pass"))
@@ -83,22 +90,21 @@ public enum DeploymentManager {
     public void postBootstrap() {
         Logging.IMP.info("[Deploy/PB] Updating external address ...");
         Logging.IMP.info("[Deploy/PB] External address: {}", getExternalHost());
+        Logging.IMP.info("[Deploy/PB] Loading deployment types ...");
+        this.loadDeployments();
 
-        //Logging.IMP.info("[Deploy/PB] " + client.authCmd().exec().toString());
+        BaseNodeConfiguration config = NodeApp.INSTANCE.nodeConfiguration();
 
         // Removing all containers, because we need only our shit :3
         client.listContainersCmd().withShowAll(true).exec().forEach(container -> {
-            if (container.getState().equals("running")) {
-                String containerName = container.getNames()[0]; // Get the container name
-                if (!containerName.equals("/registry") && !containerName.equals("/node-app") && !containerName.equals("/portainer_agent")
-                && GameMode.valueOf(containerName.substring(1).toUpperCase(), null) == null) {
-                    try {
-                        client.killContainerCmd(container.getId()).exec();
-                        client.removeContainerCmd(container.getId()).exec();
-                        Logging.IMP.info("[Deploy/PB] Removed existent container: {}", container.getId());
-                    } catch (Exception e) {
-                        Logging.IMP.error("[Deploy/PB] Failed to remove container: {}", container.getId(), e);
-                    }
+            String containerName = container.getNames()[0]; // Get the container name
+            if (containerName.startsWith(config.getNetworkType().getPrefix() + "-")) {
+                try {
+                    client.killContainerCmd(container.getId()).exec();
+                    client.removeContainerCmd(container.getId()).exec();
+                    Logging.IMP.info("[Deploy/PB] Removed existent container: {}", container.getId());
+                } catch (Exception e) {
+                    Logging.IMP.error("[Deploy/PB] Failed to remove container: {}", container.getId(), e);
                 }
             }
         });
@@ -112,8 +118,13 @@ public enum DeploymentManager {
             }
 
             for (DeploymentVersion version : DeploymentVersion.VALUES) {
-                client.removeImageCmd(version.image()).withForce(true).exec();
-                client.pullImageCmd(version.image()).start().awaitCompletion();
+                String image = version.image() + "-" + NodeApp.INSTANCE.nodeConfiguration().getNetworkType().getPrefix();
+                try {
+                    client.removeImageCmd(image).withForce(true).exec();
+                } catch (Exception e) {
+                    // do nothing
+                }
+                client.pullImageCmd(image).start().awaitCompletion();
                 Logging.IMP.info("[Deploy/PB] Pulled image: {}", version.name());
             }
 
@@ -154,8 +165,8 @@ public enum DeploymentManager {
         }
 
         final HostConfig hostConfig = HostConfig.newHostConfig()
-                .withPortBindings(portBindings)
-                .withAutoRemove(testFlowId <= 0);
+                .withPortBindings(portBindings);
+                //.withAutoRemove(testFlowId <= 0);
 
         String containerId = deployments.get(deploymentTarget).handle(request, hostConfig, port,
                 testFlow ? testFlowName : null, debugPort, testFlowId);

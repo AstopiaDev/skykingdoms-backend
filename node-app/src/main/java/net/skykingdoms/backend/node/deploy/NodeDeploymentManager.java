@@ -2,7 +2,10 @@ package net.skykingdoms.backend.node.deploy;
 
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.async.ResultCallback;
-import com.github.dockerjava.api.model.*;
+import com.github.dockerjava.api.model.ExposedPort;
+import com.github.dockerjava.api.model.Frame;
+import com.github.dockerjava.api.model.HostConfig;
+import com.github.dockerjava.api.model.PortBinding;
 import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientConfig;
 import com.github.dockerjava.core.DockerClientImpl;
@@ -13,21 +16,26 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.val;
+import net.skykingdoms.api.protocol.logging.Logging;
+import net.skykingdoms.api.protocol.type.DeploymentVersion;
+import net.skykingdoms.api.protocol.util.Consumer;
 import net.skykingdoms.backend.node.NodeApp;
-import net.skykingdoms.backend.protocol.logging.Logging;
+import net.skykingdoms.backend.node.config.BaseNodeConfiguration;
 import net.skykingdoms.backend.protocol.packet.ChannelProcessorContext;
 import net.skykingdoms.backend.protocol.packet.play.ServerDeploy;
 import net.skykingdoms.backend.protocol.packet.play.ServerDestroy;
-import net.skykingdoms.backend.api.protocol.type.GameMode;
 import net.skykingdoms.backend.protocol.server.deploy.IDeployRequest;
 import net.skykingdoms.backend.protocol.server.deploy.impl.BukkitDeployRequest;
 import net.skykingdoms.backend.protocol.server.deploy.impl.ProxyDeployRequest;
-import net.skykingdoms.backend.api.protocol.type.DeploymentVersion;
-import net.skykingdoms.backend.api.protocol.util.Consumer;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.*;
-import java.net.*;
+import java.io.BufferedReader;
+import java.io.Closeable;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.ConnectException;
+import java.net.Socket;
+import java.net.URL;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,7 +52,7 @@ public enum NodeDeploymentManager {
     INSTANCE;
 
     final DockerClientConfig cockerConfig = DefaultDockerClientConfig.createDefaultConfigBuilder()
-            .withDockerHost("npipe:////./pipe/podman-machine-default")
+            .withDockerHost("unix:///var/run/docker.sock")
             .withDockerTlsVerify(false)
             .withRegistryUsername(System.getProperty("docker.user"))
             .withRegistryPassword(System.getProperty("docker.pass"))
@@ -64,7 +72,7 @@ public enum NodeDeploymentManager {
 
     private final List<Integer> reservedPorts = new ArrayList<>();
 
-    private static final String VELOCITY_IMAGE_NAME = "docker.piby.eu/backend/velocity:1.0";
+    private static final String VELOCITY_IMAGE_NAME = "docker.skykingdoms.net/backend/velocity:1.0";
 
     private static String externalHost;
 
@@ -97,47 +105,40 @@ public enum NodeDeploymentManager {
         Logging.IMP.info("[Deploy/PB] Updating external address ...");
         Logging.IMP.info("[Deploy/PB] External address: {}", getExternalHost());
 
+        BaseNodeConfiguration config = NodeApp.INSTANCE.nodeConfiguration();
+
         // Removing all containers, because we need only our shit :3
         client.listContainersCmd().withShowAll(true).exec().forEach(container -> {
-            if (container.getState().equals("running")) {
-                String containerName = container.getNames()[0]; // Get the container name
-                if (!containerName.equals("/registry") && !containerName.equals("/node-app") && !containerName.equals("/portainer_agent")
-                && GameMode.valueOf(containerName.substring(1).toUpperCase(), null) == null) {
-                    try {
-                        client.killContainerCmd(container.getId()).exec();
-                        client.removeContainerCmd(container.getId()).exec();
-                        Logging.IMP.info("[Deploy/PB] Removed existent container: {}", container.getId());
-                    } catch (Exception e) {
-                        Logging.IMP.error("[Deploy/PB] Failed to remove container: {}", container.getId(), e);
-                    }
+            String containerName = container.getNames()[0]; // Get the container name
+            if (containerName.startsWith(config.getNetworkType().getPrefix() + "-")) {
+                try {
+                    client.killContainerCmd(container.getId()).exec();
+                    client.removeContainerCmd(container.getId()).exec();
+                    Logging.IMP.info("[Deploy/PB] Removed existent container: {}", container.getId());
+                } catch (Exception e) {
+                    Logging.IMP.error("[Deploy/PB] Failed to remove container: {}", container.getId(), e);
                 }
             }
         });
 
-
-
         // Cleaning up images, pulling new from repository
         try {
-            client.removeImageCmd(VELOCITY_IMAGE_NAME).withForce(true).exec();
+            client.removeImageCmd(VELOCITY_IMAGE_NAME + "-" + NodeApp.INSTANCE.nodeConfiguration().getNetworkType().getPrefix()).withForce(true).exec();
 
             for (DeploymentVersion version : DeploymentVersion.VALUES) {
-                client.removeImageCmd(version.image()).withForce(true).exec();
+                client.removeImageCmd(version.image() + "-" + NodeApp.INSTANCE.nodeConfiguration().getNetworkType().getPrefix()).withForce(true).exec();
             }
         } catch (Exception e) { // images not found, don't care
         }
 
         Logging.IMP.info("[Deploy/PB] Removed old images... Pulling new shit");
 
-        for (String ye : cockerConfig.getAuthConfigurations().getConfigs().keySet()) {
-            Logging.IMP.info(ye);
-        }
-
         try {
-            client.pullImageCmd(VELOCITY_IMAGE_NAME).start().awaitCompletion();
+            client.pullImageCmd(VELOCITY_IMAGE_NAME + "-" + NodeApp.INSTANCE.nodeConfiguration().getNetworkType().getPrefix()).start().awaitCompletion();
             Logging.IMP.info("[Deploy/PB] Pulled proxy image!");
 
             for (DeploymentVersion version : DeploymentVersion.VALUES) {
-                client.pullImageCmd(version.image()).start().awaitCompletion();
+                client.pullImageCmd(version.image() + "-" + NodeApp.INSTANCE.nodeConfiguration().getNetworkType().getPrefix()).start().awaitCompletion();
                 Logging.IMP.info("[Deploy/PB] Pulled " + version.image() + " image!");
             }
 

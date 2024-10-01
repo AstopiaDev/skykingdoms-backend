@@ -3,9 +3,9 @@ package net.skykingdoms.backend.megamind.manager;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.val;
+import net.skykingdoms.api.protocol.logging.Logging;
+import net.skykingdoms.api.protocol.server.GameType;
 import net.skykingdoms.backend.megamind.MegamindApp;
-import net.skykingdoms.backend.protocol.logging.Logging;
-import net.skykingdoms.backend.api.protocol.server.GameType;
 
 import java.io.File;
 import java.io.FileOutputStream;

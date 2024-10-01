@@ -1,12 +1,11 @@
 package net.skykingdoms.backend.velocity.security;
 
-import com.velocitypowered.api.proxy.InboundConnection;
 import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.experimental.FieldDefaults;
 import lombok.val;
+import net.skykingdoms.api.protocol.logging.Logging;
 import net.skykingdoms.backend.base.data.security.AbstractHandshakeSecurityManager;
-import net.skykingdoms.backend.protocol.logging.Logging;
 import net.skykingdoms.backend.velocity.VelocityConnector;
 import net.skykingdoms.backend.velocity.security.impl.SpoofedLoginResult;
 

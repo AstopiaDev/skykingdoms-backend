@@ -1,10 +1,10 @@
 package net.skykingdoms.backend.votifier.support.forwarding.proxy.client;
 
-import net.skykingdoms.backend.votifier.model.Vote;
-import net.skykingdoms.backend.votifier.platform.VotifierPlugin;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.CorruptedFrameException;
+import net.skykingdoms.backend.votifier.model.Vote;
+import net.skykingdoms.backend.votifier.platform.VotifierPlugin;
 
 public class VotifierProtocol2HandshakeHandler extends SimpleChannelInboundHandler<String> {
     private final Vote toSend;

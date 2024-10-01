@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import lombok.experimental.FieldDefaults;
-import net.skykingdoms.backend.api.megamind.event.Event;
+import net.skykingdoms.api.megamind.event.Event;
 import net.skykingdoms.backend.megamind.data.gamer.Gamer;
 
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)

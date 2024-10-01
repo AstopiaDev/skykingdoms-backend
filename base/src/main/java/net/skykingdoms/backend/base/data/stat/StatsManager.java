@@ -2,11 +2,11 @@ package net.skykingdoms.backend.base.data.stat;
 
 import lombok.Getter;
 import lombok.NonNull;
+import net.skykingdoms.api.protocol.server.GameType;
+import net.skykingdoms.api.protocol.type.GameMode;
 import net.skykingdoms.backend.base.util.time.Duration;
 import net.skykingdoms.backend.base.util.time.DurationField;
 import net.skykingdoms.backend.base.util.time.DurationFormatter;
-import net.skykingdoms.backend.api.protocol.type.GameMode;
-import net.skykingdoms.backend.api.protocol.server.GameType;
 
 import java.util.Collection;
 import java.util.Map;

@@ -1,7 +1,8 @@
 package net.skykingdoms.backend.base.command.condition;
 
-import net.skykingdoms.backend.base.command.CommandExecutor;
-import net.skykingdoms.backend.base.command.execution.ExecutionSession;
+import net.skykingdoms.api.backend.command.CommandExecutor;
+import net.skykingdoms.api.backend.command.condition.ConditionProvider;
+import net.skykingdoms.api.backend.command.execution.IExecutionSession;
 import net.skykingdoms.backend.base.util.metafactory.MetafactoryBuilder;
 
 import java.lang.reflect.Method;
@@ -51,12 +52,12 @@ public final class CommandConditionManager {
     }
 
     @Deprecated
-    public <T extends ExecutionSession> void addCondition(int priority, String name, CommandExecutor<T> sessionChecker) {
+    public <T extends IExecutionSession> void addCondition(int priority, String name, CommandExecutor<T> sessionChecker) {
         addCondition(priority, name, false, sessionChecker.unchecked());
     }
 
     @Deprecated
-    public <T extends ExecutionSession> void addCondition(int priority, String name, boolean b, CommandExecutor<T> sessionChecker) {
+    public <T extends IExecutionSession> void addCondition(int priority, String name, boolean b, CommandExecutor<T> sessionChecker) {
         WrappedCommandCondition commandCondition = new WrappedCommandCondition(priority, name, b, (session, args) -> sessionChecker.execute((T) session));
 
         synchronized (BY_NAME) {

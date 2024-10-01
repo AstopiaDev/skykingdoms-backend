@@ -4,12 +4,12 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.FieldDefaults;
+import net.skykingdoms.api.protocol.server.GameType;
+import net.skykingdoms.api.protocol.server.ServerScaleType;
+import net.skykingdoms.api.protocol.type.GameMode;
 import net.skykingdoms.backend.megamind.connection.RemoteClientConnection;
 import net.skykingdoms.backend.megamind.server.AbstractScalable;
-import net.skykingdoms.backend.api.protocol.type.GameMode;
-import net.skykingdoms.backend.api.protocol.server.GameType;
 import net.skykingdoms.backend.protocol.server.INodeServer;
-import net.skykingdoms.backend.api.protocol.server.ServerScaleType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

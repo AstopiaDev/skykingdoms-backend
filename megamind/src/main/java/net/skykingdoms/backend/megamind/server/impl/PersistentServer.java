@@ -6,15 +6,16 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
-import net.skykingdoms.backend.api.protocol.server.GameType;
-import net.skykingdoms.backend.api.protocol.server.ServerScaleType;
-import net.skykingdoms.backend.api.protocol.type.GameMode;
-import net.skykingdoms.backend.base.gamer.AbstractGamer;
+import net.skykingdoms.api.protocol.server.GameType;
+import net.skykingdoms.api.protocol.server.ServerScaleType;
+import net.skykingdoms.api.protocol.type.GameMode;
+import net.skykingdoms.backend.base.gamer.CommonGamer;
 import net.skykingdoms.backend.megamind.connection.RemoteClientConnection;
 import net.skykingdoms.backend.megamind.data.gamer.Gamer;
 import net.skykingdoms.backend.megamind.server.AbstractScalable;
 import net.skykingdoms.backend.protocol.channel.AbstractRemoteClientChannel;
-import net.skykingdoms.backend.protocol.server.*;
+import net.skykingdoms.backend.protocol.server.ILinkedServer;
+import net.skykingdoms.backend.protocol.server.INodeServer;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
@@ -77,7 +78,7 @@ public final class PersistentServer extends AbstractScalable implements ILinkedS
 
     @Override
     public int[] getPlayerIds() {
-        return gamers.stream().mapToInt(AbstractGamer::getGamerId).toArray();
+        return gamers.stream().mapToInt(CommonGamer::getGamerId).toArray();
     }
 
     @Override

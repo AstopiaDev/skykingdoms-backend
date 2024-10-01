@@ -1,14 +1,14 @@
 package net.skykingdoms.backend.votifier.net.protocol;
 
 import com.google.gson.JsonObject;
-import net.skykingdoms.backend.votifier.VoteHandler;
-import net.skykingdoms.backend.votifier.model.Vote;
-import net.skykingdoms.backend.votifier.net.VotifierSession;
-import net.skykingdoms.backend.votifier.util.GsonInst;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import net.skykingdoms.backend.votifier.VoteHandler;
+import net.skykingdoms.backend.votifier.model.Vote;
+import net.skykingdoms.backend.votifier.net.VotifierSession;
+import net.skykingdoms.backend.votifier.util.GsonInst;
 
 import java.util.concurrent.atomic.AtomicLong;
 

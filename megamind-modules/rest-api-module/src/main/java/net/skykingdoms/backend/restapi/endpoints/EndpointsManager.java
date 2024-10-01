@@ -1,9 +1,9 @@
 package net.skykingdoms.backend.restapi.endpoints;
 
 import lombok.val;
-import net.skykingdoms.backend.base.util.collection.CollectionUtil;
+import net.skykingdoms.api.backend.util.collection.CollectionUtil;
+import net.skykingdoms.api.protocol.logging.Logging;
 import net.skykingdoms.backend.megamind.MegamindApp;
-import net.skykingdoms.backend.protocol.logging.Logging;
 import net.skykingdoms.backend.restapi.endpoints.impl.*;
 
 import java.nio.charset.StandardCharsets;
@@ -65,13 +65,16 @@ public final class EndpointsManager {
             Logging.IMP.info("[RestAPI] Registered {} {} endpoint {} @ {}",
                     needAuth ? "authorized" : "unauthorized",
                     type, "/api/" + endpointName, Integer.toHexString(processor.hashCode()));
-
             if (type == RequestType.GET) {
                 get("/api/" + endpointName, processor);
             } else {
                 post("/api/" + endpointName, processor);
             }
         }
+    }
+
+    public void shutdown() {
+        endpoints.clear();
     }
 
     private void registerEndpoints() {

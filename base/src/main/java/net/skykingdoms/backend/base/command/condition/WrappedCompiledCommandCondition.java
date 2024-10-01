@@ -4,7 +4,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.FieldDefaults;
-import net.skykingdoms.backend.base.command.CommandExecutor;
+import net.skykingdoms.api.backend.command.CommandExecutor;
 import net.skykingdoms.backend.base.command.execution.ExecutionSession;
 
 /**

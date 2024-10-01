@@ -1,19 +1,18 @@
 package net.skykingdoms.backend.megamind.command;
 
 import lombok.val;
-import net.skykingdoms.backend.base.command.NamedCommand;
-import net.skykingdoms.backend.base.command.condition.WithCondition;
-import net.skykingdoms.backend.base.command.execution.Executor;
+import net.skykingdoms.api.backend.command.NamedCommand;
+import net.skykingdoms.api.backend.command.condition.WithCondition;
+import net.skykingdoms.api.backend.command.execution.Executor;
+import net.skykingdoms.api.backend.util.config.Configuration;
+import net.skykingdoms.api.backend.util.config.ConfigurationProvider;
+import net.skykingdoms.api.backend.util.config.YamlConfiguration;
+import net.skykingdoms.api.protocol.logging.Logging;
 import net.skykingdoms.backend.base.data.tags.SeasonObtained;
 import net.skykingdoms.backend.base.data.tags.TagsSqlHandler;
 import net.skykingdoms.backend.base.data.tags.YearObtained;
 import net.skykingdoms.backend.base.util.color.ChatColor;
-import net.skykingdoms.backend.base.util.config.Configuration;
-import net.skykingdoms.backend.base.util.config.ConfigurationProvider;
-import net.skykingdoms.backend.base.util.config.YamlConfiguration;
-import net.skykingdoms.backend.megamind.MegamindApp;
 import net.skykingdoms.backend.megamind.api.command.CoreExecutionSession;
-import net.skykingdoms.backend.protocol.logging.Logging;
 
 import java.io.File;
 import java.util.List;

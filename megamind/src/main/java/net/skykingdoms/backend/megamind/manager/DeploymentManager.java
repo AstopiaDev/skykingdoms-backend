@@ -3,34 +3,36 @@ package net.skykingdoms.backend.megamind.manager;
 import com.google.common.collect.Streams;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import net.skykingdoms.backend.api.protocol.server.GameState;
-import net.skykingdoms.backend.api.protocol.server.GameType;
-import net.skykingdoms.backend.api.protocol.server.ServerScaleType;
-import net.skykingdoms.backend.api.protocol.type.GameMode;
-import net.skykingdoms.backend.base.command.dependency.Dependency;
+import net.skykingdoms.api.backend.util.collection.CollectionUtil;
+import net.skykingdoms.api.protocol.logging.Logging;
+import net.skykingdoms.api.protocol.server.GameState;
+import net.skykingdoms.api.protocol.server.GameType;
+import net.skykingdoms.api.protocol.server.ServerScaleType;
+import net.skykingdoms.api.protocol.server.impl.ScalableDataImpl;
+import net.skykingdoms.api.protocol.type.GameMode;
+import net.skykingdoms.api.protocol.type.RemoteConnectedType;
+import net.skykingdoms.api.protocol.util.TextFormat;
 import net.skykingdoms.backend.base.data.network.PersistentServerMeta;
-import net.skykingdoms.backend.base.util.collection.CollectionUtil;
+import net.skykingdoms.backend.base.dependency.Dependency;
 import net.skykingdoms.backend.megamind.MegamindApp;
 import net.skykingdoms.backend.megamind.connection.RemoteClientConnection;
 import net.skykingdoms.backend.megamind.event.network.ProxyDeployEvent;
 import net.skykingdoms.backend.megamind.manager.deployment.DeploymentResponse;
 import net.skykingdoms.backend.megamind.server.impl.*;
-import net.skykingdoms.backend.protocol.logging.Logging;
 import net.skykingdoms.backend.protocol.packet.ChannelProcessorContext;
 import net.skykingdoms.backend.protocol.packet.handshake.Handshake;
 import net.skykingdoms.backend.protocol.packet.play.*;
-import net.skykingdoms.backend.protocol.server.*;
+import net.skykingdoms.backend.protocol.server.IConnectable;
+import net.skykingdoms.backend.protocol.server.IDeployable;
+import net.skykingdoms.backend.protocol.server.ServerConnectionInfo;
 import net.skykingdoms.backend.protocol.server.deploy.IDeployRequest;
 import net.skykingdoms.backend.protocol.server.deploy.impl.BukkitDeployRequest;
 import net.skykingdoms.backend.protocol.server.deploy.impl.PersistentBukkitDeployRequest;
 import net.skykingdoms.backend.protocol.server.deploy.impl.ProxyDeployRequest;
-import net.skykingdoms.backend.api.protocol.server.impl.ScalableDataImpl;
-import net.skykingdoms.backend.api.protocol.type.RemoteConnectedType;
 import net.skykingdoms.backend.protocol.type.reconnect.impl.FluentBukkitDataImpl;
 import net.skykingdoms.backend.protocol.type.reconnect.impl.FluentNodeDataImpl;
 import net.skykingdoms.backend.protocol.type.reconnect.impl.FluentProxyDataImpl;
 import net.skykingdoms.backend.protocol.type.reconnect.impl.FluentServiceDataImpl;
-import net.skykingdoms.backend.api.protocol.util.TextFormat;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -768,17 +770,21 @@ public final class DeploymentManager {
     }
 
     private @NotNull String bakeProxyName() {
+        val networkType = MegamindApp.INSTANCE.networkType();
+
         for (int i = 1; ; i++) {
-            val proxyName = PROXY_NAME_PATTERN.replace("$", String.valueOf(i));
+            val proxyName = networkType.getPrefix() + "-" + PROXY_NAME_PATTERN.replace("$", String.valueOf(i));
             if (_reserved.contains(proxyName)) continue;
             if (ProxyManager.INSTANCE.getProxy(proxyName) == null) return proxyName;
         }
     }
 
     private @NotNull String bakeLobbyName(final @NonNull GameType gameType) {
+        val networkType = MegamindApp.INSTANCE.networkType();
         val namePattern = gameType.name().toLowerCase() + "lobby$";
+
         for (var i = 1; ; i++) {
-            val lobbyName = namePattern.replace("$", String.valueOf(i));
+            val lobbyName = networkType.getPrefix() + "-" +  namePattern.replace("$", String.valueOf(i));
 
             if (_reserved.contains(lobbyName)) continue;
 
@@ -787,11 +793,13 @@ public final class DeploymentManager {
     }
 
     private @NotNull String bakeBukkitName(final @NonNull ServerScaleType scaleType) {
+        val networkType = MegamindApp.INSTANCE.networkType();
+
         if (scaleType == ServerScaleType.LOBBY) {
             val namePattern = "dynamiclobby#$";
             char maxDynamicChar = 'D';
             for (var i = 1; ; i++) {
-                var dynamicLobbyName = namePattern.replace("#", String.valueOf(i));
+                var dynamicLobbyName = networkType.getPrefix() + "-" + namePattern.replace("#", String.valueOf(i));
                 for (var c = 'A'; c < maxDynamicChar; c++) {
                     dynamicLobbyName = dynamicLobbyName.replace('$', c);
                     if (ServerManager.INSTANCE.getBukkitServer(dynamicLobbyName) == null) {
@@ -802,7 +810,7 @@ public final class DeploymentManager {
         }
 
         if (scaleType == ServerScaleType.UNDEFINED) {
-            return "dynamicinstance" + ThreadLocalRandom.current().nextInt(0, 100) + ('A' + ThreadLocalRandom.current().nextInt(0, 25));
+            return networkType.getPrefix() + "-" + "dynamicinstance" + ThreadLocalRandom.current().nextInt(0, 100) + ('A' + ThreadLocalRandom.current().nextInt(0, 25));
         }
 
         if (scaleType == ServerScaleType.MEGA || scaleType == ServerScaleType.MINI) {
@@ -814,7 +822,7 @@ public final class DeploymentManager {
                 i++;
             } while (ServerManager.INSTANCE.isBukkitServerRegistered(ret) || _reserved.contains(ret));
 
-            return ret;
+            return networkType.getPrefix() + "-" + ret;
         }
 
         if (scaleType == ServerScaleType.PERSISTENT) {
@@ -826,7 +834,7 @@ public final class DeploymentManager {
                 i++;
             } while (ServerManager.INSTANCE.isBukkitServerRegistered(ret) || _reserved.contains(ret));
 
-            return ret;
+            return networkType.getPrefix() + "-" + ret;
         }
 
         return "undefined";

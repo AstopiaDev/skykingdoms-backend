@@ -3,15 +3,14 @@ package net.skykingdoms.backend.megamind.matchmaking;
 import com.google.common.collect.Lists;
 import lombok.NonNull;
 import lombok.val;
+import net.skykingdoms.api.protocol.logging.Logging;
+import net.skykingdoms.api.protocol.server.GameState;
 import net.skykingdoms.backend.base.data.stat.StatisticPeriod;
 import net.skykingdoms.backend.base.util.optionals.Optional;
 import net.skykingdoms.backend.megamind.MegamindApp;
 import net.skykingdoms.backend.megamind.data.gamer.Gamer;
 import net.skykingdoms.backend.megamind.manager.ServerManager;
 import net.skykingdoms.backend.megamind.server.impl.GameServer;
-import net.skykingdoms.backend.protocol.logging.Logging;
-import net.skykingdoms.backend.api.protocol.server.GameState;
-import net.skykingdoms.backend.api.protocol.type.PropertyType;
 
 import java.util.Calendar;
 import java.util.Map;
@@ -64,13 +63,13 @@ public final class MatchmakingManager {
      * Experimental, actually :nerd:
      */
     public net.skykingdoms.backend.base.util.optionals.Optional<GameServer> getOptimalServer(final @NonNull Gamer gamer) {
-        val rating = gamer.getProperty(PropertyType.ACHIEVEMENT_POINTS);
+        val rating = gamer.getPropertyOrDefault("achievement_points", 0);
 
         // GameServer -> Average rating
         Map<GameServer, Integer> rankedServers = ServerManager.INSTANCE.getGameServers().stream()
                 /*.filter(gameServer -> gameServer.getGameMode() == GameMode.SURVIVAL_MODERN)*/
                 .collect(Collectors.toMap(gameServer -> gameServer, gameServer -> {
-                    val overall = gameServer.getGamers().stream().mapToInt(iGamer -> iGamer.getProperty(PropertyType.ACHIEVEMENT_POINTS)).sum();
+                    val overall = gameServer.getGamers().stream().mapToInt(iGamer -> iGamer.getProperty("achievement_points")).sum();
                     return overall / Math.max(1, gameServer.getGamers().size()); // avg
         }));
 

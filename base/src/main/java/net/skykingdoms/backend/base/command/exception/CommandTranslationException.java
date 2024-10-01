@@ -1,9 +1,11 @@
 package net.skykingdoms.backend.base.command.exception;
 
 import lombok.NonNull;
-import net.skykingdoms.backend.base.command.execution.ExecutionSession;
-import net.skykingdoms.backend.base.gamer.AbstractGamer;
-import net.skykingdoms.backend.base.gamer.ICommandSender;
+import net.skykingdoms.api.backend.command.exception.CommandMessageException;
+import net.skykingdoms.api.backend.command.execution.IExecutionSession;
+import net.skykingdoms.api.backend.gamer.ICommandSender;
+import net.skykingdoms.api.backend.language.ILanguage;
+import net.skykingdoms.backend.base.gamer.CommonGamer;
 import net.skykingdoms.backend.base.language.Language;
 import net.skykingdoms.backend.base.util.string.ObjectLinkedBuf;
 
@@ -35,12 +37,12 @@ public class CommandTranslationException extends CommandMessageException {
     }
 
     @Override
-    public void printMessages(final @NonNull ExecutionSession session) {
+    public void printMessages(final @NonNull IExecutionSession session) {
         printMessages(session.getSender());
     }
 
     public void printMessages(ICommandSender sender) {
-        sender.sendLocalizedMessage(!sender.isConsole() && ((AbstractGamer) sender).isModern(), getMessage(!sender.isConsole() && ((AbstractGamer) sender).isModern(), sender.getLanguage()));
+        sender.sendLocalizedMessage(!sender.isConsole() && ((CommonGamer) sender).isModern(), getMessage(!sender.isConsole() && ((CommonGamer) sender).isModern(), sender.getLanguage()));
     }
 
     @Override
@@ -48,7 +50,7 @@ public class CommandTranslationException extends CommandMessageException {
         return getMessage(false, Language.DEFAULT);
     }
 
-    public String getMessage(boolean modern, Language language) {
+    public String getMessage(boolean modern, ILanguage language) {
         StringBuilder builder = new StringBuilder();
         boolean appendNewLine = false;
 

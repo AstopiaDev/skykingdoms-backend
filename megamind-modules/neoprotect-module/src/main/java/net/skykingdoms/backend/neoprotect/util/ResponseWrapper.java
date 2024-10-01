@@ -7,7 +7,7 @@ import com.squareup.okhttp.Response;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.val;
-import net.skykingdoms.backend.protocol.logging.Logging;
+import net.skykingdoms.api.protocol.logging.Logging;
 
 import java.io.IOException;
 import java.net.SocketTimeoutException;

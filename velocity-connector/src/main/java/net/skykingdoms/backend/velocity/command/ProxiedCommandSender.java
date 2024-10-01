@@ -4,7 +4,7 @@ import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.proxy.Player;
 import lombok.NonNull;
 import net.kyori.adventure.text.Component;
-import net.skykingdoms.backend.base.gamer.ICommandSender;
+import net.skykingdoms.api.backend.gamer.ICommandSender;
 import net.skykingdoms.backend.velocity.VelocityConnector;
 import org.jetbrains.annotations.NotNull;
 

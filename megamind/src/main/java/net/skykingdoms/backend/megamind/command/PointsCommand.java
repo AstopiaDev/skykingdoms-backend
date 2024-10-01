@@ -1,12 +1,12 @@
 /*
 package net.skykingdoms.backend.megamind.command;
 
-import net.skykingdoms.backend.base.command.NamedCommand;
-import net.skykingdoms.backend.base.command.WithAlias;
-import net.skykingdoms.backend.base.command.WithMultipleAliases;
-import net.skykingdoms.backend.base.command.condition.WithCondition;
-import net.skykingdoms.backend.base.command.exception.CommandTranslationException;
-import net.skykingdoms.backend.base.command.execution.SubcommandExecutor;
+import net.skykingdoms.api.backend.command.NamedCommand;
+import net.skykingdoms.api.backend.command.WithAlias;
+import net.skykingdoms.api.backend.command.WithMultipleAliases;
+import net.skykingdoms.api.backend.command.condition.WithCondition;
+import net.skykingdoms.api.backend.command.exception.CommandTranslationException;
+import net.skykingdoms.api.backend.command.execution.SubcommandExecutor;
 import net.skykingdoms.backend.base.data.network.NetworkSqlHandler;
 import net.skykingdoms.backend.base.gamer.AbstractGamer;
 import net.skykingdoms.backend.megamind.api.command.CoreExecutionSession;

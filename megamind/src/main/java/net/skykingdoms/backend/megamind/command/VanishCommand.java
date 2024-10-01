@@ -1,16 +1,16 @@
 package net.skykingdoms.backend.megamind.command;
 
-import net.skykingdoms.backend.base.command.NamedCommand;
-import net.skykingdoms.backend.base.command.WithAlias;
-import net.skykingdoms.backend.base.command.condition.WithCondition;
+import net.skykingdoms.api.backend.command.NamedCommand;
+import net.skykingdoms.api.backend.command.WithAlias;
+import net.skykingdoms.api.backend.command.condition.WithCondition;
+import net.skykingdoms.api.backend.command.execution.Executor;
+import net.skykingdoms.api.megamind.event.impl.gamer.PlayerVanishEvent;
+import net.skykingdoms.api.protocol.server.ServerScaleType;
 import net.skykingdoms.backend.base.command.exception.CommandTranslationException;
-import net.skykingdoms.backend.base.command.execution.Executor;
 import net.skykingdoms.backend.megamind.MegamindApp;
 import net.skykingdoms.backend.megamind.api.command.CoreExecutionSession;
 import net.skykingdoms.backend.megamind.data.gamer.Gamer;
-import net.skykingdoms.backend.api.megamind.event.impl.gamer.PlayerVanishEvent;
 import net.skykingdoms.backend.megamind.server.AbstractScalable;
-import net.skykingdoms.backend.api.protocol.server.ServerScaleType;
 
 @WithAlias("v")
 @NamedCommand("vanish")

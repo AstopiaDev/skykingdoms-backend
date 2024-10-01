@@ -7,8 +7,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.val;
-import net.skykingdoms.backend.base.util.color.ChatColor;
-import net.skykingdoms.backend.protocol.logging.Logging;
+import net.skykingdoms.api.protocol.logging.Logging;
 import net.skykingdoms.backend.velocity.gamer.Gamer;
 import net.skykingdoms.backend.velocity.util.ServerUtil;
 

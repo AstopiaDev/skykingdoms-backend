@@ -1,10 +1,10 @@
 package net.skykingdoms.backend.bukkit.security;
 
 import lombok.NonNull;
+import net.skykingdoms.api.protocol.logging.Logging;
 import net.skykingdoms.backend.base.data.security.AbstractHandshakeSecurityManager;
 import net.skykingdoms.backend.bukkit.BukkitConnector;
 import net.skykingdoms.backend.bukkit.security.impl.SecurityHandshakeListener;
-import net.skykingdoms.backend.protocol.logging.Logging;
 
 /**
  * @author Vihara

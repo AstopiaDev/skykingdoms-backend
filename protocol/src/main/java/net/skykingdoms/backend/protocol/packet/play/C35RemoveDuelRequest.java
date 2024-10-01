@@ -6,7 +6,6 @@ import lombok.experimental.FieldDefaults;
 import net.skykingdoms.backend.protocol.packet.ChannelProcessorContext;
 import net.skykingdoms.backend.protocol.packet.Packet;
 import net.skykingdoms.backend.protocol.packet.PacketProcessor;
-import net.skykingdoms.backend.protocol.packet.PacketUtils;
 import net.skykingdoms.backend.protocol.packet.play.processor.PlayClientProcessor;
 import org.jetbrains.annotations.NotNull;
 

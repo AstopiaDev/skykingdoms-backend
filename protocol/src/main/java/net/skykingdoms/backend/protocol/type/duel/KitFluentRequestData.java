@@ -1,7 +1,9 @@
 package net.skykingdoms.backend.protocol.type.duel;
 
 import io.netty.buffer.ByteBuf;
-import lombok.*;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.skykingdoms.backend.protocol.packet.PacketUtils;
 

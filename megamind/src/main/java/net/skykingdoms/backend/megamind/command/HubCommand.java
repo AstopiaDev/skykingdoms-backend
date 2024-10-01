@@ -1,16 +1,16 @@
 package net.skykingdoms.backend.megamind.command;
 
 import lombok.val;
-import net.skykingdoms.backend.base.command.NamedCommand;
-import net.skykingdoms.backend.base.command.WithAlias;
-import net.skykingdoms.backend.base.command.exception.CommandMessageException;
+import net.skykingdoms.api.backend.command.NamedCommand;
+import net.skykingdoms.api.backend.command.WithAlias;
+import net.skykingdoms.api.backend.command.exception.CommandMessageException;
+import net.skykingdoms.api.backend.command.execution.Executor;
+import net.skykingdoms.api.protocol.server.GameType;
+import net.skykingdoms.api.protocol.server.ServerScaleType;
 import net.skykingdoms.backend.base.command.exception.CommandTranslationException;
-import net.skykingdoms.backend.base.command.execution.Executor;
 import net.skykingdoms.backend.megamind.api.command.CoreExecutionSession;
 import net.skykingdoms.backend.megamind.manager.ServerManager;
 import net.skykingdoms.backend.megamind.server.AbstractScalable;
-import net.skykingdoms.backend.api.protocol.server.GameType;
-import net.skykingdoms.backend.api.protocol.server.ServerScaleType;
 
 /**
  * @author Vihara 

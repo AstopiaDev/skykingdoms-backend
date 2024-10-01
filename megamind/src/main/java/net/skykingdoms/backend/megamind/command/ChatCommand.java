@@ -1,14 +1,13 @@
 package net.skykingdoms.backend.megamind.command;
 
-import net.skykingdoms.backend.base.command.NamedCommand;
-import net.skykingdoms.backend.base.command.RelayExecutor;
-import net.skykingdoms.backend.base.command.RelayExecutorAlias;
-import net.skykingdoms.backend.base.command.WithAlias;
-import net.skykingdoms.backend.base.command.condition.WithCondition;
-import net.skykingdoms.backend.base.command.execution.SubcommandExecutor;
+import net.skykingdoms.api.backend.command.NamedCommand;
+import net.skykingdoms.api.backend.command.RelayExecutor;
+import net.skykingdoms.api.backend.command.RelayExecutorAlias;
+import net.skykingdoms.api.backend.command.WithAlias;
+import net.skykingdoms.api.backend.command.condition.WithCondition;
+import net.skykingdoms.api.backend.command.execution.SubcommandExecutor;
 import net.skykingdoms.backend.megamind.api.command.CoreExecutionSession;
 import net.skykingdoms.backend.megamind.data.gamer.Gamer;
-import net.skykingdoms.backend.api.protocol.type.PropertyType;
 
 @NamedCommand("chat")
 public class ChatCommand {
@@ -22,11 +21,11 @@ public class ChatCommand {
     @WithCondition("disableConsole")
     public static void executeParty(CoreExecutionSession session) {
         Gamer gamer = session.getGamer();
-        if (gamer.getProperty(PropertyType.CHAT_MODE) == 1) {
-            gamer.setProperty(PropertyType.CHAT_MODE, 0);
+        if (gamer.getPropertyOrDefault("chat_mode", 0) == 1) {
+            gamer.setProperty("chat_mode", 0);
             session.sendMessage("§7Party chat disabled");
         } else {
-            gamer.setProperty(PropertyType.CHAT_MODE, 1);
+            gamer.setProperty("chat_mode", 1);
             session.sendMessage("§7Party chat enabled");
         }
     }
@@ -41,11 +40,11 @@ public class ChatCommand {
     @WithCondition("disableConsole")
     public static void executeStaff(CoreExecutionSession session) {
         Gamer gamer = session.getGamer();
-        if (gamer.getProperty(PropertyType.CHAT_MODE) == 2) {
-            gamer.setProperty(PropertyType.CHAT_MODE, 0);
+        if (gamer.getPropertyOrDefault("chat_mode", 0) == 2) {
+            gamer.setProperty("chat_mode", 0);
             session.sendMessage("§7Staff chat disabled");
         } else {
-            gamer.setProperty(PropertyType.CHAT_MODE, 2);
+            gamer.setProperty("chat_mode", 2);
             session.sendMessage("§7Staff chat enabled");
         }
     }

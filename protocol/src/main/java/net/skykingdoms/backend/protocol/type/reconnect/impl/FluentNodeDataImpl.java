@@ -3,8 +3,8 @@ package net.skykingdoms.backend.protocol.type.reconnect.impl;
 import io.netty.buffer.ByteBuf;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import net.skykingdoms.api.protocol.server.ServerScaleType;
 import net.skykingdoms.backend.protocol.packet.PacketUtils;
-import net.skykingdoms.backend.api.protocol.server.ServerScaleType;
 import net.skykingdoms.backend.protocol.type.reconnect.FluentData;
 
 

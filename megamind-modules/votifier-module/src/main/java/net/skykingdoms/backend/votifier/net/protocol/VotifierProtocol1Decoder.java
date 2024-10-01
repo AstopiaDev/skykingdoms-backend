@@ -1,14 +1,14 @@
 package net.skykingdoms.backend.votifier.net.protocol;
 
-import net.skykingdoms.backend.votifier.platform.VotifierPlugin;
-import net.skykingdoms.backend.votifier.model.Vote;
-import net.skykingdoms.backend.votifier.net.protocol.v1crypto.RSA;
-import net.skykingdoms.backend.votifier.util.QuietException;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.CorruptedFrameException;
+import net.skykingdoms.backend.votifier.model.Vote;
+import net.skykingdoms.backend.votifier.net.protocol.v1crypto.RSA;
+import net.skykingdoms.backend.votifier.platform.VotifierPlugin;
+import net.skykingdoms.backend.votifier.util.QuietException;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;

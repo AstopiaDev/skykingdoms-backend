@@ -3,13 +3,13 @@ package net.skykingdoms.minimind.command;
 import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.experimental.FieldDefaults;
+import net.skykingdoms.api.backend.command.ICommand;
+import net.skykingdoms.api.backend.gamer.ICommandSender;
+import net.skykingdoms.api.backend.gamer.IGamer;
 import net.skykingdoms.backend.base.command.CommandManager;
-import net.skykingdoms.backend.base.command.ICommand;
 import net.skykingdoms.backend.base.command.execution.ExecutionSession;
 import net.skykingdoms.backend.base.command.execution.WrappedCommandExecutor;
-import net.skykingdoms.backend.base.gamer.AbstractGamer;
-import net.skykingdoms.backend.base.gamer.ICommandSender;
-import net.skykingdoms.backend.base.gamer.IGamer;
+import net.skykingdoms.backend.base.gamer.CommonGamer;
 import net.skykingdoms.minimind.Minimind;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,6 +33,6 @@ public abstract class MinimindCommandManager extends CommandManager {
 
     @Override
     public ExecutionSession newCommandSession(@NonNull WrappedCommandExecutor executor, @NonNull ICommandSender sender, @NonNull IGamer gamer, @NotNull @NonNull String[] args) {
-        return new MinimindExecutionSession(executor, (CommandSender) sender, gamer == null ? null : (AbstractGamer) gamer, args);
+        return new MinimindExecutionSession(executor, (CommandSender) sender, gamer == null ? null : (CommonGamer) gamer, args);
     }
 }

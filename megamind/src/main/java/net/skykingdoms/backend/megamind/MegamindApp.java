@@ -5,23 +5,27 @@ import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
-import net.skykingdoms.backend.api.megamind.MegamindAPI;
-import net.skykingdoms.backend.api.megamind.gamer.MegamindGamer;
-import net.skykingdoms.backend.base.command.ICommand;
-import net.skykingdoms.backend.base.command.dependency.Dependency;
+import net.skykingdoms.api.backend.command.ICommand;
+import net.skykingdoms.api.backend.gamer.ICommandSender;
+import net.skykingdoms.api.backend.setting.SettingType;
+import net.skykingdoms.api.backend.util.collection.CollectionUtil;
+import net.skykingdoms.api.backend.util.config.Configuration;
+import net.skykingdoms.api.backend.util.config.ConfigurationProvider;
+import net.skykingdoms.api.backend.util.config.YamlConfiguration;
+import net.skykingdoms.api.megamind.MegamindAPI;
+import net.skykingdoms.api.megamind.event.impl.gamer.CommandEvent;
+import net.skykingdoms.api.protocol.logging.Logging;
+import net.skykingdoms.api.protocol.type.GameMode;
+import net.skykingdoms.api.protocol.type.NetworkType;
+import net.skykingdoms.api.protocol.type.RemoteConnectedType;
 import net.skykingdoms.backend.base.command.tabcomplete.AbstractTabcompleter;
 import net.skykingdoms.backend.base.command.tabcomplete.TabcompleteManager;
-import net.skykingdoms.backend.base.data.settings.SettingType;
 import net.skykingdoms.backend.base.data.stat.StatsManager;
 import net.skykingdoms.backend.base.data.state.NetworkState;
-import net.skykingdoms.backend.base.gamer.ICommandSender;
+import net.skykingdoms.backend.base.dependency.Dependency;
+import net.skykingdoms.backend.base.gamer.CommonGamer;
 import net.skykingdoms.backend.base.language.Language;
-import net.skykingdoms.backend.base.util.collection.CollectionUtil;
 import net.skykingdoms.backend.base.util.color.ChatColor;
-import net.skykingdoms.backend.base.util.config.Configuration;
-import net.skykingdoms.backend.base.util.config.ConfigurationProvider;
-import net.skykingdoms.backend.base.util.config.YamlConfiguration;
-import net.skykingdoms.backend.megamind.plugin.PluginManager;
 import net.skykingdoms.backend.megamind.api.command.CommandSender;
 import net.skykingdoms.backend.megamind.api.command.CoreCommandManager;
 import net.skykingdoms.backend.megamind.command.*;
@@ -30,20 +34,17 @@ import net.skykingdoms.backend.megamind.connection.LocalServerConnection;
 import net.skykingdoms.backend.megamind.data.friend.FriendListener;
 import net.skykingdoms.backend.megamind.data.friend.FriendManager;
 import net.skykingdoms.backend.megamind.data.gamer.Gamer;
-import net.skykingdoms.backend.megamind.data.message.command.*;
+import net.skykingdoms.backend.megamind.data.message.command.AppendCommand;
+import net.skykingdoms.backend.megamind.data.message.command.MessageCommand;
+import net.skykingdoms.backend.megamind.data.message.command.ReplyCommand;
 import net.skykingdoms.backend.megamind.data.staffchat.StaffChatListener;
-import net.skykingdoms.backend.api.megamind.event.impl.gamer.CommandEvent;
 import net.skykingdoms.backend.megamind.lookup.LookupManager;
 import net.skykingdoms.backend.megamind.manager.*;
+import net.skykingdoms.backend.megamind.plugin.PluginManager;
 import net.skykingdoms.backend.megamind.server.impl.NodeServer;
 import net.skykingdoms.backend.megamind.server.impl.ProxyServer;
 import net.skykingdoms.backend.protocol.exception.BindException;
-import net.skykingdoms.backend.protocol.logging.Logging;
-import net.skykingdoms.backend.api.protocol.type.GameMode;
 import net.skykingdoms.backend.protocol.server.IConnectable;
-import net.skykingdoms.backend.api.protocol.type.NetworkType;
-import net.skykingdoms.backend.api.protocol.type.PropertyType;
-import net.skykingdoms.backend.api.protocol.type.RemoteConnectedType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -71,7 +72,7 @@ public class MegamindApp extends MegamindAPI {
     public static final MegamindApp INSTANCE = new MegamindApp();
     // ----------------------------------------------------------------------
 
-    NetworkType networkType = NetworkType.valueOf(System.getProperty("network.type", NetworkType.PRODUCTION.name()));
+    NetworkType networkType = NetworkType.valueOf(System.getProperty("network.type", NetworkType.DEVELOPMENT.name()));
     Map<String, ICommand> commands = CollectionUtil.createConcurrentMap();
     CoreCommandManager commandManager = new CoreCommandManager();
 
@@ -205,7 +206,7 @@ public class MegamindApp extends MegamindAPI {
         }
     }
 
-    private void enablePlugins() {
+    public void enablePlugins() {
         if (!Files.exists(plugins)) {
             try {
                 Files.createDirectories(plugins);
@@ -270,19 +271,7 @@ public class MegamindApp extends MegamindAPI {
             @Override
             public List<String> complete(final @NonNull ICommandSender sender,
                                          final @NonNull String label) {
-                return any(label, Gamer.getGamers().stream().map(MegamindGamer::getName));
-            }
-        });
-
-        TabcompleteManager.IMP.addCompleter("property", new AbstractTabcompleter() {
-            @Override
-            public List<String> complete(final @NonNull ICommandSender sender,
-                                         final @NonNull String label) {
-                if (sender instanceof Gamer && !((Gamer) sender).isStaff()) {
-                    return Collections.emptyList();
-                }
-                return any(label, Arrays.stream(PropertyType.VALUES)
-                        .map(PropertyType::name));
+                return any(label, Gamer.getGamers().stream().map(CommonGamer::getName));
             }
         });
 
@@ -379,6 +368,7 @@ public class MegamindApp extends MegamindAPI {
 /*
         commandManager.addCommand(BuildModeCommand.class);
 */
+        commandManager.addCommand(MindReloadCommand.class);
         commandManager.addCommand(ShutdownCommand.class);
         commandManager.addCommand(DeployLobbyCommand.class);
         commandManager.addCommand(DeployGameInstancesCommand.class);

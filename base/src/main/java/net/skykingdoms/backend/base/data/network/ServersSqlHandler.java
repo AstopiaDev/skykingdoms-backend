@@ -4,10 +4,10 @@ package net.skykingdoms.backend.base.data.network;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 import lombok.val;
+import net.skykingdoms.api.protocol.type.GameMode;
 import net.skykingdoms.backend.base.mysql.Database;
 import net.skykingdoms.backend.base.mysql.DatabaseCredentials;
 import net.skykingdoms.backend.base.mysql.impl.MySQL;
-import net.skykingdoms.backend.api.protocol.type.GameMode;
 
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;

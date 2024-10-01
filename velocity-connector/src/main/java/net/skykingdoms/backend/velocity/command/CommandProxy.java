@@ -6,11 +6,10 @@ import com.velocitypowered.api.proxy.Player;
 import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.experimental.FieldDefaults;
-import net.skykingdoms.backend.base.command.ICommand;
-import net.skykingdoms.backend.base.gamer.ICommandSender;
+import net.skykingdoms.api.backend.command.ICommand;
+import net.skykingdoms.api.backend.gamer.ICommandSender;
 import net.skykingdoms.backend.velocity.gamer.Gamer;
 
-import javax.naming.ldap.SortResponseControl;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 

@@ -6,9 +6,6 @@ import lombok.val;
 
 import java.util.*;
 
-/**
- * @author WhileInside
- */
 public class LanguagePaths {
 
     private final Map<String, Map<String, String[]>> languages;

@@ -3,14 +3,14 @@ package net.skykingdoms.minimind;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
-import net.skykingdoms.backend.base.command.ICommand;
-import net.skykingdoms.backend.base.gamer.AbstractGamer;
-import net.skykingdoms.backend.base.util.collection.CollectionUtil;
-import net.skykingdoms.backend.base.util.config.Configuration;
-import net.skykingdoms.backend.base.util.config.ConfigurationProvider;
-import net.skykingdoms.backend.base.util.config.YamlConfiguration;
+import net.skykingdoms.api.backend.command.ICommand;
+import net.skykingdoms.api.backend.util.collection.CollectionUtil;
+import net.skykingdoms.api.backend.util.config.Configuration;
+import net.skykingdoms.api.backend.util.config.ConfigurationProvider;
+import net.skykingdoms.api.backend.util.config.YamlConfiguration;
+import net.skykingdoms.api.protocol.logging.Logging;
+import net.skykingdoms.backend.base.gamer.CommonGamer;
 import net.skykingdoms.backend.protocol.exception.ConnectException;
-import net.skykingdoms.backend.protocol.logging.Logging;
 import net.skykingdoms.backend.protocol.type.reconnect.impl.FluentServiceDataImpl;
 import net.skykingdoms.minimind.command.CommandSender;
 import net.skykingdoms.minimind.config.MinimindConfiguration;
@@ -45,7 +45,7 @@ public abstract class Minimind implements IMinimind {
     public void bootstrap(String[] args) {
         this.reloadConfiguration();
         AsyncExecution.INSTANCE.init(this);
-        this.serviceData = new FluentServiceDataImpl(name, new String[0]);
+        this.serviceData = new FluentServiceDataImpl(name, null);
 
         preBootstrap();
 
@@ -86,7 +86,7 @@ public abstract class Minimind implements IMinimind {
             return;
         }
 
-        boolean isPlayer = sender instanceof AbstractGamer;
+        boolean isPlayer = sender instanceof CommonGamer;
 
         String[] split = line.substring(1).split("\\s+");
 

@@ -4,9 +4,9 @@ import io.netty.buffer.ByteBuf;
 import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldDefaults;
-import net.skykingdoms.backend.protocol.logging.Logging;
-import net.skykingdoms.backend.api.protocol.packet.serialize.Serializable;
-import net.skykingdoms.backend.api.protocol.type.GameMode;
+import net.skykingdoms.api.protocol.logging.Logging;
+import net.skykingdoms.api.protocol.packet.serialize.Serializable;
+import net.skykingdoms.api.protocol.type.GameMode;
 
 @FieldDefaults(level = AccessLevel.PROTECTED)
 @Accessors(fluent = true)

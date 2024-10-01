@@ -4,14 +4,13 @@ import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.experimental.FieldDefaults;
 import lombok.val;
-import net.skykingdoms.backend.base.data.settings.SettingType;
-import net.skykingdoms.backend.base.data.settings.enums.PmPrivacy;
+import net.skykingdoms.api.backend.setting.SettingType;
+import net.skykingdoms.api.backend.setting.enums.PmPrivacy;
+import net.skykingdoms.api.megamind.event.EventHandler;
+import net.skykingdoms.api.megamind.event.Listener;
+import net.skykingdoms.api.megamind.event.impl.gamer.GamerQuitEvent;
 import net.skykingdoms.backend.base.language.Language;
-import net.skykingdoms.backend.api.megamind.event.EventHandler;
-import net.skykingdoms.backend.api.megamind.event.Listener;
 import net.skykingdoms.backend.megamind.data.gamer.Gamer;
-import net.skykingdoms.backend.api.megamind.event.impl.gamer.GamerQuitEvent;
-import net.skykingdoms.backend.api.protocol.type.PropertyType;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -118,10 +117,10 @@ public final class MessageManager implements Listener {
             return;
         }
 
-        from.sendRawMessage(getMessage(from.getLanguage(),
+        from.sendRawMessage(getMessage((Language) from.getLanguage(),
                 to.getName(), "Me", to.getDisplayName(), true, msg));
 
-        to.sendRawMessage(getMessage(to.getLanguage(),
+        to.sendRawMessage(getMessage((Language) to.getLanguage(),
                 from.getName(), from.getDisplayName(), "Me", false, msg));
 
         for (Gamer gamer : Gamer.getGamers()) {
@@ -133,7 +132,7 @@ public final class MessageManager implements Listener {
                 continue;
             }
 
-            if (gamer.getProperty(PropertyType.SOCIAL_SPY_PM) == 1) {
+            if (gamer.getPropertyOrDefault("social_spy_pm", 0) == 1) {
                 gamer.sendMessage("§7[SocialSpy/PM] " + from.getName() + " §7-> " + to.getName() + " §7" + msg);
             }
         }

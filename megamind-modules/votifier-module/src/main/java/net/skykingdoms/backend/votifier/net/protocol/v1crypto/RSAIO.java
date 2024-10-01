@@ -20,10 +20,9 @@
 
 package net.skykingdoms.backend.votifier.net.protocol.v1crypto;
 
-import java.io.IOException;
-import java.util.Base64;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.security.KeyFactory;
@@ -32,6 +31,7 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.Base64;
 
 /**
  * Static utility methods for saving and loading RSA key pairs.

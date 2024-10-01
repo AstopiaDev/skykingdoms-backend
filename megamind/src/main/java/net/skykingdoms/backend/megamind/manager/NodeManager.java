@@ -5,10 +5,10 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.FieldDefaults;
-import net.skykingdoms.backend.base.command.dependency.Dependency;
-import net.skykingdoms.backend.base.util.collection.CollectionUtil;
+import net.skykingdoms.api.backend.util.collection.CollectionUtil;
+import net.skykingdoms.api.protocol.logging.Logging;
+import net.skykingdoms.backend.base.dependency.Dependency;
 import net.skykingdoms.backend.megamind.server.impl.NodeServer;
-import net.skykingdoms.backend.protocol.logging.Logging;
 import net.skykingdoms.backend.protocol.packet.play.NodeSnapshot;
 import net.skykingdoms.backend.protocol.type.WrappedNodeSnapshot;
 

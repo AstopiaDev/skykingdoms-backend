@@ -3,7 +3,7 @@ package net.skykingdoms.backend.base.command.execution.help;
 import lombok.NonNull;
 import net.skykingdoms.backend.base.command.CommandParams;
 import net.skykingdoms.backend.base.command.CommandWrapper;
-import net.skykingdoms.backend.base.command.execution.WrappedSubcommandExecutor;
+import net.skykingdoms.backend.base.command.condition.WrappedSubcommandExecutor;
 
 public class HelpSubcommandExecutor extends WrappedSubcommandExecutor {
 

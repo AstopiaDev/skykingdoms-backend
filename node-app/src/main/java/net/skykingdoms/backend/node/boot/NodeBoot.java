@@ -1,7 +1,7 @@
 package net.skykingdoms.backend.node.boot;
 
+import net.skykingdoms.api.protocol.logging.Logging;
 import net.skykingdoms.backend.node.NodeApp;
-import net.skykingdoms.backend.protocol.logging.Logging;
 import org.jetbrains.annotations.NotNull;
 
 public class NodeBoot {

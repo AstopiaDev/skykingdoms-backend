@@ -1,11 +1,12 @@
 package net.skykingdoms.backend.base.language;
 
 import lombok.*;
+import net.skykingdoms.api.backend.language.ILanguage;
+import net.skykingdoms.api.protocol.logging.Logging;
 import net.skykingdoms.backend.base.language.loaders.GithubLanguageLoader;
 import net.skykingdoms.backend.base.language.loaders.LanguageLoader;
 import net.skykingdoms.backend.base.util.time.TimeUtil;
 import net.skykingdoms.backend.protocol.locale.UserLocale;
-import net.skykingdoms.backend.protocol.logging.Logging;
 import org.jetbrains.annotations.Nullable;
 import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
@@ -19,7 +20,7 @@ import java.util.stream.Collectors;
 
 @Getter
 @RequiredArgsConstructor
-public enum Language implements UserLocale {
+public enum Language implements UserLocale, ILanguage {
     RUSSIAN("Русский", "ru", 'а', 'я'),
     ENGLISH("English", "en", 'a', 'z'),
     SLOVENIAN("Slovenian", "slo", 'a', 'z');
@@ -105,40 +106,31 @@ public enum Language implements UserLocale {
         return ordinal() + 1;
     }
 
+    @Override
     public String getMessage(@NonNull String key) {
         return getMessage(false, key, true, null);
     }
 
+    @Override
     public String getMessage(@NonNull String key, Object... objects) {
         return getMessage(false, key, true, objects);
     }
 
+    @Override
     public String getMessage(boolean modern, @NonNull String key, Object... objects) {
         return getMessage(modern, key, true, objects);
     }
 
+    @Override
     public String getMessage(boolean modern, @NonNull String key, boolean useDefault, Object[] objects) {
         String message = messageTranslations.get(key.toLowerCase());
         if (modern) {
             message = messageTranslations.get("pack_" + key.toLowerCase());
         }
 
-/*
-        if (message != null) {
-            Logging.IMP.info("Message found: " + message);
-        }
-*/
-
         if (message == null) {
-/*
-            Logging.IMP.info("Message not found: " + key);
-*/
             message = messageTranslations.get(key.toLowerCase());
         }
-
-/*        if (message != null) {
-            Logging.IMP.info("Message found 2: " + message);
-        }*/
 
         if (message == null) {
             if (useDefault) {

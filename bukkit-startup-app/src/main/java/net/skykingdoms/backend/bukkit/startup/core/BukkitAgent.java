@@ -4,11 +4,12 @@ import de.leonhard.storage.Yaml;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.val;
-import net.skykingdoms.backend.base.util.config.Configuration;
-import net.skykingdoms.backend.protocol.logging.Logging;
-import net.skykingdoms.backend.api.protocol.type.GameMode;
-import net.skykingdoms.backend.api.protocol.server.GameType;
-import net.skykingdoms.backend.api.protocol.server.ServerScaleType;
+import net.lingala.zip4j.ZipFile;
+import net.skykingdoms.api.backend.util.config.Configuration;
+import net.skykingdoms.api.protocol.logging.Logging;
+import net.skykingdoms.api.protocol.server.GameType;
+import net.skykingdoms.api.protocol.server.ServerScaleType;
+import net.skykingdoms.api.protocol.type.GameMode;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
@@ -16,7 +17,15 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.lang.management.MemoryUsage;
 import java.lang.management.RuntimeMXBean;
+import java.net.URI;
 import java.net.URL;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -46,6 +55,12 @@ public final class BukkitAgent {
     // NULL if not testflow deployment
     TestFlowData testFlowData;
     Configuration configuration;
+
+    private static final String API_BASE_URL = "http://95.216.43.103:4544/api";
+    private static final String AUTH_HEADER = "Authorization";
+    private static final String AUTH_VALUE = "Basic Zkk3ODAhfiNpZ0g2TyFJdlZgVDMkI34=";
+
+    private final HttpClient httpClient = HttpClient.newHttpClient();
 
     public boolean isGameServer() {
         return (serverScaleType == ServerScaleType.MEGA || serverScaleType == ServerScaleType.MINI)
@@ -267,20 +282,8 @@ public final class BukkitAgent {
     private void processDefaultDeployment(final @NonNull GameType gameType) {
         val epoch = System.currentTimeMillis();
 
-        // not using cathttputil here, #StayLegacy
-        val instanceShit = exec(new String[]{
-                "curl",
-                "-H",
-                "Authorization: Basic Zkk3ODAhfiNpZ0g2TyFJdlZgVDMkI34=",
-                "-v",
-                "http://95.216.43.103:8000/api/retrieve?token=cock&name=" + gameType.name(),
-                "--output",
-                "stash.zip"});
-
-        printLines(instanceShit.getInputStream());
-        printLines(instanceShit.getErrorStream());
-
-        printLines(exec(new String[]{ "unzip", "-o", "stash.zip" }).getErrorStream());
+        downloadFile(API_BASE_URL + "/retrieve?token=cock&name=" + gameType.name(), "stash.zip");
+        unzip("stash.zip", Paths.get("."));
 
         Logging.IMP.info("[boot] Fetched stashed assets in " + (System.currentTimeMillis() - epoch));
     }
@@ -289,19 +292,8 @@ public final class BukkitAgent {
     private void downloadLobbyAssets(final @NonNull GameType gameType) {
         val epoch = System.currentTimeMillis();
 
-        val lobbyAssets = exec(new String[]{
-                "curl",
-                "-H",
-                "Authorization: Basic Zkk3ODAhfiNpZ0g2TyFJdlZgVDMkI34=",
-                "-v",
-                "http://95.216.43.103:8000/api/retrieve?token=cock&name=" + gameType.name() + "&lobby=dadadaaaa", // todo: implement config for api ip blabla cba rn doesnt matter that much u can know the ip and shit
-                "--output",
-                "lobby.zip"});
-
-        printLines(lobbyAssets.getInputStream());
-        printLines(lobbyAssets.getErrorStream());
-
-        printLines(exec(new String[]{ "unzip", "-o", "lobby.zip" }).getErrorStream());
+        downloadFile(API_BASE_URL + "/retrieve?token=cock&name=" + gameType.name() + "&lobby=dadadaaaa", "lobby.zip");
+        unzip("lobby.zip", Paths.get("."));
 
         Logging.IMP.info("[boot] Fetched lobby assets in " + (System.currentTimeMillis() - epoch));
     }
@@ -310,25 +302,13 @@ public final class BukkitAgent {
     private void processTestflow(final @NonNull String name) {
         val epoch = System.currentTimeMillis();
 
-        // also not using cathttputil here, #StayLegacy !!!!
-        val shit = exec(new String[]{
-                "curl",
-                "-H",
-                "Authorization: Basic Zkk3ODAhfiNpZ0g2TyFJdlZgVDMkI34=",
-                "-v",
-                "http://95.216.43.103:8000/api/testflow?token=cock&name=" + name,
-                "--output",
-                "testflow.zip"});
-
-        printLines(shit.getInputStream());
-        printLines(shit.getErrorStream());
-
-        printLines(exec(new String[]{ "unzip", "-o", "testflow.zip" }).getErrorStream());
-        printLines(exec(new String[]{ "mkdir", "plugins" }).getErrorStream());
+        downloadFile(API_BASE_URL + "/testflow?token=cock&name=" + name, "testflow.zip");
+        unzip("testflow.zip", Paths.get("."));
+        Files.createDirectories(Paths.get("plugins"));
 
         testFlowData = readTestFlowData(new File("testflow.yml"));
         for (val relocation : testFlowData.getRelocations().entrySet()) {
-            printLines(exec(new String[]{"cp", "-rf", relocation.getKey(), relocation.getValue()}).getErrorStream());
+            Files.move(Path.of(relocation.getKey()), Path.of(relocation.getValue()), StandardCopyOption.REPLACE_EXISTING);
         }
 
         Logging.IMP.info("[boot] Fetched testflow assets in " + (System.currentTimeMillis() - epoch));
@@ -360,4 +340,23 @@ public final class BukkitAgent {
         return testFlowData;
     }
 
+    @SneakyThrows
+    private void unzip(String zipFilePath, Path destDir) {
+        new ZipFile(zipFilePath).extractAll(destDir.toString());
+    }
+
+    @SneakyThrows
+    private void downloadFile(String url, String outputFile) {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header(AUTH_HEADER, AUTH_VALUE)
+                .GET()
+                .build();
+
+        HttpResponse<Path> response = httpClient.send(request, HttpResponse.BodyHandlers.ofFile(Path.of(outputFile)));
+
+        if (response.statusCode() != 200) {
+            throw new IOException("Failed to download file: " + response.statusCode());
+        }
+    }
 }

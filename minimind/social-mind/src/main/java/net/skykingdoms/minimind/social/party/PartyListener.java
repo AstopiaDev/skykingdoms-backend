@@ -1,43 +1,35 @@
 package net.skykingdoms.minimind.social.party;
 
-import net.skykingdoms.backend.protocol.logging.Logging;
-import net.skykingdoms.backend.protocol.packet.ChannelProcessorContext;
-import net.skykingdoms.backend.protocol.packet.play.processor.PlayServerProcessor;
+import net.skykingdoms.api.megamind.event.EventHandler;
+import net.skykingdoms.api.megamind.event.Listener;
+import net.skykingdoms.api.megamind.event.impl.gamer.GamerJoinEvent;
+import net.skykingdoms.api.megamind.event.impl.gamer.GamerQuitEvent;
+import net.skykingdoms.api.megamind.event.impl.gamer.PlayerGameRedirectEvent;
 import net.skykingdoms.minimind.social.SocialGamer;
-import net.skykingdoms.minimind.social.SocialMind;
 
 /**
  * @author Vihara
  */
-public final class PartyListener implements PlayServerProcessor {
-
-    public PartyListener() {
-        SocialMind.getInstance().getConnection().getChannel().registerProcessor(this);
+public final class PartyListener implements Listener {
+    @EventHandler
+    public void onQuit(final GamerQuitEvent event) {
+        PartyManager.INSTANCE.handleDisconnect((SocialGamer) event.getGamer());
     }
 
-/*    @Evve
-    public void process(final GamerQuitEventPacket packet, ChannelProcessorContext ctx) {
-        SocialGamer gamer = (SocialGamer) SocialGamer.getGamer(packet.getGamerId());
-        gamer.setOnline(false);
-        PartyManager.INSTANCE.handleDisconnect(gamer);
-    }
-
-    @Override
-    public void process(final GamerJoinEventPacket packet, ChannelProcessorContext ctx) {
-        SocialGamer gamer = (SocialGamer) SocialGamer.getGamer(packet.getGamerId());
-        gamer.setOnline(true);
-        gamer.setCurrentServer(packet.getServer());
+    @EventHandler
+    public void onJoin(final GamerJoinEvent event) {
+        SocialGamer gamer = (SocialGamer) event.getGamer();
         gamer.setParty(PartyManager.INSTANCE.getParty(gamer.getGamerId()));
-        Logging.IMP.info("{}, {}", gamer.isOnline(), gamer.getCurrentServer());
-        PartyManager.INSTANCE.handleJoin(gamer);
-    }*/
+        PartyManager.INSTANCE.handleJoin((SocialGamer) event.getGamer());
+    }
 
-/*    @EventHandler
-    public void onPlayerRedirect(PlayerGameRedirectEvent event) {
-        Party party = event.getGamer().getParty();
+    @EventHandler
+    public void onRedirect(PlayerGameRedirectEvent event) {
+        SocialGamer gamer = (SocialGamer) event.getGamer();
+        Party party = gamer.getParty();
 
-        if (party != null && party.isLeader(event.getGamer())) {
+        if (party != null && party.isLeader(gamer)) {
             event.getAdditionalGamerList().addAll(party.getAllMembers());
         }
-    }*/
+    }
 }

@@ -1,8 +1,10 @@
 package net.skykingdoms.backend.base.data.settings;
 
 import lombok.val;
-import net.skykingdoms.backend.base.data.settings.impl.BooleanSetting;
-import net.skykingdoms.backend.base.data.settings.impl.EnumSetting;
+import net.skykingdoms.api.backend.setting.Setting;
+import net.skykingdoms.api.backend.setting.SettingType;
+import net.skykingdoms.api.backend.setting.impl.BooleanSetting;
+import net.skykingdoms.api.backend.setting.impl.EnumSetting;
 import net.skykingdoms.backend.base.mysql.DatabaseCredentials;
 import net.skykingdoms.backend.base.mysql.impl.MySQL;
 

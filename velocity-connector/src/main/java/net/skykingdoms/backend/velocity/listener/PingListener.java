@@ -6,7 +6,6 @@ import com.velocitypowered.api.proxy.server.ServerPing;
 import lombok.NonNull;
 import lombok.val;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextComponent;
 import net.skykingdoms.backend.base.language.Language;
 import net.skykingdoms.backend.velocity.VelocityConnector;
 import net.skykingdoms.backend.velocity.connection.Connection;

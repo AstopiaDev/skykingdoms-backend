@@ -2,7 +2,7 @@ package net.skykingdoms.backend.bukkit.startup.core;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import net.skykingdoms.backend.protocol.logging.Logging;
+import net.skykingdoms.api.protocol.logging.Logging;
 
 import java.util.HashMap;
 import java.util.Map;

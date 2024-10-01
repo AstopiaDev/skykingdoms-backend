@@ -1,17 +1,18 @@
 package net.skykingdoms.backend.megamind.command;
 
 import lombok.val;
-import net.skykingdoms.backend.base.command.NamedCommand;
-import net.skykingdoms.backend.base.command.RelayExecutor;
-import net.skykingdoms.backend.base.command.WithAlias;
-import net.skykingdoms.backend.base.command.condition.WithCondition;
+import net.skykingdoms.api.backend.command.NamedCommand;
+import net.skykingdoms.api.backend.command.RelayExecutor;
+import net.skykingdoms.api.backend.command.WithAlias;
+import net.skykingdoms.api.backend.command.condition.WithCondition;
+import net.skykingdoms.api.backend.command.execution.Executor;
+import net.skykingdoms.api.backend.command.execution.SubcommandExecutor;
+import net.skykingdoms.api.backend.setting.SettingType;
+import net.skykingdoms.api.backend.setting.enums.Privacy;
 import net.skykingdoms.backend.base.command.exception.CommandTranslationException;
-import net.skykingdoms.backend.base.command.execution.Executor;
-import net.skykingdoms.backend.base.command.execution.SubcommandExecutor;
 import net.skykingdoms.backend.base.data.friends.FriendshipMeta;
-import net.skykingdoms.backend.base.data.settings.SettingType;
-import net.skykingdoms.backend.base.data.settings.enums.Privacy;
-import net.skykingdoms.backend.base.gamer.AbstractGamer;
+import net.skykingdoms.backend.base.gamer.CommonGamer;
+import net.skykingdoms.backend.base.language.Language;
 import net.skykingdoms.backend.base.util.time.TimeUtil;
 import net.skykingdoms.backend.megamind.api.command.CoreExecutionSession;
 import net.skykingdoms.backend.megamind.data.friend.FriendManager;
@@ -73,7 +74,7 @@ public final class FriendCommand {
     @WithCondition("minArgs: 1")
     public static void friendAccept(final CoreExecutionSession session) throws CommandTranslationException {
         // target might be offline
-        val target = session.getOfflineGamer(0, AbstractGamer::loadFriends);
+        val target = session.getOfflineGamer(0, CommonGamer::loadFriends);
         val gamer = session.getGamer();
 
         // no request from target to sender
@@ -88,7 +89,7 @@ public final class FriendCommand {
     @WithCondition("minArgs: 1")
     public static void friendDeny(final CoreExecutionSession session) throws CommandTranslationException {
         // target might be offline
-        val target = session.getOfflineGamer(0, AbstractGamer::loadFriends);
+        val target = session.getOfflineGamer(0, CommonGamer::loadFriends);
         val gamer = session.getGamer();
 
         // no request from target to sender
@@ -103,7 +104,7 @@ public final class FriendCommand {
     @WithCondition("minArgs: 1")
     public static void friendRemove(final CoreExecutionSession session) throws CommandTranslationException {
         // target might be offline
-        val target = session.getOfflineGamer(0, AbstractGamer::loadFriends);
+        val target = session.getOfflineGamer(0, CommonGamer::loadFriends);
         val gamer = session.getGamer();
 
         // they are not even friends
@@ -224,7 +225,7 @@ public final class FriendCommand {
                         PersistentServer persistentServer = (PersistentServer) holder;
                         return displayName + "§a is currently in " + persistentServer.getGameMode().getHumanName();
                     }
-                    return "#" + meta.getMetaId() + " " + displayName + " - " + TimeUtil.getDateString(gamer.getLanguage(), LocalDate.from(meta.getBeginning()));
+                    return "#" + meta.getMetaId() + " " + displayName + " - " + TimeUtil.getDateString((Language) gamer.getLanguage(), LocalDate.from(meta.getBeginning()));
                 })
                 .collect(Collectors.toList());
 

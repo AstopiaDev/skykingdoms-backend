@@ -8,6 +8,9 @@ dependencies {
     // @DEPRECATED
     // TODO: migrate to fast util
     api "net.sf.trove4j:trove4j:3.0.3"
+
+    api project(":impl-loader")
+    annotationProcessor project(":impl-loader")
 }
 
 repositories {

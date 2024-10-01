@@ -8,13 +8,13 @@ import lombok.NonNull;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
 import lombok.val;
-import net.skykingdoms.backend.api.megamind.event.Event;
-import net.skykingdoms.backend.api.megamind.event.Listener;
-import net.skykingdoms.backend.api.megamind.plugin.IPluginManager;
-import net.skykingdoms.backend.api.megamind.plugin.MegamindPlugin;
-import net.skykingdoms.backend.api.megamind.plugin.PluginDescription;
+import net.skykingdoms.api.megamind.event.Event;
+import net.skykingdoms.api.megamind.event.Listener;
+import net.skykingdoms.api.megamind.plugin.IPluginManager;
+import net.skykingdoms.api.megamind.plugin.MegamindPlugin;
+import net.skykingdoms.api.megamind.plugin.PluginDescription;
+import net.skykingdoms.api.protocol.logging.Logging;
 import net.skykingdoms.backend.megamind.plugin.event.EventBus;
-import net.skykingdoms.backend.protocol.logging.Logging;
 import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
@@ -225,8 +225,8 @@ public final class PluginManager implements IPluginManager {
         eventBus.register(listener);
     }
 
-    public void registerListener(final @NonNull String service, final @NonNull String[] eventNames) {
-        ((EventBus) eventBus).register(service, eventNames);
+    public void registerListener(final @NonNull String service, final @NonNull Class<? extends Event>[] events) {
+        ((EventBus) eventBus).register(service, events);
     }
 
     public void unregisterListener(final @NonNull String service) {

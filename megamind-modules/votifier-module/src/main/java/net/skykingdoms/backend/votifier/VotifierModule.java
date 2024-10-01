@@ -1,15 +1,14 @@
 package net.skykingdoms.backend.votifier;
 
 import lombok.val;
-import net.skykingdoms.backend.base.util.config.Configuration;
-import net.skykingdoms.backend.base.util.config.ConfigurationProvider;
-import net.skykingdoms.backend.base.util.config.YamlConfiguration;
-import net.skykingdoms.backend.megamind.plugin.Plugin;
+import net.skykingdoms.api.backend.util.config.Configuration;
+import net.skykingdoms.api.backend.util.config.ConfigurationProvider;
+import net.skykingdoms.api.backend.util.config.YamlConfiguration;
+import net.skykingdoms.api.protocol.logging.Logging;
 import net.skykingdoms.backend.megamind.data.gamer.Gamer;
 import net.skykingdoms.backend.megamind.manager.ServerManager;
-import net.skykingdoms.backend.protocol.logging.Logging;
+import net.skykingdoms.backend.megamind.plugin.Plugin;
 import net.skykingdoms.backend.protocol.packet.play.S33VoteReceived;
-import net.skykingdoms.backend.api.protocol.type.PropertyType;
 import net.skykingdoms.backend.votifier.model.Vote;
 import net.skykingdoms.backend.votifier.net.VotifierServerBootstrap;
 import net.skykingdoms.backend.votifier.net.VotifierSession;
@@ -28,7 +27,10 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.security.KeyPair;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Random;
 import java.util.logging.Logger;
 
 import static org.fusesource.jansi.Ansi.setEnabled;
@@ -383,7 +385,7 @@ public class VotifierModule extends Plugin implements VoteHandler, VotifierPlugi
         int points = random.nextInt(6);
         points = points == 0 ? 1 : points;
 
-        gamer.addProperty(PropertyType.PLAYER_POINTS, points);
+        gamer.addProperty("player_points", points);
         gamer.sendLocalizedMessage("vote_received_player_points", "%points%", points);
 
         Logging.IMP.info("The vote has been processed for " + vote.getUsername() + " and they have been awarded " + points + " points.");

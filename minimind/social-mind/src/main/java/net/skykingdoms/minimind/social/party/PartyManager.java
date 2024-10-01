@@ -5,16 +5,12 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.val;
-import net.skykingdoms.backend.base.command.dependency.Dependency;
-import net.skykingdoms.backend.base.gamer.AbstractGamer;
+import net.skykingdoms.api.protocol.logging.Logging;
+import net.skykingdoms.backend.base.dependency.Dependency;
+import net.skykingdoms.backend.base.gamer.CommonGamer;
 import net.skykingdoms.backend.base.util.color.ChatColor;
-import net.skykingdoms.backend.protocol.logging.Logging;
 import net.skykingdoms.minimind.AsyncExecution;
 import net.skykingdoms.minimind.social.SocialGamer;
-import net.skykingdoms.minimind.social.party.event.PartyCreateEvent;
-import net.skykingdoms.minimind.social.party.event.PartyDisbandEvent;
-import net.skykingdoms.minimind.social.party.event.PartyLeaveEvent;
-import net.skykingdoms.minimind.social.party.event.PartySettingUpdateEvent;
 
 import java.util.concurrent.TimeUnit;
 import java.util.function.IntConsumer;
@@ -82,8 +78,8 @@ public final class PartyManager {
             for (val party : parties.values()) {
                 val removedInvites = party.tickInvitations();
                 for (val invite : removedInvites) {
-                    val invitedGamer = SocialGamer.getOfflineGamer(invite.getInvitedId(), AbstractGamer::loadGroupsAndName);
-                    val senderGamer = SocialGamer.getOfflineGamer(invite.getInviterId(), AbstractGamer::loadGroupsAndName);
+                    val invitedGamer = SocialGamer.getOfflineGamer(invite.getInvitedId(), CommonGamer::loadGroupsAndName);
+                    val senderGamer = SocialGamer.getOfflineGamer(invite.getInviterId(), CommonGamer::loadGroupsAndName);
                     if (invitedGamer.isOnline()) {
                         invitedGamer.sendLocalizedMessage("party_invite_expired",
                                 "%player%", senderGamer.getDisplayName());
@@ -104,7 +100,7 @@ public final class PartyManager {
                 }
 
                 val removedOfflineNigger = party.tickOfflineMembers();
-                removedOfflineNigger.forEach((IntConsumer) nigger -> removeMember(SocialGamer.getOfflineGamer(nigger, AbstractGamer::loadGroupsAndName), PartyRemoveReason.LONG_OFFLINE));
+                removedOfflineNigger.forEach((IntConsumer) nigger -> removeMember(SocialGamer.getOfflineGamer(nigger, CommonGamer::loadGroupsAndName), PartyRemoveReason.LONG_OFFLINE));
 
                 if (!party.validate()) {
                     // avoiding CME by running this in separate thread
@@ -140,7 +136,7 @@ public final class PartyManager {
         // we know tact sender != null, and he's online
         val senderGamer = SocialGamer.getGamer(senderId);
 
-        val targetGamer = SocialGamer.getOfflineGamer(targetId, AbstractGamer::loadGroupsAndName);
+        val targetGamer = SocialGamer.getOfflineGamer(targetId, CommonGamer::loadGroupsAndName);
         // this shouldn't happen, because we validate shit in command
         // but added just "in case"
         if (targetGamer == null || !targetGamer.isOnline()) {
@@ -186,7 +182,7 @@ public final class PartyManager {
 
         // Actually, an inviter might go offline
         // while invite was accepted, so he may be offline
-        val inviterGamer = SocialGamer.getOfflineGamer(inviterId, AbstractGamer::loadGroupsAndName);
+        val inviterGamer = SocialGamer.getOfflineGamer(inviterId, CommonGamer::loadGroupsAndName);
 
         if (inviterParty.getActiveInvites().stream().noneMatch(partyInvitation -> {
             return partyInvitation.getInvitedId() == acceptorId && partyInvitation.getInviterId() == inviterGamer.getGamerId();
@@ -284,7 +280,7 @@ public final class PartyManager {
         if (needWarp.size() > 0) {
             gamer.sendLocalizedMessage("party_warp_summoned_target",
                     "%players%", needWarp.stream()
-                            .map(AbstractGamer::getDisplayName)
+                            .map(CommonGamer::getDisplayName)
                             .collect(Collectors.joining(", ")));
         }
 

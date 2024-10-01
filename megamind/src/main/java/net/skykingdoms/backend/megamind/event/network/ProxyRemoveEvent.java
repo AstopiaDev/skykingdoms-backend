@@ -6,7 +6,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import net.skykingdoms.backend.api.megamind.event.Event;
+import net.skykingdoms.api.megamind.event.Event;
 import net.skykingdoms.backend.megamind.server.impl.ProxyServer;
 
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)

@@ -3,7 +3,7 @@ package net.skykingdoms.backend.bukkit.logging;
 import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.experimental.FieldDefaults;
-import net.skykingdoms.backend.protocol.logging.Logging;
+import net.skykingdoms.api.protocol.logging.Logging;
 import net.skykingdoms.impl.Impl;
 import org.bukkit.Bukkit;
 

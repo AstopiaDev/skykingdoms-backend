@@ -1,14 +1,15 @@
 package net.skykingdoms.backend.megamind.data.staffchat;
 
 import lombok.val;
-import net.skykingdoms.backend.base.permission.Group;
-import net.skykingdoms.backend.base.permission.PermissionType;
+import net.skykingdoms.api.backend.permission.Group;
+import net.skykingdoms.api.backend.permission.PermissionType;
+import net.skykingdoms.api.megamind.event.EventHandler;
+import net.skykingdoms.api.megamind.event.Listener;
+import net.skykingdoms.api.megamind.event.impl.gamer.GamerJoinEvent;
+import net.skykingdoms.api.megamind.event.impl.gamer.GamerQuitEvent;
+import net.skykingdoms.backend.base.gamer.CommonGamer;
 import net.skykingdoms.backend.base.util.color.ChatColor;
 import net.skykingdoms.backend.megamind.MegamindApp;
-import net.skykingdoms.backend.api.megamind.event.EventHandler;
-import net.skykingdoms.backend.api.megamind.event.Listener;
-import net.skykingdoms.backend.api.megamind.event.impl.gamer.GamerJoinEvent;
-import net.skykingdoms.backend.api.megamind.event.impl.gamer.GamerQuitEvent;
 import net.skykingdoms.backend.megamind.manager.StaffChatManager;
 
 /**
@@ -22,7 +23,7 @@ public final class StaffChatListener implements Listener {
 
     @EventHandler
     public void onGamerJoin(final GamerJoinEvent event) {
-        val gamer = event.getGamer();
+        val gamer = (CommonGamer) event.getGamer();
         if (gamer.getRanks().getRanks(PermissionType.MEDIA).isEmpty()
                 && !gamer.getRanks().canApply(Group.BUILDER)) {
             return;
@@ -33,7 +34,7 @@ public final class StaffChatListener implements Listener {
 
     @EventHandler
     public void onLeave(final GamerQuitEvent event) {
-        val gamer = event.getGamer();
+        val gamer = (CommonGamer) event.getGamer();
         if (gamer.getRanks().getRanks(PermissionType.MEDIA).isEmpty()
                 && !gamer.getRanks().canApply(Group.BUILDER)) {
             return;

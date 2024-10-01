@@ -1,7 +1,7 @@
 package net.skykingdoms.minimind.command;
 
 import lombok.NonNull;
-import net.skykingdoms.backend.base.gamer.ICommandSender;
+import net.skykingdoms.api.backend.gamer.ICommandSender;
 
 public interface CommandSender extends ICommandSender {
     default void sendCommandUsageMessage(@NonNull String usageKey) {

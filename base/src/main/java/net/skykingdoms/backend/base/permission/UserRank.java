@@ -1,8 +1,10 @@
 package net.skykingdoms.backend.base.permission;
 
-import io.netty.buffer.ByteBuf;
 import lombok.Getter;
 import lombok.NonNull;
+import net.skykingdoms.api.backend.permission.Group;
+import net.skykingdoms.api.backend.permission.IUserRank;
+import net.skykingdoms.api.backend.permission.PermissionType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -11,7 +13,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.concurrent.TimeUnit;
 
-public class UserRank implements Comparable<UserRank> {
+public class UserRank implements Comparable<UserRank>, IUserRank {
 
     public static UserRank DEFAULT = new UserRank(-1, Group.DEFAULT, null);
     public static UserRank OWNER = new UserRank(-1, Group.OWNER, null);

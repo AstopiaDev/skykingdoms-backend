@@ -11,4 +11,9 @@ public final class RestPlugin extends Plugin {
 
         RestApiManager.INSTANCE.initialize(getConfig().getInt("server-port"));
     }
+
+    @Override
+    public void onDisable() {
+        RestApiManager.INSTANCE.shutdown();
+    }
 }

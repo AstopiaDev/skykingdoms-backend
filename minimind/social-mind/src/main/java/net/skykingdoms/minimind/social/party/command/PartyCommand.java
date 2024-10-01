@@ -1,33 +1,33 @@
-/*
 package net.skykingdoms.minimind.social.party.command;
 
 import lombok.val;
-import net.skykingdoms.backend.base.command.NamedCommand;
-import net.skykingdoms.backend.base.command.RelayExecutor;
-import net.skykingdoms.backend.base.command.WithAlias;
-import net.skykingdoms.backend.base.command.condition.WithCondition;
-import net.skykingdoms.backend.base.command.exception.CommandMessageException;
+import net.skykingdoms.api.backend.command.NamedCommand;
+import net.skykingdoms.api.backend.command.RelayExecutor;
+import net.skykingdoms.api.backend.command.WithAlias;
+import net.skykingdoms.api.backend.command.condition.WithCondition;
+import net.skykingdoms.api.backend.command.exception.CommandMessageException;
+import net.skykingdoms.api.backend.command.execution.Executor;
+import net.skykingdoms.api.backend.command.execution.PrepareExecution;
+import net.skykingdoms.api.backend.command.execution.SubcommandExecutor;
+import net.skykingdoms.api.backend.command.tabcomplete.Tabcomplete;
+import net.skykingdoms.api.backend.permission.Group;
+import net.skykingdoms.api.backend.setting.SettingType;
+import net.skykingdoms.api.backend.setting.enums.Privacy;
 import net.skykingdoms.backend.base.command.exception.CommandTranslationException;
-import net.skykingdoms.backend.base.command.execution.Executor;
-import net.skykingdoms.backend.base.command.execution.PrepareExecution;
-import net.skykingdoms.backend.base.command.execution.SubcommandExecutor;
-import net.skykingdoms.backend.base.command.tabcomplete.Tabcomplete;
-import net.skykingdoms.backend.base.data.settings.SettingType;
-import net.skykingdoms.backend.base.data.settings.enums.Privacy;
-import net.skykingdoms.backend.base.gamer.AbstractGamer;
+import net.skykingdoms.backend.base.gamer.CommonGamer;
 import net.skykingdoms.backend.base.util.color.ChatColor;
-import net.skykingdoms.backend.megamind.data.gamer.Gamer;
 import net.skykingdoms.minimind.command.MinimindExecutionSession;
+import net.skykingdoms.minimind.social.SocialGamer;
 import net.skykingdoms.minimind.social.party.Party;
 import net.skykingdoms.minimind.social.party.PartyManager;
 import net.skykingdoms.minimind.social.party.PartyRemoveReason;
 
 import java.util.stream.Collectors;
 
+/*
+ @author Vihara
 */
-/**
- * @author Vihara
- *//*
+
 
 @WithAlias("p")
 @NamedCommand("party")
@@ -36,16 +36,16 @@ public final class PartyCommand {
     @PrepareExecution
     public static void prepare(MinimindExecutionSession session) {
         if (!session.isConsole()) {
-            Party party = session.getGamer().getParty();
+            SocialGamer gamer = (SocialGamer) session.getGamer();
+            Party party = gamer.getParty();
 
             session.provideObject(0, party);
         }
     }
 
-    */
-/**
-     * Basically sends invitation to arg gamer
-     *//*
+    /*
+         Basically sends invitation to arg gamer
+     */
 
     @WithCondition("disableConsole")
     @Tabcomplete("[playerName]")
@@ -58,8 +58,8 @@ public final class PartyCommand {
             return;
         }
 
-        val gamer = session.getGamer();
-        val target = session.getOfflineGamer(0, g -> {
+        val gamer = (SocialGamer) session.getGamer();
+        val target = (SocialGamer) session.getOfflineGamer(0, g -> {
             g.loadSettings();
             g.loadGroupsAndName();
         });
@@ -94,7 +94,8 @@ public final class PartyCommand {
     @WithCondition("group: admin")
     @SubcommandExecutor("disband")
     public static void disbandCommand(final MinimindExecutionSession session) {
-        val party = session.getGamer().getParty();
+        val gamer = (SocialGamer) session.getGamer();
+        val party = gamer.getParty();
 
         PartyManager.INSTANCE.removePartyInstance(party);
     }
@@ -105,8 +106,9 @@ public final class PartyCommand {
     @WithCondition("group: admin")
     @RelayExecutor("pl")
     public static void listCommand(final MinimindExecutionSession session) {
-        val party = session.getGamer().getParty();
-        val lang = session.getGamer().getLanguage();
+        val gamer = (SocialGamer) session.getGamer();
+        val party = gamer.getParty();
+        val lang = gamer.getLanguage();
 
         val sb = new StringBuilder();
 
@@ -143,7 +145,8 @@ public final class PartyCommand {
     @WithCondition("group: admin")
     @SubcommandExecutor("leave")
     public static void leaveCommand(final MinimindExecutionSession session) throws CommandMessageException {
-        if(!PartyManager.INSTANCE.removeMember(session.getGamer(), PartyRemoveReason.LEAVE)) {
+        val gamer = (SocialGamer) session.getGamer();
+        if(!PartyManager.INSTANCE.removeMember(gamer, PartyRemoveReason.LEAVE)) {
             throw new CommandMessageException("Lol chzh......");
         }
     }
@@ -155,7 +158,7 @@ public final class PartyCommand {
     @WithCondition("group: admin")
     @SubcommandExecutor("accept")
     public static void acceptCommand(final MinimindExecutionSession session) throws CommandTranslationException {
-        PartyManager.INSTANCE.acceptPartyInvite(session.getGamer().getGamerId(), session.getOfflineGamer(0, AbstractGamer::loadGroupsAndName).getGamerId());
+        PartyManager.INSTANCE.acceptPartyInvite(session.getGamer().getGamerId(), session.getOfflineGamer(0, CommonGamer::loadGroupsAndName).getGamerId());
     }
 
     @WithCondition("disableConsole")
@@ -163,7 +166,8 @@ public final class PartyCommand {
     @WithCondition("group: admin")
     @SubcommandExecutor("mute")
     public static void muteCommand(final MinimindExecutionSession session) {
-        PartyManager.INSTANCE.updatePartySetting(session.getGamer(), Party.Setting.MUTE, !session.getGamer().getParty().getSetting(Party.Setting.MUTE));
+        val gamer = (SocialGamer) session.getGamer();
+        PartyManager.INSTANCE.updatePartySetting(gamer, Party.Setting.MUTE, !gamer.getParty().getSetting(Party.Setting.MUTE));
     }
 
     @WithCondition("withPartyOnly")
@@ -172,13 +176,14 @@ public final class PartyCommand {
     @WithCondition("group: admin")
     @SubcommandExecutor("private")
     public static void privateGamesCommand(final MinimindExecutionSession session) throws CommandTranslationException {
-*/
-/*        if (!session.getRanks().canApply(Group.GODLIKE) && !session.getRanks().canApply(Group.YOUTUBER)) {
+        val gamer = (SocialGamer) session.getGamer();
+
+        if (!session.getRanks().canApply(Group.ZEUS) && !session.getRanks().canApply(Group.YOUTUBER)) {
             throw new CommandTranslationException("party_private_noperms");
-        }*//*
+        }
 
 
-        PartyManager.INSTANCE.updatePartySetting(session.getGamer(), Party.Setting.PRIVATE_GAMES, !session.getGamer().getParty().getSetting(Party.Setting.PRIVATE_GAMES));
+        PartyManager.INSTANCE.updatePartySetting(gamer, Party.Setting.PRIVATE_GAMES, !gamer.getParty().getSetting(Party.Setting.PRIVATE_GAMES));
     }
 
     @WithCondition("disableConsole")
@@ -187,7 +192,8 @@ public final class PartyCommand {
     @WithCondition("group: admin")
     @SubcommandExecutor("warp")
     public static void warpCommand(final MinimindExecutionSession session) {
-        PartyManager.INSTANCE.warpTo(session.getGamer());
+        val gamer = (SocialGamer) session.getGamer();
+        PartyManager.INSTANCE.warpTo(gamer);
     }
 
     @WithCondition("disableConsole")
@@ -196,10 +202,11 @@ public final class PartyCommand {
     @WithCondition("group: admin")
     @SubcommandExecutor("kickoffline")
     public static void kickOfflineCommand(final MinimindExecutionSession session) {
-        val offlinePartyMembers = session.getGamer().getParty();
+        val gamer = (SocialGamer) session.getGamer();
+        val offlinePartyMembers = gamer.getParty();
 
         for (val offline : offlinePartyMembers.getOfflineMembers()) {
-            PartyManager.INSTANCE.removeMember(Gamer.getOfflineGamer(offline.getGamerId()), PartyRemoveReason.LONG_OFFLINE);
+            PartyManager.INSTANCE.removeMember(SocialGamer.getOfflineGamer(offline.getGamerId()), PartyRemoveReason.LONG_OFFLINE);
         }
 
         val size = offlinePartyMembers.getOfflineMembers().size();
@@ -216,9 +223,10 @@ public final class PartyCommand {
     @WithCondition("group: admin")
     @SubcommandExecutor("kick")
     public static void kickCommand(final MinimindExecutionSession session) throws CommandTranslationException {
-        val target = session.getOfflineGamer(0, AbstractGamer::loadGroupsAndName);
+        val gamer = (SocialGamer) session.getGamer();
+        val target = (SocialGamer) session.getOfflineGamer(0, CommonGamer::loadGroupsAndName);
 
-        if (PartyManager.INSTANCE.getParty(target.getGamerId()) != session.getGamer().getParty()) {
+        if (PartyManager.INSTANCE.getParty(target.getGamerId()) != gamer.getParty()) {
 
         }
         PartyManager.INSTANCE.removeMember(target, PartyRemoveReason.REMOVED);
@@ -231,8 +239,8 @@ public final class PartyCommand {
     @WithCondition("group: admin")
     @SubcommandExecutor("promote")
     public static void promoteCommand(final MinimindExecutionSession session) throws CommandTranslationException {
-        val gamer = session.getGamer();
-        val target = session.getOfflineGamer(0, AbstractGamer::loadGroupsAndName);
+        val gamer = (SocialGamer) session.getGamer();
+        val target = (SocialGamer) session.getOfflineGamer(0, CommonGamer::loadGroupsAndName);
 
         if (gamer == target) {
             throw new CommandTranslationException("party_promote_self");
@@ -264,8 +272,8 @@ public final class PartyCommand {
     @WithCondition("group: admin")
     @SubcommandExecutor("transfer")
     public static void transferCommand(final MinimindExecutionSession session) throws CommandTranslationException {
-        val gamer = session.getGamer();
-        val target = session.getOfflineGamer(0, AbstractGamer::loadGroupsAndName);
+        val gamer = (SocialGamer) session.getGamer();
+        val target = (SocialGamer) session.getOfflineGamer(0, CommonGamer::loadGroupsAndName);
         if (gamer == target) {
             throw new CommandTranslationException("party_transfer_self");
         }
@@ -285,8 +293,8 @@ public final class PartyCommand {
     @WithCondition("group: admin")
     @SubcommandExecutor("demote")
     public static void demoteCommand(final MinimindExecutionSession session) throws CommandTranslationException {
-        val gamer = session.getGamer();
-        val target = session.getOfflineGamer(0, AbstractGamer::loadGroupsAndName);
+        val gamer = (SocialGamer) session.getGamer();
+        val target = (SocialGamer) session.getOfflineGamer(0, CommonGamer::loadGroupsAndName);
         if (gamer == target) {
             throw new CommandTranslationException("party_demote_self");
         }
@@ -316,7 +324,7 @@ public final class PartyCommand {
     @WithCondition("group: admin")
     @SubcommandExecutor("setting")
     public static void settingCommand(final MinimindExecutionSession session) throws CommandTranslationException {
-        val gamer = session.getGamer();
+        val gamer = (SocialGamer) session.getGamer();
         val party = gamer.getParty();
         val settingName = session.getArgument(0);
         val setting = Party.Setting.valueOf(settingName, null);
@@ -336,9 +344,10 @@ public final class PartyCommand {
     @WithCondition("group: admin")
     @RelayExecutor("pc")
     public static void chatCommand(final MinimindExecutionSession session) throws CommandTranslationException {
-        val party = session.getGamer().getParty();
+        val gamer = (SocialGamer) session.getGamer();
+        val party = gamer.getParty();
         if (party.getSetting(Party.Setting.MUTE) &&
-                (!party.isLeader(session.getGamer()) && !session.getGamer().isStaff())) {
+                (!party.isLeader(gamer) && !session.getGamer().isStaff())) {
             throw new CommandTranslationException("party_chat_forbidden_mute");
         }
 
@@ -348,4 +357,3 @@ public final class PartyCommand {
     }
 
 }
-*/

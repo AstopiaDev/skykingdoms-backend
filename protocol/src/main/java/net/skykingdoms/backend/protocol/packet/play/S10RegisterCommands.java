@@ -3,12 +3,12 @@ package net.skykingdoms.backend.protocol.packet.play;
 import io.netty.buffer.ByteBuf;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import net.skykingdoms.api.protocol.packet.serialize.Serializable;
 import net.skykingdoms.backend.protocol.packet.ChannelProcessorContext;
 import net.skykingdoms.backend.protocol.packet.Packet;
 import net.skykingdoms.backend.protocol.packet.PacketProcessor;
 import net.skykingdoms.backend.protocol.packet.PacketUtils;
 import net.skykingdoms.backend.protocol.packet.play.processor.PlayServerProcessor;
-import net.skykingdoms.backend.api.protocol.packet.serialize.Serializable;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;

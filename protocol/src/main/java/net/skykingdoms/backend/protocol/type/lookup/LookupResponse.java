@@ -6,8 +6,8 @@ import lombok.Data;
 import lombok.NonNull;
 import lombok.experimental.FieldDefaults;
 import lombok.val;
+import net.skykingdoms.api.protocol.packet.serialize.Serializable;
 import net.skykingdoms.backend.protocol.packet.PacketUtils;
-import net.skykingdoms.backend.api.protocol.packet.serialize.Serializable;
 
 import java.util.Arrays;
 import java.util.Comparator;

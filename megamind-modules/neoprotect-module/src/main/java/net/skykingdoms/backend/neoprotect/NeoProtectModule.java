@@ -5,12 +5,12 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 import lombok.val;
+import net.skykingdoms.api.protocol.logging.Logging;
 import net.skykingdoms.backend.megamind.MegamindApp;
 import net.skykingdoms.backend.megamind.plugin.Plugin;
 import net.skykingdoms.backend.neoprotect.command.NeoBackendsCommand;
 import net.skykingdoms.backend.neoprotect.listener.ProxyDeploymentListener;
 import net.skykingdoms.backend.neoprotect.manager.NeoProtectManager;
-import net.skykingdoms.backend.protocol.logging.Logging;
 
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @SuppressWarnings("DeprecatedIsStillUsed")

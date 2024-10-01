@@ -1,7 +1,7 @@
 package net.skykingdoms.backend.megamind.boot;
 
+import net.skykingdoms.api.protocol.logging.Logging;
 import net.skykingdoms.backend.megamind.MegamindApp;
-import net.skykingdoms.backend.protocol.logging.Logging;
 
 public class MegamindBoot {
     public static void main(String[] args) {

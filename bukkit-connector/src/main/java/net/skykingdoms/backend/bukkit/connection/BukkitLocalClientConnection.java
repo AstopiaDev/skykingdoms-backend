@@ -4,7 +4,6 @@ import io.netty.channel.socket.SocketChannel;
 import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.experimental.FieldDefaults;
-import net.skykingdoms.backend.bukkit.BukkitConnector;
 import net.skykingdoms.backend.protocol.channel.AbstractClientChannel;
 import net.skykingdoms.backend.protocol.channel.AbstractRemoteServerChannel;
 

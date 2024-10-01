@@ -1,4 +1,5 @@
 dependencies {
+    compileOnly project(":backend-api")
     compileOnly project(":megamind-api")
 
     api 'it.unimi.dsi:fastutil:8.1.0'

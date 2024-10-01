@@ -1,6 +1,6 @@
 dependencies {
     compileOnly project(":protocol-api")
-    compileOnly project(":base")
+    compileOnly project(":backend-api")
 
     implementation 'com.google.code.gson:gson:2.11.0'
 

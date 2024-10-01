@@ -2,10 +2,11 @@ package net.skykingdoms.backend.base.permission;
 
 import com.google.common.collect.Multimaps;
 import com.google.common.collect.SortedSetMultimap;
-import io.netty.buffer.ByteBuf;
 import lombok.NonNull;
 import lombok.val;
-import net.skykingdoms.backend.protocol.serialize.Serializable;
+import net.skykingdoms.api.backend.permission.Group;
+import net.skykingdoms.api.backend.permission.PermissionType;
+import net.skykingdoms.api.backend.permission.UserRankContainer;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -14,7 +15,7 @@ import java.util.stream.Collectors;
 /**
  * @author Vihara
  */
-public final class UserRanks extends AbstractSet<UserRank> {
+public final class UserRanks extends UserRankContainer<UserRank> {
 
     public static UserRanks CONSOLE = new UserRanks(Collections.singleton(UserRank.OWNER));
 
@@ -55,6 +56,7 @@ public final class UserRanks extends AbstractSet<UserRank> {
         return ranks.values().iterator();
     }
 
+    @Override
     public Collection<UserRank> getRanks(final @NonNull PermissionType type) {
         return Collections.unmodifiableCollection(ranks.get(type));
     }

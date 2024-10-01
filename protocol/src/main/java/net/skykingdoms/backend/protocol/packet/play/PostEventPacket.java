@@ -2,17 +2,19 @@ package net.skykingdoms.backend.protocol.packet.play;
 
 import io.netty.buffer.ByteBuf;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
-import net.skykingdoms.backend.api.megamind.event.Event;
+import net.skykingdoms.api.megamind.event.Event;
+import net.skykingdoms.api.protocol.util.PacketUtils;
 import net.skykingdoms.backend.protocol.packet.ChannelProcessorContext;
 import net.skykingdoms.backend.protocol.packet.Packet;
 import net.skykingdoms.backend.protocol.packet.PacketProcessor;
 import net.skykingdoms.backend.protocol.packet.play.processor.PlayProcessor;
-import net.skykingdoms.backend.api.protocol.util.PacketUtils;
 import org.jetbrains.annotations.NotNull;
 
 @AllArgsConstructor
 @NoArgsConstructor
+@Getter
 public class PostEventPacket extends Packet<PlayProcessor> {
     Class<? extends Event> eventClass;
     Event event;

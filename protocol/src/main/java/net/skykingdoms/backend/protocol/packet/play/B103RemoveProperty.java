@@ -8,7 +8,6 @@ import net.skykingdoms.backend.protocol.packet.Packet;
 import net.skykingdoms.backend.protocol.packet.PacketProcessor;
 import net.skykingdoms.backend.protocol.packet.PacketUtils;
 import net.skykingdoms.backend.protocol.packet.play.processor.PlayProcessor;
-import net.skykingdoms.backend.api.protocol.type.PropertyType;
 import org.jetbrains.annotations.NotNull;
 
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -19,7 +18,7 @@ import org.jetbrains.annotations.NotNull;
 public final class B103RemoveProperty extends Packet<PlayProcessor> {
 
     int playerId;
-    PropertyType property;
+    String property;
 
     @Override
     public void process(@NotNull PlayProcessor processor, @NotNull ChannelProcessorContext ctx) throws Exception {
@@ -34,12 +33,12 @@ public final class B103RemoveProperty extends Packet<PlayProcessor> {
     @Override
     public void read0(@NotNull ByteBuf buf) throws Exception {
         playerId = buf.readInt();
-        property = PacketUtils.readEnum(buf, PropertyType.class);
+        property = PacketUtils.readString(buf);
     }
 
     @Override
     public void write0(@NotNull ByteBuf buf) throws Exception {
         buf.writeInt(playerId);
-        PacketUtils.writeEnum(buf, property);
+        PacketUtils.writeString(buf, property);
     }
 }

@@ -2,14 +2,14 @@ package net.skykingdoms.backend.neoprotect.listener;
 
 import lombok.NonNull;
 import lombok.val;
+import net.skykingdoms.api.megamind.event.EventHandler;
+import net.skykingdoms.api.megamind.event.Listener;
+import net.skykingdoms.api.protocol.logging.Logging;
 import net.skykingdoms.backend.megamind.MegamindApp;
-import net.skykingdoms.backend.api.megamind.event.EventHandler;
-import net.skykingdoms.backend.api.megamind.event.Listener;
 import net.skykingdoms.backend.megamind.event.network.ProxyDeployEvent;
 import net.skykingdoms.backend.megamind.event.network.ProxyRemoveEvent;
 import net.skykingdoms.backend.neoprotect.NeoProtectModule;
 import net.skykingdoms.backend.neoprotect.manager.NeoProtectManager;
-import net.skykingdoms.backend.protocol.logging.Logging;
 
 public final class ProxyDeploymentListener implements Listener {
 

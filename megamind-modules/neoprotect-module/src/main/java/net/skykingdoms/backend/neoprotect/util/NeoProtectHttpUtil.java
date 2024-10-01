@@ -9,10 +9,10 @@ import com.squareup.okhttp.Response;
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
 import lombok.val;
+import net.skykingdoms.api.protocol.logging.Logging;
+import net.skykingdoms.api.protocol.util.TextFormat;
 import net.skykingdoms.backend.neoprotect.NeoProtectModule;
 import net.skykingdoms.backend.neoprotect.dao.Backend;
-import net.skykingdoms.backend.protocol.logging.Logging;
-import net.skykingdoms.backend.api.protocol.util.TextFormat;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;

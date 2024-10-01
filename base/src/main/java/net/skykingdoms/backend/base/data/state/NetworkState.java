@@ -5,8 +5,8 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import net.skykingdoms.backend.base.gamer.AbstractGamer;
-import net.skykingdoms.backend.api.protocol.util.Consumer;
+import net.skykingdoms.api.protocol.util.Consumer;
+import net.skykingdoms.backend.base.gamer.CommonGamer;
 
 import java.util.Arrays;
 
@@ -59,13 +59,13 @@ public enum NetworkState {
     /**
      * Consumer that is activated by enabling the specified state
      */
-    Consumer<AbstractGamer> onEnable;
+    Consumer<CommonGamer> onEnable;
 
     /**
      * Consumer that is called when a player
      * tries to connect to the network
      */
-    Consumer<AbstractGamer> onJoin;
+    Consumer<CommonGamer> onJoin;
 
     public static final NetworkState[] VALUES = values();
 

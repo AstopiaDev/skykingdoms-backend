@@ -7,8 +7,8 @@ import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
-import net.skykingdoms.backend.api.megamind.event.Cancellable;
-import net.skykingdoms.backend.api.megamind.event.Event;
+import net.skykingdoms.api.megamind.event.Cancellable;
+import net.skykingdoms.api.megamind.event.Event;
 import net.skykingdoms.backend.megamind.data.gamer.Gamer;
 
 /**
