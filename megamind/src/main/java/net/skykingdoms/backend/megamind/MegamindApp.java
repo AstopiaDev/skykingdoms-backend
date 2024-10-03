@@ -79,7 +79,7 @@ public class MegamindApp extends MegamindAPI {
     ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors());
     ExecutorService executor = Executors.newCachedThreadPool();
 
-    Path directory = Paths.get(".");
+    Path directory = Paths.get(".").toAbsolutePath().normalize();
     Path plugins = directory.resolve("plugins");
 
     long startDate = System.nanoTime();
