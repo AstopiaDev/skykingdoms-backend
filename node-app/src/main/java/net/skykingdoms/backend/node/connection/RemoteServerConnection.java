@@ -8,7 +8,6 @@ import lombok.val;
 import net.skykingdoms.api.protocol.logging.Logging;
 import net.skykingdoms.api.protocol.type.RemoteConnectedType;
 import net.skykingdoms.backend.node.NodeApp;
-import net.skykingdoms.backend.node.deploy.NodeDeploymentManager;
 import net.skykingdoms.backend.node.manager.DeploymentManager;
 import net.skykingdoms.backend.protocol.channel.AbstractRemoteServerChannel;
 import net.skykingdoms.backend.protocol.packet.ChannelProcessorContext;
@@ -53,7 +52,7 @@ public final class RemoteServerConnection extends AbstractRemoteServerChannel {
 
     @Override
     public void process(S05UpdateNodeContainerInformation packet, ChannelProcessorContext ctx) {
-        NodeDeploymentManager.INSTANCE.handleContainerNameUpdate(
+        DeploymentManager.INSTANCE.handleContainerNameUpdate(
                 packet.getTransactionId(),
                 packet.getServerName().toLowerCase()
         );
