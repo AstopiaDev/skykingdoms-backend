@@ -52,8 +52,4 @@ public enum ServiceManager {
     public ServiceServer getService(String service) {
         return serviceServers.get(service);
     }
-
-    public void postBootstrap() {
-
-    }
 }

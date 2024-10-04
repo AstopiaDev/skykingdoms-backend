@@ -15,6 +15,7 @@ import net.skykingdoms.backend.base.data.property.PropertySqlHandler;
 import net.skykingdoms.backend.base.data.settings.SettingsSqlHandler;
 import net.skykingdoms.backend.base.data.tags.TagsSqlHandler;
 import net.skykingdoms.backend.base.leveling.Leveling;
+import net.skykingdoms.backend.base.permission.RankSqlHandler;
 import net.skykingdoms.backend.protocol.packet.Packet;
 import net.skykingdoms.backend.protocol.packet.PacketUtils;
 import org.jetbrains.annotations.NotNull;
@@ -87,7 +88,7 @@ public abstract class CommonGamer extends ApiGamer implements IBaseGamer, Serial
             return;
         }
 
-  /*      ranks = RankSqlHandler.INSTANCE.loadUserRanks(playerUniqueId).join();*/
+        ranks = RankSqlHandler.INSTANCE.loadUserRanks(gamerId).join();
     }
 
     public final void loadGroupsAndName() {

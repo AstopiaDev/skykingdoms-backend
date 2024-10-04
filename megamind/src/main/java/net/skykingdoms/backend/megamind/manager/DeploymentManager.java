@@ -144,7 +144,11 @@ public final class DeploymentManager {
         _reserved.add(name); // reserving shit
 
         val node = NodeManager.INSTANCE.registerNode(new NodeServer(name, rcc));
-        node.getChannel().sendPacket(new S04UpdateRemoteData(RemoteConnectedType.NODE, new FluentNodeDataImpl(name, null, -1, -1)));
+        val currentData = (FluentNodeDataImpl) handshake.getFluentData();
+
+        currentData.setNodeName(name);
+
+        node.getChannel().sendPacket(new S04UpdateRemoteData(RemoteConnectedType.NODE, currentData));
 
         _reserved.remove(name); // invalidation reservation record
 
@@ -187,6 +191,9 @@ public final class DeploymentManager {
 
         if (handshake.getFluentData() instanceof FluentBukkitDataImpl) {
             FluentBukkitDataImpl data = (FluentBukkitDataImpl) handshake.getFluentData();
+            if (handshake.isReconnect()) {
+                return NodeManager.INSTANCE.isNodeRegistered(data.getNodeName());
+            }
             if (data.getServerScaleType() == ServerScaleType.PERSISTENT) {
                 NodeServer nodeServer = NodeManager.INSTANCE.getNodeServerFromAddress(data.getHost());
                 if (nodeServer == null) {
@@ -264,7 +271,7 @@ public final class DeploymentManager {
                 val bukkitName = bukkitFluentData.getServerName();
                 val node = NodeManager.INSTANCE.getNodeServer(((FluentBukkitDataImpl) data).getNodeName());
                 if (node == null) {
-                    Logging.IMP.debug("Server {} tried reconnecting to node {}, but its not loaded!",
+                    Logging.IMP.info("Server {} tried reconnecting to node {}, but its not loaded!",
                             bukkitName, ((FluentBukkitDataImpl) data).getNodeName());
                     return;
                 }

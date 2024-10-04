@@ -419,7 +419,6 @@ public final class RemoteClientConnection extends AbstractRemoteClientChannel {
             try {
                 reconnecting.put(
                         gamer,
-
                         ServerManager.INSTANCE.getFutureServer(serverName).whenComplete((result, e) -> {
                             if (result == null || e != null) {
                                 gamer.localizedDisconnect("core_reconnect_server_not_found");

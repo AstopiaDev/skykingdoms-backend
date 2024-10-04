@@ -98,7 +98,7 @@ public enum DeploymentManager {
         // Removing all containers, because we need only our shit :3
         client.listContainersCmd().withShowAll(true).exec().forEach(container -> {
             String containerName = container.getNames()[0]; // Get the container name
-            if (containerName.startsWith(config.getNetworkType().getPrefix() + "-")) {
+            if (containerName.startsWith("/" + config.getNetworkType().getPrefix() + "-")) {
                 try {
                     client.killContainerCmd(container.getId()).exec();
                     client.removeContainerCmd(container.getId()).exec();
