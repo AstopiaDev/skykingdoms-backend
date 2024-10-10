@@ -163,7 +163,7 @@ public abstract class ApiGamer implements IGamer {
     public abstract void addProperty(@NonNull String property, int value);
 
     public final <T> T getProperty(final @NonNull String key) {
-        if (properties == null) {
+        if (properties == null || !properties.containsKey(key)) {
             return null;
         }
 
@@ -171,7 +171,7 @@ public abstract class ApiGamer implements IGamer {
     }
 
     public final <T> T getPropertyOrDefault(final @NonNull String key, T def) {
-        if (properties == null) {
+        if (properties == null || !properties.containsKey(key)) {
             return def;
         }
 

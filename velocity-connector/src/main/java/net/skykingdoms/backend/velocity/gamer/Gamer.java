@@ -30,6 +30,9 @@ import java.util.Collection;
 import java.util.UUID;
 import java.util.function.Consumer;
 
+
+
+
 /**
  * Proxy-sided realization of {@link IGamer}, providing all necessary information about
  * player.

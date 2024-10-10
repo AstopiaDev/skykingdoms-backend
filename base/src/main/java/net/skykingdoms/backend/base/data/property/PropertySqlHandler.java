@@ -61,7 +61,9 @@ public enum PropertySqlHandler {
                         row.getRequiredString("Name"),
                         newProperty(
                                 row.getRequiredString("Type"),
-                                row.getRequiredString("Data"))
+                                row.getRequiredString("Data")
+
+                        )
                 );
             });
 
