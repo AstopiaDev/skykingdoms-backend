@@ -167,7 +167,7 @@ public abstract class ApiGamer implements IGamer {
             return null;
         }
 
-        return (T) properties.get(key);
+        return (T) properties.get(key).getValue();
     }
 
     public final <T> T getPropertyOrDefault(final @NonNull String key, T def) {
@@ -175,7 +175,7 @@ public abstract class ApiGamer implements IGamer {
             return def;
         }
 
-        return (T) properties.get(key);
+        return (T) properties.get(key).getValue();
     }
 
     protected static final IndexMap<IGamer> GAMERS = IndexMap.<IGamer>newMap()

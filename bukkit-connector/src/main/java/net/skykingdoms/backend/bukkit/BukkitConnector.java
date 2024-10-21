@@ -92,7 +92,7 @@ public enum BukkitConnector {
 
         // we init this shit for handshake cocked stuff
         Logging.IMP.info("S: {} | G: {} | EX: {} | P: {}", serverScaleType, gameType, System.getProperty("externalAddr"), bukkitAddress().getPort());
-        this.fluentBukkitData = new FluentBukkitDataImpl("N/A", "N/A", serverScaleType, gameType,
+        this.fluentBukkitData = new FluentBukkitDataImpl(gameMode != null ? gameMode.name().toLowerCase() : "N/A", "N/A", serverScaleType, gameType,
                 System.getProperty("externalAddr"), bukkitAddress().getPort());
 
         plugin.getServer().getScheduler().runTask(plugin, () -> {

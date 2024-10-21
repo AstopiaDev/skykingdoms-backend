@@ -125,17 +125,6 @@ public final class ProxyManager {
 
         proxyServers.put(proxyServer.getName(), proxyServer);
 
-        List<S10RegisterCommands.CommandContainer> containers = new ArrayList<>();
-        for (val entry : ServerManager.INSTANCE.getCommandMapper().getCommandsEntry()) {
-            containers.add(new S10RegisterCommands.CommandContainer(
-                    entry.getValue(), S10RegisterCommands.CommandSource.SERVER, entry.getKey()
-            ));
-        }
-
-        containers.add(S10RegisterCommands.CommandContainer.coreSingleton(MegamindApp.INSTANCE.getCommands())[0]);
-
-        proxyServer.getChannel().sendPacket(new S10RegisterCommands(containers.toArray(S10RegisterCommands.CommandContainer[]::new)));
-
         return proxyServer;
     }
 

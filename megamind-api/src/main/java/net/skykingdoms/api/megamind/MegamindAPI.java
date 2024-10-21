@@ -7,7 +7,7 @@ import java.lang.reflect.Field;
 
 @Getter
 public abstract class MegamindAPI {
-    IPluginManager pluginManager;
+    protected IPluginManager pluginManager;
 
     public static MegamindAPI getInstance() {
         try {

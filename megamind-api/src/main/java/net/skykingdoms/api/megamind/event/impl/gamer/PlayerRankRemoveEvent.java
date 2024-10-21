@@ -1,9 +1,13 @@
 package net.skykingdoms.api.megamind.event.impl.gamer;
 
-public final class PlayerRankRemoveEvent { /*extends RankChangedEvent {
+import lombok.NonNull;
+import net.skykingdoms.api.backend.permission.IUserRank;
+import net.skykingdoms.api.megamind.gamer.IMegamindGamer;
 
-    public PlayerRankRemoveEvent(final @NonNull Gamer gamer,
-                                 final @NonNull UserRank rank) {
+public final class PlayerRankRemoveEvent extends RankChangedEvent {
+
+    public PlayerRankRemoveEvent(final @NonNull IMegamindGamer gamer,
+                                 final @NonNull IUserRank rank) {
         super(gamer, rank);
-    }*/
+    }
 }

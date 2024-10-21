@@ -23,4 +23,6 @@ include 'minimind:gamer-mind'
 findProject(':minimind:gamer-mind')?.name = 'gamer-mind'
 include 'protocol-api'
 include 'backend-api'
+include 'megamind-modules:discord-module'
+findProject(':megamind-modules:discord-module')?.name = 'discord-module'
 

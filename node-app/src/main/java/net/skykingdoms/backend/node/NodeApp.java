@@ -130,7 +130,7 @@ public enum NodeApp {
                     yamlConfiguration.getString("coordinatorHost"),
                     yamlConfiguration.getInt("coordinatorPort"),
                     yamlConfiguration.getString("coordinatorSecret"),
-                    NetworkType.fromName(yamlConfiguration.getString("network"), NetworkType.DEVELOPMENT),
+                    NetworkType.valueOf(System.getProperty("network.type", NetworkType.DEVELOPMENT.name())),
                     yamlConfiguration.getStringList("scaleTypes").stream()
                             .map(ServerScaleType::valueOf).distinct().toArray(ServerScaleType[]::new)
             );

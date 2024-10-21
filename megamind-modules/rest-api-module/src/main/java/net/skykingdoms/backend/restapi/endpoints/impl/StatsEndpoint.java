@@ -22,7 +22,7 @@ import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 @ApiMethod(RequestType.GET)
-@Endpoint("/stats")
+@Endpoint("stats")
 public final class StatsEndpoint implements IEndpoint {
 
     @Override

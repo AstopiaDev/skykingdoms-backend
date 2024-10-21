@@ -29,7 +29,7 @@ public final class StaffChatListener implements Listener {
             return;
         }
 
-        StaffChatManager.INSTANCE.sendMessage(gamer.getDisplayName() + ChatColor.WHITE + " connected");
+        StaffChatManager.INSTANCE.sendMessage(gamer.getColoredName() + ChatColor.AQUA + " is now online");
     }
 
     @EventHandler
@@ -40,7 +40,7 @@ public final class StaffChatListener implements Listener {
             return;
         }
 
-        StaffChatManager.INSTANCE.sendMessage(gamer.getDisplayName() + ChatColor.WHITE + " disconnected");
+        StaffChatManager.INSTANCE.sendMessage(gamer.getColoredName() + ChatColor.AQUA + " is now offline");
     }
 
 }

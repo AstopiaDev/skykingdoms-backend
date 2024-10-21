@@ -14,6 +14,7 @@ public enum PacketProtocol {
     },
     PLAY {
         {
+            both(101, B101UpdateRank.class, B101UpdateRank::new);
             both(102, B102SetProperty.class, B102SetProperty::new);
             both(103, B103RemoveProperty.class, B103RemoveProperty::new);
             both(104, B104BroadcastChat.class, B104BroadcastChat::new);
@@ -22,6 +23,8 @@ public enum PacketProtocol {
             both(107, B107ProxyKick.class, B107ProxyKick::new);
             both(108, B108UpdatePlayerLanguage.class, B108UpdatePlayerLanguage::new);
             both(109, B109UpdateSetting.class, B109UpdateSetting::new);
+            both(110, B110UserUpdatePermission.class, B110UserUpdatePermission::new);
+            both(111, B111GroupUpdatePermission.class, B111GroupUpdatePermission::new);
 
             toClient(1, Tabcomplete.Response.class, Tabcomplete.Response::new);
             toClient(2, NodeSnapshot.Request.class, NodeSnapshot.Request::new);

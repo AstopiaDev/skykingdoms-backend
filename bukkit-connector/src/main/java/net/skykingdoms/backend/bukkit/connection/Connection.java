@@ -4,11 +4,14 @@ import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.UtilityClass;
 import net.skykingdoms.backend.base.language.Language;
+import net.skykingdoms.backend.base.permission.UserRank;
 import net.skykingdoms.backend.protocol.packet.Packet;
 import net.skykingdoms.backend.protocol.packet.PacketProcessor;
+import net.skykingdoms.backend.protocol.packet.play.B101UpdateRank;
 import net.skykingdoms.backend.protocol.packet.play.B108UpdatePlayerLanguage;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 @UtilityClass
 public final class Connection {
@@ -37,11 +40,11 @@ public final class Connection {
         sendPacket(new B108UpdatePlayerLanguage(playerId, newLanguage.getId()));
     }
 
-/*    public void updateRank(final int playerId,
+    public void updateRank(final int playerId,
                            final @NonNull B101UpdateRank.Action action,
                            final @NonNull UserRank rank) {
         sendPacket(new B101UpdateRank(playerId, action, rank.getGroup().getId(), rank.getId(), (int) rank.getExpires(TimeUnit.SECONDS)));
-    }*/
+    }
 
     public void sendPacket(Packet<?> packet) {
         getConnection().sendPacket(packet);

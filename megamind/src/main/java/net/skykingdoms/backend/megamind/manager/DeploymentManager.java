@@ -37,10 +37,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.net.InetSocketAddress;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Queue;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -191,20 +188,20 @@ public final class DeploymentManager {
 
         if (handshake.getFluentData() instanceof FluentBukkitDataImpl) {
             FluentBukkitDataImpl data = (FluentBukkitDataImpl) handshake.getFluentData();
-            if (handshake.isReconnect()) {
-                return NodeManager.INSTANCE.isNodeRegistered(data.getNodeName());
-            }
             if (data.getServerScaleType() == ServerScaleType.PERSISTENT) {
                 NodeServer nodeServer = NodeManager.INSTANCE.getNodeServerFromAddress(data.getHost());
-                if (nodeServer == null) {
-                    return false;
-                }
-                if (isTransactionExists(transaction)) {
+                return nodeServer != null;
+
+/*                if (isTransactionExists(transaction)) {
                     return true;
                 } else {
                     Logging.IMP.info("[Deploy] Declined invalid transaction #{} @ {} @ {}", transaction.toString(), type.name(), isTransactionExists(transaction));
                     return false;
-                }
+                }*/
+            }
+
+            if (handshake.isReconnect()) {
+                return NodeManager.INSTANCE.isNodeRegistered(data.getNodeName());
             }
         }
 
@@ -254,6 +251,18 @@ public final class DeploymentManager {
                 // todo: send renewed server instances
                 rcc.getConnectable().getChannel().sendPacket(new S28UpdateNetworkState(MegamindApp.INSTANCE.networkState().ordinal()));
 
+                // TODO: do the command shit differently
+                List<S10RegisterCommands.CommandContainer> containers = new ArrayList<>();
+                for (val entry : ServerManager.INSTANCE.getCommandMapper().getCommandsEntry()) {
+                    containers.add(new S10RegisterCommands.CommandContainer(
+                            entry.getValue(), S10RegisterCommands.CommandSource.SERVER, entry.getKey()
+                    ));
+                }
+
+                containers.add(S10RegisterCommands.CommandContainer.coreSingleton(MegamindApp.INSTANCE.getCommands())[0]);
+
+                rcc.getConnectable().getChannel().sendPacket(new S10RegisterCommands(containers.toArray(S10RegisterCommands.CommandContainer[]::new)));
+
                 // Notifying internal systems that we've got a proxy deployed
                 // it's required by NeoProtect module
                 MegamindApp.INSTANCE.pluginManager().callEvent(new ProxyDeployEvent((ProxyServer) rcc.getConnectable(), true));
@@ -269,7 +278,14 @@ public final class DeploymentManager {
                 }*/
 
                 val bukkitName = bukkitFluentData.getServerName();
-                val node = NodeManager.INSTANCE.getNodeServer(((FluentBukkitDataImpl) data).getNodeName());
+
+                NodeServer node;
+                if (bukkitFluentData.getServerScaleType() == ServerScaleType.PERSISTENT) {
+                    node = NodeManager.INSTANCE.getNodeServerFromAddress(((FluentBukkitDataImpl) data).getHost());
+                } else {
+                    node = NodeManager.INSTANCE.getNodeServer(((FluentBukkitDataImpl) data).getNodeName());
+                }
+
                 if (node == null) {
                     Logging.IMP.info("Server {} tried reconnecting to node {}, but its not loaded!",
                             bukkitName, ((FluentBukkitDataImpl) data).getNodeName());
@@ -493,6 +509,17 @@ public final class DeploymentManager {
 
             rcc.getConnectable().getChannel().sendPacket(new S28UpdateNetworkState(MegamindApp.INSTANCE.networkState().ordinal()));
             rcc.getConnectable().getChannel().sendPacket(new S06RegisterServers(serverConnectionInfoArray));
+
+            List<S10RegisterCommands.CommandContainer> containers = new ArrayList<>();
+            for (val entry : ServerManager.INSTANCE.getCommandMapper().getCommandsEntry()) {
+                containers.add(new S10RegisterCommands.CommandContainer(
+                        entry.getValue(), S10RegisterCommands.CommandSource.SERVER, entry.getKey()
+                ));
+            }
+
+            containers.add(S10RegisterCommands.CommandContainer.coreSingleton(MegamindApp.INSTANCE.getCommands())[0]);
+
+            rcc.getConnectable().getChannel().sendPacket(new S10RegisterCommands(containers.toArray(S10RegisterCommands.CommandContainer[]::new)));
 
             // Notifying internal systems that we've got a proxy deployed
             // it's required by NeoProtect module

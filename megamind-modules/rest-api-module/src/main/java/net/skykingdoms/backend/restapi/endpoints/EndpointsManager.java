@@ -21,25 +21,27 @@ public final class EndpointsManager {
     public static final EndpointsManager INSTANCE = new EndpointsManager();
     // --------------------------------------------------------------------
 
-    Collection<IEndpoint> endpoints = CollectionUtil.createConcurrentWeakSet();
+    Collection<IEndpoint> endpoints = CollectionUtil.createConcurrentSet();
 
     public void initialize() {
         registerEndpoints();
 
         for (val processor : endpoints) {
             if (!processor.getClass().isAnnotationPresent(Endpoint.class)) {
-                Logging.IMP.warn("[RestAPI] No Endpoint annotation present for processor {}", processor.getClass().getName());
+                Logging.IMP.info("[RestAPI] No Endpoint annotation present for processor {}", processor.getClass().getName());
                 continue;
             }
 
             if (!processor.getClass().isAnnotationPresent(ApiMethod.class)) {
-                Logging.IMP.warn("[RestAPI] No api method annotation present for processor {}", processor.getClass().getName());
+                Logging.IMP.info("[RestAPI] No api method annotation present for processor {}", processor.getClass().getName());
                 continue;
             }
 
             val endpointName = processor.getClass().getAnnotation(Endpoint.class).value();
             val type = processor.getClass().getAnnotation(ApiMethod.class).value();
             val needAuth = processor.getClass().isAnnotationPresent(AuthorizedOnly.class);
+
+            Logging.IMP.info(endpointName);
             if (needAuth) {
                 before((req, res) -> { // global lambda expression, so we verify for names
                     if (req.raw().getRequestURI().contains(endpointName)) {
@@ -79,7 +81,9 @@ public final class EndpointsManager {
 
     private void registerEndpoints() {
         endpoints.add(new PingEndpoint());
+        Logging.IMP.info("Ping");
         endpoints.add(new TestflowEndpoint());
+        Logging.IMP.info("Testflow");
         endpoints.add(new ReturnAddressEndpoint());
         endpoints.add(new StashEndpoint());
         endpoints.add(new PlayerDataEndpoint());

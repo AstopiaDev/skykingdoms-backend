@@ -12,7 +12,7 @@ import spark.Response;
  * @author Vihara
  */
 @ApiMethod(RequestType.GET)
-@Endpoint("/ping")
+@Endpoint("ping")
 public final class PingEndpoint implements IEndpoint {
 
     @Override

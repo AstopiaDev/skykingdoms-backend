@@ -7,6 +7,7 @@ import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
 import net.skykingdoms.api.backend.command.ICommand;
 import net.skykingdoms.api.backend.gamer.ICommandSender;
+import net.skykingdoms.api.backend.permission.Group;
 import net.skykingdoms.api.backend.setting.SettingType;
 import net.skykingdoms.api.backend.util.collection.CollectionUtil;
 import net.skykingdoms.api.backend.util.config.Configuration;
@@ -34,6 +35,7 @@ import net.skykingdoms.backend.megamind.connection.LocalServerConnection;
 import net.skykingdoms.backend.megamind.data.friend.FriendListener;
 import net.skykingdoms.backend.megamind.data.friend.FriendManager;
 import net.skykingdoms.backend.megamind.data.gamer.Gamer;
+import net.skykingdoms.backend.megamind.data.group.GroupListener;
 import net.skykingdoms.backend.megamind.data.message.command.AppendCommand;
 import net.skykingdoms.backend.megamind.data.message.command.MessageCommand;
 import net.skykingdoms.backend.megamind.data.message.command.ReplyCommand;
@@ -87,7 +89,6 @@ public class MegamindApp extends MegamindAPI {
     @Setter @NonFinal NetworkState networkState;
     @NonFinal LocalServerConnection connection;
     @NonFinal Configuration configuration;
-    @NonFinal PluginManager pluginManager;
     @NonFinal boolean running = false;
     @NonFinal String secret;
 
@@ -107,6 +108,9 @@ public class MegamindApp extends MegamindAPI {
         pluginManager = new PluginManager();
         this.enablePlugins();
         Logging.IMP.info("[Megamind] Loaded plugins");
+
+        this.registerListeners();
+        Logging.IMP.info("Listeners registered");
 
         ServerManager.INSTANCE.postBootstrap();
         CoreSecurityManager.INSTANCE.postBootstrap();
@@ -353,10 +357,18 @@ public class MegamindApp extends MegamindAPI {
                         .map(ProxyServer::getName));
             }
         });
+
+        TabcompleteManager.IMP.addCompleter("rank", new AbstractTabcompleter() {
+            @Override
+            public List<String> complete(@NotNull ICommandSender sender, @NotNull String label) {
+                return any(label, Arrays.stream(Group.VALUES).map(Group::name));
+            }
+        });
     }
 
     private void registerListeners() {
         new FriendListener();
+        new GroupListener();
         new StaffChatListener();
     }
 
@@ -384,10 +396,13 @@ public class MegamindApp extends MegamindAPI {
 /*        commandManager.addCommand(PointsCommand.class);*/
         commandManager.addCommand(FindCommand.class);
         commandManager.addCommand(GlistCommand.class);
+        commandManager.addCommand(LuckPermsTransferCommand.class);
 /*        commandManager.addCommand(ModernCommand.class);
         commandManager.addCommand(ProtocolCommand.class);*/
         commandManager.addCommand(NodeListCommand.class);
+        commandManager.addCommand(TransferPropertiesCommand.class);
         commandManager.addCommand(DeployTestCommand.class);
+        commandManager.addCommand(InternalRankCommand.class);
         commandManager.addCommand(DestroyInstanceCommand.class);
         commandManager.addCommand(LocationRawCommand.class);
         commandManager.addCommand(ReloadLanguagesCommand.class);
@@ -396,6 +411,7 @@ public class MegamindApp extends MegamindAPI {
         commandManager.addCommand(ConnectCommand.class);
         commandManager.addCommand(SetPropertyCommand.class);
         commandManager.addCommand(FriendCommand.class);
+        commandManager.addCommand(RankCommand.class);
         commandManager.addCommand(StaffChatCommand.class);
         commandManager.addCommand(HubCommand.class);
         commandManager.addCommand(TestFlowCommand.class);
@@ -475,6 +491,10 @@ public class MegamindApp extends MegamindAPI {
             Logging.IMP.stacktrace(e, "Exception caught on data read");
             return fallback;
         }
+    }
+
+    public PluginManager pluginManager() {
+        return (PluginManager) pluginManager;
     }
 
     // endregion

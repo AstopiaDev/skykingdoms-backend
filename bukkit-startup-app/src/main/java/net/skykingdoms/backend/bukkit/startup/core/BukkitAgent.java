@@ -56,7 +56,7 @@ public final class BukkitAgent {
     TestFlowData testFlowData;
     Configuration configuration;
 
-    private static final String API_BASE_URL = "http://95.216.43.103:4544/api";
+    private static final String API_BASE_URL = "http://95.216.43.103:4545/api";
     private static final String AUTH_HEADER = "Authorization";
     private static final String AUTH_VALUE = "Basic Zkk3ODAhfiNpZ0g2TyFJdlZgVDMkI34=";
 
@@ -282,6 +282,8 @@ public final class BukkitAgent {
     private void processDefaultDeployment(final @NonNull GameType gameType) {
         val epoch = System.currentTimeMillis();
 
+        Logging.IMP.info(gameType.name());
+
         downloadFile(API_BASE_URL + "/retrieve?token=cock&name=" + gameType.name(), "stash.zip");
         unzip("stash.zip", Paths.get("."));
 
@@ -343,6 +345,7 @@ public final class BukkitAgent {
     @SneakyThrows
     private void unzip(String zipFilePath, Path destDir) {
         new ZipFile(zipFilePath).extractAll(destDir.toString());
+        Files.delete(Path.of(zipFilePath));
     }
 
     @SneakyThrows

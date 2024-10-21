@@ -46,10 +46,10 @@ public final class StaffChatManager {
                 continue;
             }
 
-            gamer.sendMessage(ChatColor.AQUA + "[STAFF] " + message.format(gamer.getLanguage()));
+            gamer.sendMessage(ChatColor.AQUA + "[Staff]: " + message.format(gamer.getLanguage()));
         }
 
-        ConsoleCommandSender.INSTANCE.sendMessage(ChatColor.AQUA + "[STAFF] " + message.format(Language.DEFAULT));
+        ConsoleCommandSender.INSTANCE.sendMessage(ChatColor.AQUA + "[Staff]: " + message.format(Language.DEFAULT));
     }
 
 }

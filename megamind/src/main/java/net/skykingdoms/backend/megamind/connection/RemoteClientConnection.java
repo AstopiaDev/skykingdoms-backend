@@ -3,6 +3,7 @@ package net.skykingdoms.backend.megamind.connection;
 import io.netty.channel.socket.SocketChannel;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import net.skykingdoms.api.backend.permission.Group;
 import net.skykingdoms.api.backend.setting.SettingType;
 import net.skykingdoms.api.backend.setting.impl.BooleanSetting;
 import net.skykingdoms.api.backend.setting.impl.EnumSetting;
@@ -13,11 +14,14 @@ import net.skykingdoms.api.megamind.event.impl.gamer.PlayerLoginEvent;
 import net.skykingdoms.api.protocol.logging.Logging;
 import net.skykingdoms.api.protocol.server.GameType;
 import net.skykingdoms.api.protocol.server.ServerScaleType;
+import net.skykingdoms.api.protocol.type.GameMode;
 import net.skykingdoms.api.protocol.type.ReportType;
 import net.skykingdoms.backend.base.data.network.NetworkSqlHandler;
 import net.skykingdoms.backend.base.data.sql.sql.MapSqlHandler;
 import net.skykingdoms.backend.base.language.Language;
+import net.skykingdoms.backend.base.permission.UserRank;
 import net.skykingdoms.backend.base.util.color.ChatColor;
+import net.skykingdoms.backend.base.util.time.Duration;
 import net.skykingdoms.backend.megamind.AsyncExecution;
 import net.skykingdoms.backend.megamind.MegamindApp;
 import net.skykingdoms.backend.megamind.data.gamer.Gamer;
@@ -42,6 +46,10 @@ import net.skykingdoms.backend.protocol.type.connect.ConnectStatus;
 import net.skykingdoms.backend.protocol.type.reconnect.FailedReconnectGamer;
 
 import java.net.InetAddress;
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -747,8 +755,17 @@ public final class RemoteClientConnection extends AbstractRemoteClientChannel {
         Gamer gamer = Gamer.getGamer(senderId);
         Gamer target = Gamer.getGamer(targetId);
 
-        StaffChatManager.INSTANCE.sendMessage("§cReport from " + gamer.getDisplayName() + " to " + target.getDisplayName() + " of type " + reportType.name());
-        ctx.setResponse(new OpenReportPacket.Response(true, null));
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yy HH:mm").withZone(ZoneId.systemDefault());
+        String formattedTime = formatter.format(Instant.now());
+
+        StaffChatManager.INSTANCE.sendMessage(
+                ChatColor.RED + "[" + formattedTime + "] " +
+                        gamer.getColoredName() +
+                        ChatColor.RED + " reported " +
+                        target.getColoredName() +
+                        ChatColor.RED + " for " +
+                        Language.DEFAULT.getMessage(reportType.getLocalizationKey())
+        );        ctx.setResponse(new OpenReportPacket.Response(true, null));
     }
 
     @Override
@@ -773,6 +790,56 @@ public final class RemoteClientConnection extends AbstractRemoteClientChannel {
         }
 
         gamer.updateTablist();
+    }
+
+    @Override
+    public void process(B101UpdateRank packet, ChannelProcessorContext ctx) {
+        Gamer gamer = Gamer.getGamer(packet.getPlayerId());
+
+        if (gamer == null) {
+            return;
+        }
+
+        int groupId = packet.getGroupId();
+        int rankId = packet.getRankId();
+        int expires = packet.getExpires();
+
+        val rank = new UserRank(rankId, Group.getById(groupId), expires);
+
+        if (packet.getAction() == B101UpdateRank.Action.REMOVE_RANK) {
+            gamer.removeRank(rank);
+        } else if (packet.getAction() == B101UpdateRank.Action.ADD_RANK) {
+            gamer.addRank(rank);
+        } else if (packet.getAction() == B101UpdateRank.Action.SET_RANK) {
+            gamer.setRank(rank);
+        }
+
+        if (connectable instanceof ProxyServer) {
+            gamer.sendToServer(packet);
+        } else {
+            gamer.sendToProxy(packet);
+        }
+    }
+
+    @Override
+    public void process(B110UserUpdatePermission packet, ChannelProcessorContext ctx) {
+        Gamer gamer = Gamer.getGamer(packet.getPlayerId());
+        if (gamer != null) {
+            gamer.sendToServer(packet);
+        }
+    }
+
+    @Override
+    public void process(B111GroupUpdatePermission packet, ChannelProcessorContext ctx) {
+        GameMode gameMode = packet.getGameMode();
+
+        if (gameMode == null) {
+            ServerManager.INSTANCE.getServers().forEach(server -> server.getChannel().sendPacket(packet));
+        } else {
+            ServerManager.INSTANCE.getServers().stream()
+                    .filter(server -> server.getGameMode() == gameMode)
+                    .forEach(server -> server.getChannel().sendPacket(packet));
+        }
     }
 
     @Override
@@ -857,7 +924,7 @@ public final class RemoteClientConnection extends AbstractRemoteClientChannel {
             return;
         }
 
-        gamer.updateProperty(packet.getKey(), packet.getProperty());
+        gamer.updateProperty(packet.getKey(), packet.getProperty().getValue());
 
         if (connectable instanceof BukkitServer) {
             gamer.sendToProxy(packet);

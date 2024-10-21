@@ -38,8 +38,7 @@ public final class KickListener {
 
 // TODO: write a shit that will move a player to HUB or game lobby server on game-server shutdown
 
-/*        if (event.getResult() instanceof KickedFromServerEvent.RedirectPlayer) {
-            KickedFromServerEvent.RedirectPlayer result = (KickedFromServerEvent.RedirectPlayer) event.getResult();*/
+        if (event.getResult() instanceof KickedFromServerEvent.RedirectPlayer) {
             var kickedFrom = event.getServer().getServerInfo();
             val kickTo = ServerUtil.getRandomLobbyServer();
             //event.setResult(KickedFromServerEvent.ServerKickResult.);
@@ -47,7 +46,7 @@ public final class KickListener {
 
             gamer.sendLocalizedMessage(false, "fallback_server",
                     "%kick_to_name%", kickTo.getServerInfo().getName(), "%reason%", "none");
- /*       }*/
+        }
     }
 
 }

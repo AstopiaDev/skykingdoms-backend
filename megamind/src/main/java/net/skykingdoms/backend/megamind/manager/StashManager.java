@@ -30,26 +30,34 @@ public final class StashManager {
         try (val fos = new FileOutputStream(tmp);
              val zos = new ZipOutputStream(fos)) {
 
+            Logging.IMP.info(data);
+
             Path sourcePath = Paths.get(MegamindApp.INSTANCE.directory()
                     .resolve("stash")
                     .resolve(data).toUri());
+
+            Logging.IMP.info(sourcePath.toFile().exists() + " S?");
 
             Path globalsPath = Paths.get(MegamindApp.INSTANCE.directory()
                     .resolve("stash/_GLOBAL")
                     .toUri());
 
-            Files.walk(sourcePath)
-                    .filter(path -> !Files.isDirectory(path))
-                    .forEach(path -> {
-                        try {
-                            val relativePath = sourcePath.relativize(path);
-                            zos.putNextEntry(new ZipEntry(relativePath.toString()));
-                            Files.copy(path, zos);
-                            zos.closeEntry();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    });
+            Logging.IMP.info(globalsPath.toFile().exists() + " G?");
+
+            if (Files.walk(sourcePath).filter(path -> !Files.isDirectory(path)).count() != 0) {
+                Files.walk(sourcePath)
+                        .filter(path -> !Files.isDirectory(path))
+                        .forEach(path -> {
+                            try {
+                                val relativePath = sourcePath.relativize(path);
+                                zos.putNextEntry(new ZipEntry(relativePath.toString()));
+                                Files.copy(path, zos);
+                                zos.closeEntry();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        });
+            }
 
             Files.walk(globalsPath)
                     .filter(path -> !Files.isDirectory(path))

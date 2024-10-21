@@ -526,9 +526,7 @@ public final class ServerManager {
     // TODO: rewrite to use getServers()
     public AbstractScalable getPlayableServer(final @NonNull String name) {
         return getServers().stream()
-                .filter(server -> {
-                    return server.getName().equals(name);
-                })
+                .filter(server -> server.getName().equals(name))
                 .findFirst()
                 .orElse(null);
     }

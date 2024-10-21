@@ -4,11 +4,14 @@ import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.UtilityClass;
 import net.skykingdoms.backend.base.language.Language;
+import net.skykingdoms.backend.base.permission.UserRank;
 import net.skykingdoms.backend.protocol.packet.Packet;
 import net.skykingdoms.backend.protocol.packet.PacketProtocol;
+import net.skykingdoms.backend.protocol.packet.play.B101UpdateRank;
 import net.skykingdoms.backend.protocol.packet.play.B108UpdatePlayerLanguage;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 @UtilityClass
 public class Connection {
@@ -35,13 +38,13 @@ public class Connection {
     /**
      * Update player's rank on coordinator
      * @deprecated all shit with ranks we perform on coordinator. Do not use, please :3
-/*     *//*
+     */
     @Deprecated
     public void updateRank(final int playerId,
                            final @NonNull B101UpdateRank.Action action,
                            final @NonNull UserRank rank) {
         sendPacket(new B101UpdateRank(playerId, action, rank.getGroup().getId(), rank.getId(), (int) rank.getExpires(TimeUnit.SECONDS)));
-    }*/
+    }
 
     public void sendPacket(Packet<?> packet) {
         getConnection().sendPacket(packet);

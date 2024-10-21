@@ -11,15 +11,13 @@ import net.skykingdoms.backend.base.mysql.BufferedRow;
 import net.skykingdoms.backend.base.mysql.Database;
 import net.skykingdoms.backend.base.mysql.DatabaseCredentials;
 import net.skykingdoms.backend.base.mysql.impl.MySQL;
+import org.jetbrains.annotations.Nullable;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
-/**
- * @author Vihara
- */
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public final class RankSqlHandler {
 
@@ -37,13 +35,14 @@ public final class RankSqlHandler {
     private static final String LOAD_PLAYERS_BY_RANK
             = "SELECT `UserId` FROM `UserRanks` WHERE `GroupId` %s ? ORDER BY `GroupId` DESC;";
 
-    // ---------------------------------------------------
+    private static final String REMOVE_ALL_PLAYER_RANKS
+            = "DELETE FROM `UserRanks` WHERE `UserId` = ?";
 
     Database database = new MySQL(DatabaseCredentials.MAIN.withDatabase("PlayerData"));
 
     public CompletableFuture<UserRank> addUserRank(final int userId,
                                                    final @NonNull Group group,
-                                                   final LocalDateTime expires) {
+                                                   final @Nullable LocalDateTime expires) {
         return database.executeUpdate(ADD_PLAYER_RANK, userId, group.getId(), expires)
                 .thenApply(query -> new UserRank(query.getGeneratedKey(), group, expires));
     }
@@ -82,4 +81,10 @@ public final class RankSqlHandler {
         return new UserRank(row.getRequiredInt("Id"), group, expires);
     }
 
+    public CompletableFuture<UserRank> setRank(final int userId,
+                                               final @NonNull Group group,
+                                               final @Nullable LocalDateTime expires) {
+        return database.executeVoidUpdate(REMOVE_ALL_PLAYER_RANKS, userId)
+                .thenCompose(ignored -> addUserRank(userId, group, expires));
+    }
 }

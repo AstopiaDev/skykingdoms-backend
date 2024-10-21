@@ -3,17 +3,21 @@ package net.skykingdoms.backend.megamind.data.gamer;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import net.skykingdoms.api.backend.gamer.IGamer;
+import net.skykingdoms.api.backend.permission.Group;
+import net.skykingdoms.api.backend.permission.IUserRank;
 import net.skykingdoms.api.backend.setting.Setting;
 import net.skykingdoms.api.backend.setting.SettingType;
 import net.skykingdoms.api.backend.type.property.PropertyType;
-import net.skykingdoms.api.megamind.event.impl.gamer.GamerQuitEvent;
-import net.skykingdoms.api.megamind.event.impl.gamer.OfflineGamerLoadedEvent;
-import net.skykingdoms.api.megamind.event.impl.gamer.PlayerGameRedirectEvent;
+import net.skykingdoms.api.megamind.event.impl.gamer.*;
 import net.skykingdoms.api.megamind.gamer.IMegamindGamer;
 import net.skykingdoms.api.protocol.logging.Logging;
 import net.skykingdoms.backend.base.data.network.NetworkSqlHandler;
+import net.skykingdoms.backend.base.data.property.PropertySqlHandler;
 import net.skykingdoms.backend.base.data.settings.SettingsSqlHandler;
 import net.skykingdoms.backend.base.gamer.CommonGamer;
+import net.skykingdoms.backend.base.permission.RankSqlHandler;
+import net.skykingdoms.backend.base.permission.UserRank;
+import net.skykingdoms.backend.base.permission.UserRanks;
 import net.skykingdoms.backend.megamind.MegamindApp;
 import net.skykingdoms.backend.megamind.api.command.CommandSender;
 import net.skykingdoms.backend.megamind.lookup.LookupManager;
@@ -32,6 +36,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -190,6 +195,82 @@ public final class Gamer extends CommonGamer implements CommandSender, IMegamind
 
     // region ranks
 
+
+    public void checkExpiredRanks() {
+        for (val rank : ranks.getExpiredRanks()) {
+            sendLocalizedMessage(isModern(), "group_expired", "%rank%", rank.getGroup().getDisplayName());
+
+            removeRankAndUpdate((UserRank) rank);
+        }
+    }
+
+    @Override
+    public void addRank(final @NonNull Group group,
+                        final LocalDateTime expires) {
+        RankSqlHandler.INSTANCE.addUserRank(gamerId, group, expires)
+                .thenAccept(this::addRankAndUpdate);
+    }
+
+    @Override
+    public void addRank(@NonNull UserRank rank) {
+        ((UserRanks) ranks).add(rank);
+
+        val event = new PlayerRankAddEvent(this, rank);
+        MegamindApp.getInstance().getPluginManager().callEvent(event);
+    }
+
+    @Override
+    public void setRank(@NonNull Group group, final LocalDateTime expires) {
+        RankSqlHandler.INSTANCE.setRank(gamerId, group, expires).thenAccept(this::setRankAndUpdate);
+    }
+
+    public void setRank(UserRank rank) {
+        ranks.clear();
+        ((UserRanks) ranks).add(rank);
+
+        val event = new RankChangedEvent(this, rank);
+        MegamindApp.getInstance().getPluginManager().callEvent(event);
+    }
+
+    public void addRankAndUpdate(final @NonNull UserRank rank) {
+        addRank(rank);
+
+        Packet<?> updateRank = new B101UpdateRank(gamerId, B101UpdateRank.Action.ADD_RANK,
+                rank.getGroup().getId(), rank.getId(), (int) rank.getExpires(TimeUnit.SECONDS));
+
+        sendToServer(updateRank);
+        sendToProxy(updateRank);
+    }
+
+    public void setRankAndUpdate(final @NonNull UserRank rank) {
+        setRank(rank);
+
+        Packet<?> updateRank = new B101UpdateRank(gamerId, B101UpdateRank.Action.SET_RANK,
+                rank.getGroup().getId(), rank.getId(), (int) rank.getExpires(TimeUnit.SECONDS));
+
+        sendToServer(updateRank);
+        sendToProxy(updateRank);
+    }
+
+    public void removeRank(final @NonNull UserRank rank) {
+        ranks.remove(rank);
+
+        RankSqlHandler.INSTANCE.removeUserRank(rank.getId());
+
+        val event = new PlayerRankRemoveEvent(this, rank);
+        MegamindApp.getInstance().getPluginManager().callEvent(event);
+    }
+
+    public void removeRankAndUpdate(final @NonNull UserRank rank) {
+        removeRank(rank);
+
+        val updateRank = new B101UpdateRank(gamerId, B101UpdateRank.Action.REMOVE_RANK,
+                rank.getGroup().getId(), rank.getId(), (int) rank.getExpires(TimeUnit.SECONDS));
+
+        sendToServer(updateRank);
+        sendToProxy(updateRank);
+    }
+
     public synchronized ConnectStatus sendTo(final @NonNull AbstractPlayerHolder server) {
         // any bukkit/virtualized instance, but not a PROXY lol
         assert server instanceof IPlayableBukkitServer;
@@ -300,9 +381,19 @@ public final class Gamer extends CommonGamer implements CommandSender, IMegamind
         }
 
         PropertyType<T> propertyType = (PropertyType<T>) properties.get(key);
+
+        if (propertyType == null) {
+            propertyType = PropertySqlHandler.INSTANCE.createProperty(value);
+        }
+
         propertyType.setValue(value);
 
-        //PropertySqlHandler.INSTANCE.setPropertyValue(gamerId, key, value);
+
+        Logging.IMP.info("UPDATE PROPERTY {} -> {}", key, value);
+        Logging.IMP.info(propertyType.getInsertStatement(1, "test"));
+
+        properties.put(key, propertyType);
+        PropertySqlHandler.INSTANCE.setPropertyValue(gamerId, key, propertyType).join();
     }
 
     @Override
@@ -325,7 +416,7 @@ public final class Gamer extends CommonGamer implements CommandSender, IMegamind
         }
 
         properties.remove(key);
-        //PropertySqlHandler.INSTANCE.removeProperty(gamerId, key);
+        PropertySqlHandler.INSTANCE.removeProperty(gamerId, key);
     }
 
     // endregion
@@ -346,13 +437,6 @@ public final class Gamer extends CommonGamer implements CommandSender, IMegamind
     @Override
     public void sendToServer(final @NonNull Packet<?> packet) {
         if (online && bukkitServer != null) {
-/*            if (bukkitServer.getServerScale() == ServerScaleType.PERSISTENT) {
-                if (persistentServer != null) {
-                    persistentServer.getChannel().sendPacket(packet);
-                    return;
-                }
-            }*/
-            //Logging.IMP.info("SENDING TO SERVER {} | {}", bukkitServer.getName(), packet.toString());
             bukkitServer.getChannel().sendPacket(packet);
         }
     }
@@ -409,7 +493,7 @@ public final class Gamer extends CommonGamer implements CommandSender, IMegamind
         }
 
         // all shit validated, so we send vanish packet to server
-        setProperty("vanished", vanished ? 1 : 0);
+        setProperty("vanished", vanished);
 
         val server = getCurrentServer();
 
@@ -571,14 +655,14 @@ public final class Gamer extends CommonGamer implements CommandSender, IMegamind
                 .filter(gamer -> gamer != null && gamer.getCurrentServer() != null)
                 .collect(Collectors.toList());
     }
-/*
+
     public static List<IGamer> getGamersByGroup(final @NonNull Group group) {
         synchronized (GAMERS) {
             return GAMERS.values().stream()
                     .filter(player -> player.getRanks().canApply(group))
                     .collect(Collectors.toList());
         }
-    }*/
+    }
 
     // relay
     public static void addGamer(final @NonNull Gamer gamer) {

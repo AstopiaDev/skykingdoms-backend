@@ -19,7 +19,7 @@ public final class StaffChatCommand {
     @WithCondition("minArgs: 1")
     @Executor
     public static void execute(final CoreExecutionSession session) {
-        StaffChatManager.INSTANCE.sendMessage(session.getDisplayName() + ChatColor.WHITE + ": " + session.getArgumentString(0));
+        StaffChatManager.INSTANCE.sendMessage(session.getGamer().getColoredName() + ChatColor.WHITE + ": " + session.getArgumentString(0));
     }
 
 }

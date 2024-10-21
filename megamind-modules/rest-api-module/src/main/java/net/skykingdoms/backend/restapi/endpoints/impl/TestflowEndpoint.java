@@ -11,7 +11,7 @@ import spark.Response;
 import java.io.FileInputStream;
 
 @ApiMethod(RequestType.GET)
-@Endpoint("/testflow")
+@Endpoint("testflow")
 @AuthorizedOnly
 public final class TestflowEndpoint implements IEndpoint {
 

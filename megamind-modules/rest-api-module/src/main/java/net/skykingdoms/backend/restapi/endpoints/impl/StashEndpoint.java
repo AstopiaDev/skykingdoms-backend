@@ -14,7 +14,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 
 @ApiMethod(RequestType.GET)
-@Endpoint("/retrieve")
+@Endpoint("retrieve")
 @AuthorizedOnly
 public final class StashEndpoint implements IEndpoint{
 

@@ -39,13 +39,13 @@ public final class B102SetProperty extends Packet<PlayProcessor> {
     public void read0(@NotNull ByteBuf buf) throws Exception {
         playerId = buf.readInt();
         key = PacketUtils.readString(buf);
-        property = (PropertyType<?>) property.deserialize(PacketUtils.readString(buf));
+        property = PropertyType.deserialize(PacketUtils.readString(buf), PacketUtils.readString(buf));
     }
 
     @Override
     public void write0(@NotNull ByteBuf buf) throws Exception {
         buf.writeInt(playerId);
         PacketUtils.writeString(buf, key);
-        PacketUtils.writeString(buf, property.serialize());
+        property.serialize(buf);
     }
 }

@@ -8,6 +8,7 @@ import lombok.experimental.FieldDefaults;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.title.Title;
 import net.skykingdoms.api.backend.gamer.IGamer;
+import net.skykingdoms.api.backend.permission.Group;
 import net.skykingdoms.api.backend.setting.Setting;
 import net.skykingdoms.api.backend.setting.SettingType;
 import net.skykingdoms.api.backend.type.property.PropertyType;
@@ -15,7 +16,11 @@ import net.skykingdoms.backend.base.data.network.NetworkSqlHandler;
 import net.skykingdoms.backend.base.data.property.PropertySqlHandler;
 import net.skykingdoms.backend.base.gamer.CommonGamer;
 import net.skykingdoms.backend.base.language.Language;
+import net.skykingdoms.backend.base.permission.RankSqlHandler;
+import net.skykingdoms.backend.base.permission.UserRank;
+import net.skykingdoms.backend.base.permission.UserRanks;
 import net.skykingdoms.backend.protocol.packet.Packet;
+import net.skykingdoms.backend.protocol.packet.play.B101UpdateRank;
 import net.skykingdoms.backend.protocol.packet.play.B102SetProperty;
 import net.skykingdoms.backend.protocol.packet.play.B103RemoveProperty;
 import net.skykingdoms.backend.protocol.packet.play.B109UpdateSetting;
@@ -26,6 +31,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -447,6 +453,46 @@ public final class Gamer extends CommonGamer implements IGamer, ProxiedCommandSe
     @Override
     public void sendToProxy(@NotNull Packet<?> packet) {
 
+    }
+
+    @Deprecated
+    public void addRank(final @NonNull Group group,
+                        final @Nullable LocalDateTime expires) {
+        RankSqlHandler.INSTANCE.addUserRank(gamerId, group, expires).thenAccept(this::addRankAndUpdate);
+    }
+
+    // lol
+
+    public void addRank(final @NonNull UserRank rank) {
+        ((UserRanks) ranks).add(rank);
+    }
+
+    @Override
+    public void setRank(@NonNull Group group, LocalDateTime expires) {
+        RankSqlHandler.INSTANCE.setRank(gamerId, group, expires).thenAccept(this::addRankAndUpdate);
+    }
+
+    public void setRank(final @NonNull UserRank rank) {
+        ranks.clear();
+        ((UserRanks) ranks).add(rank);
+    }
+
+    @Deprecated
+    public void addRankAndUpdate(@NonNull UserRank rank) {
+        addRank(rank);
+
+        Connection.updateRank(gamerId, B101UpdateRank.Action.ADD_RANK, rank);
+    }
+
+    public void removeRank(@NonNull UserRank rank) {
+        ranks.remove(rank);
+    }
+
+    @Deprecated
+    public void removeRankAndUpdate(@NonNull UserRank rank) {
+        removeRank(rank);
+
+        Connection.updateRank(gamerId, B101UpdateRank.Action.REMOVE_RANK, rank);
     }
 
     public void sendLocalizedTitle(final int fadeIn,

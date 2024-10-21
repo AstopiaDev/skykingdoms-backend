@@ -12,13 +12,19 @@ import com.mojang.brigadier.suggestion.SuggestionProvider;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import com.mojang.brigadier.tree.CommandNode;
+import com.velocitypowered.api.event.Continuation;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.command.PlayerAvailableCommandsEvent;
 import com.velocitypowered.api.event.player.CommandTabCompleteEvent;
+import com.velocitypowered.api.event.player.TabCompleteEvent;
 import com.velocitypowered.api.network.ProtocolVersion;
 import com.velocitypowered.api.proxy.Player;
+import lombok.NonNull;
 import lombok.val;
+import net.kyori.adventure.text.Component;
+import net.skykingdoms.api.protocol.logging.Logging;
 import net.skykingdoms.backend.protocol.packet.play.Tabcomplete;
+import net.skykingdoms.backend.velocity.VelocityConnector;
 import net.skykingdoms.backend.velocity.command.VelocityCommandCocker;
 import net.skykingdoms.backend.velocity.connection.Connection;
 import net.skykingdoms.backend.velocity.gamer.Gamer;
@@ -41,22 +47,25 @@ public class TabCompleteListener {
 
     @Subscribe
     @SuppressWarnings("unchecked")
-    public void onDeclareCommands(PlayerAvailableCommandsEvent event) {
+    public void onDeclareCommands(final @NonNull PlayerAvailableCommandsEvent event) {
         val gamer = Gamer.getGamer(event.getPlayer());
 
-        if (gamer != null) {
+/*        if (gamer != null) {
             for (val command : VelocityCommandCocker.INSTANCE.getCommands()) {
                 event.getRootNode().addChild(createDummyNode(command));
             }
-        }
+        }*/
     }
 
     @Subscribe
-    public void onTabComplete(CommandTabCompleteEvent event) {
+    public void onTabComplete(final @NonNull CommandTabCompleteEvent event, Continuation continuation) {
         Player player = event.getPlayer();
         Gamer gamer = Gamer.getGamer(player.getUniqueId());
 
+        event.getSuggestions().clear();
+
         if (gamer == null) {
+            continuation.resume();
             return;
         }
 
@@ -67,7 +76,8 @@ public class TabCompleteListener {
 
         if (isCommand) {
             if (commandSeparator == -1) {
-                event.getSuggestions().addAll(VelocityCommandCocker.INSTANCE.matchCommands(cursor, player.getCurrentServer().get().getServerInfo()));
+                //event.getSuggestions().addAll(VelocityCommandCocker.INSTANCE.matchCommands(cursor, player.getCurrentServer().get().getServerInfo()));
+                continuation.resume();
                 return;
             }
 
@@ -96,9 +106,14 @@ public class TabCompleteListener {
                             } else {
                                 event.getSuggestions().addAll(response.getSuggestions());
                             }
+
+                            continuation.resume();
                         });
+                return;
                 // cancel here or some shit event.setCancelled(true);
             }
+
+            continuation.resume();
         }
     }
 

@@ -29,7 +29,9 @@ public final class FriendListener implements Listener {
 
         FriendManager.INSTANCE.handlePlayerQuit(gamer);
 
-        notifyFriendStatus(gamer, false, true);
+        if (!gamer.isVanished()) {
+            notifyFriendStatus(gamer, false, true);
+        }
     }
 
 
@@ -37,7 +39,7 @@ public final class FriendListener implements Listener {
     public void onPlayerVanish(PlayerVanishEvent event) {
         Gamer gamer = (Gamer) event.getGamer();
 
-        notifyFriendStatus(gamer, true, false);
+        notifyFriendStatus(gamer, !event.isVanished(), false);
     }
 
     private void notifyFriendStatus(final @NonNull Gamer gamer,
@@ -58,7 +60,7 @@ public final class FriendListener implements Listener {
             // TODO: Best friends realization for notifications
 
             friend.sendLocalizedMessage(online ? "friend_join_the_game" : "friend_left_the_game",
-                    "%name%", gamer.getDisplayName()
+                    "%name%", gamer.getColoredName()
             );
         }
     }
@@ -67,7 +69,9 @@ public final class FriendListener implements Listener {
     public void onPlayerJoin(GamerJoinEvent event) {
         Gamer gamer = (Gamer) event.getGamer();
 
-        notifyFriendStatus(gamer, true, true);
+        if (!gamer.isVanished()) {
+            notifyFriendStatus(gamer, true, true);
+        }
 
         List<Gamer> online = gamer.getOnlineFriends();
 

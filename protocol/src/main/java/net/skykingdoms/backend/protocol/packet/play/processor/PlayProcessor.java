@@ -10,7 +10,19 @@ public interface PlayProcessor extends PacketProcessor {
         //override me
     }
 
+    default void process(B101UpdateRank packet, ChannelProcessorContext ctx) {
+        // override me
+    }
+
     default void process(B109UpdateSetting packet, ChannelProcessorContext ctx) {
+        // override me
+    }
+
+    default void process(B110UserUpdatePermission packet, ChannelProcessorContext ctx) {
+        // override me
+    }
+
+    default void process(B111GroupUpdatePermission packet, ChannelProcessorContext ctx) {
         // override me
     }
 

@@ -12,7 +12,7 @@ import java.io.FileReader;
  * Sends list of registered nodes/developers
  */
 @ApiMethod(RequestType.GET)
-@Endpoint("/retaddr")
+@Endpoint("retaddr")
 @AuthorizedOnly
 public final class ReturnAddressEndpoint implements IEndpoint {
 

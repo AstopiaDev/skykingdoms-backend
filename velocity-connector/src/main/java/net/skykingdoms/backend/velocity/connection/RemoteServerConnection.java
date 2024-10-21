@@ -1,5 +1,6 @@
 package net.skykingdoms.backend.velocity.connection;
 
+import com.velocitypowered.api.command.CommandMeta;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
 import com.velocitypowered.api.proxy.server.ServerInfo;
 import io.netty.channel.socket.SocketChannel;
@@ -9,12 +10,14 @@ import lombok.experimental.FieldDefaults;
 import lombok.val;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.json.JSONComponentSerializer;
+import net.skykingdoms.api.backend.permission.Group;
 import net.skykingdoms.api.protocol.logging.Logging;
 import net.skykingdoms.api.protocol.server.ServerScaleType;
 import net.skykingdoms.api.protocol.type.RemoteConnectedType;
 import net.skykingdoms.backend.base.data.network.NetworkSqlHandler;
 import net.skykingdoms.backend.base.data.state.NetworkState;
 import net.skykingdoms.backend.base.language.Language;
+import net.skykingdoms.backend.base.permission.UserRank;
 import net.skykingdoms.backend.protocol.channel.AbstractRemoteServerChannel;
 import net.skykingdoms.backend.protocol.packet.ChannelProcessorContext;
 import net.skykingdoms.backend.protocol.packet.PacketProtocol;
@@ -23,7 +26,9 @@ import net.skykingdoms.backend.protocol.packet.play.*;
 import net.skykingdoms.backend.protocol.type.reconnect.ReconnectingGamer;
 import net.skykingdoms.backend.protocol.type.reconnect.impl.FluentProxyDataImpl;
 import net.skykingdoms.backend.velocity.VelocityConnector;
+import net.skykingdoms.backend.velocity.command.FakeCommandProxy;
 import net.skykingdoms.backend.velocity.command.VelocityCommandCocker;
+import net.skykingdoms.backend.velocity.command.VelocityCommandManager;
 import net.skykingdoms.backend.velocity.event.ServerActiveEvent;
 import net.skykingdoms.backend.velocity.event.ServerInactiveEvent;
 import net.skykingdoms.backend.velocity.gamer.Gamer;
@@ -322,6 +327,14 @@ public final class RemoteServerConnection extends AbstractRemoteServerChannel {
             switch (cont.getSource()) {
                 case CORE: {
                     VelocityCommandCocker.INSTANCE.setCommands(cont.getCommands());
+                    for (String command : cont.getCommands()) {
+                        com.velocitypowered.api.command.CommandManager manager = VelocityConnector.INSTANCE.server().getCommandManager();
+                        CommandMeta meta = manager
+                                .metaBuilder(command)
+                                .build();
+
+                        VelocityConnector.INSTANCE.server().getCommandManager().register(meta, new FakeCommandProxy());
+                    }
                     break;
                 }
                 case SERVER: {
@@ -372,7 +385,7 @@ public final class RemoteServerConnection extends AbstractRemoteServerChannel {
         gamer.dropProperty(packet.getProperty());
     }
 
-/*    @Override
+    @Override
     public void process(final @NonNull B101UpdateRank packet,
                         final @NonNull ChannelProcessorContext ctx) {
         val gamer = Gamer.getGamer(packet.getPlayerId());
@@ -396,6 +409,10 @@ public final class RemoteServerConnection extends AbstractRemoteServerChannel {
                 gamer.removeRank(rank);
                 break;
             }
+            case SET_RANK: {
+                gamer.setRank(rank);
+                break;
+            }
         }
-    }*/
+    }
 }

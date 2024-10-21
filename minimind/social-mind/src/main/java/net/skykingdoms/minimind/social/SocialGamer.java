@@ -5,11 +5,13 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.val;
+import net.skykingdoms.api.backend.permission.Group;
 import net.skykingdoms.api.backend.setting.Setting;
 import net.skykingdoms.api.backend.setting.SettingType;
 import net.skykingdoms.api.megamind.gamer.IMegamindGamer;
 import net.skykingdoms.backend.base.data.network.NetworkSqlHandler;
 import net.skykingdoms.backend.base.gamer.CommonGamer;
+import net.skykingdoms.backend.base.permission.UserRank;
 import net.skykingdoms.backend.protocol.packet.PacketUtils;
 import net.skykingdoms.minimind.command.CommandSender;
 import net.skykingdoms.minimind.social.party.Party;
@@ -72,6 +74,21 @@ public final class SocialGamer extends CommonGamer implements CommandSender, IMe
 
     @Override
     public void disconnect(@NotNull String reason) {
+
+    }
+
+    @Override
+    public void addRank(@NonNull Group group, LocalDateTime expires) {
+
+    }
+
+    @Override
+    public void addRank(@NonNull UserRank rank) {
+
+    }
+
+    @Override
+    public void setRank(@NonNull Group group, LocalDateTime expires) {
 
     }
 

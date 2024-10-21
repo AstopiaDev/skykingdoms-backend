@@ -16,11 +16,13 @@ import net.skykingdoms.backend.base.data.settings.SettingsSqlHandler;
 import net.skykingdoms.backend.base.data.tags.TagsSqlHandler;
 import net.skykingdoms.backend.base.leveling.Leveling;
 import net.skykingdoms.backend.base.permission.RankSqlHandler;
+import net.skykingdoms.backend.base.permission.UserRank;
 import net.skykingdoms.backend.protocol.packet.Packet;
 import net.skykingdoms.backend.protocol.packet.PacketUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.UnknownHostException;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @FieldDefaults(level = AccessLevel.PROTECTED)
@@ -256,10 +258,12 @@ public abstract class CommonGamer extends ApiGamer implements IBaseGamer, Serial
 
     // region ranks
 
-/*    public abstract void addRank(final @NonNull Group group,
+    public abstract void addRank(final @NonNull Group group,
                                  final LocalDateTime expires);
 
-    public abstract void addRank(@NonNull UserRank rank);*/
+    public abstract void addRank(@NonNull UserRank rank);
+
+    public abstract void setRank(@NonNull Group group, final LocalDateTime expires);
 
     // endregion
 
