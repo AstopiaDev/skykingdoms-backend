@@ -208,7 +208,7 @@ public final class FriendCommand {
                         return "N/A";
                     }
 
-                    String displayName = friend.getDisplayName();
+                    String displayName = friend.getColoredName();
 
                     if (!friend.isOnline()) {
                         return displayName + "§c is currently offline.";

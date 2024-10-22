@@ -123,13 +123,13 @@ public final class FriendManager {
         if (targetGamer.isOnline()) {
             targetGamer.sendRawMessage(
                     targetGamer.getLanguage().getMessage(targetGamer.isModern(), "friend_request_received",
-                            "%playerDisplay%", senderGamer.getDisplayName(),
+                            "%playerDisplay%", senderGamer.getColoredName(),
                             "%player%", senderGamer.getName()
                     )
             );
         }
 
-        senderGamer.sendLocalizedMessage(senderGamer.isModern(), "friend_request_sent", "%player%", targetGamer.getDisplayName());
+        senderGamer.sendLocalizedMessage(senderGamer.isModern(), "friend_request_sent", "%player%", targetGamer.getColoredName());
 
         val friendshipMeta = FriendsSqlHandler.INSTANCE.createFriendshipMeta(senderId, targetId);
         friendshipMetas.add(friendshipMeta);
@@ -177,14 +177,14 @@ public final class FriendManager {
 
         if (receiverGamer.isOnline()) {
             receiverGamer.sendLocalizedMessage(receiverGamer.isModern(), "friend_request_accepted",
-                    "%player%", senderGamer.getDisplayName());
+                    "%player%", senderGamer.getColoredName());
             receiverGamer.sendToServer(packet);
             receiverGamer.sendToProxy(packet);
         }
 
         if (senderGamer.isOnline()) {
             senderGamer.sendLocalizedMessage(senderGamer.isModern(), "friend_request_accepted",
-                    "%player%", receiverGamer.getDisplayName());
+                    "%player%", receiverGamer.getColoredName());
             senderGamer.sendToServer(packet);
             senderGamer.sendToProxy(packet);
         }
@@ -238,14 +238,14 @@ public final class FriendManager {
 
         if (firstGamer.isOnline()) {
             // you removed %player%
-            firstGamer.sendLocalizedMessage(firstGamer.isModern(), "friend_removed", "%player%", secondGamer.getDisplayName());
+            firstGamer.sendLocalizedMessage(firstGamer.isModern(), "friend_removed", "%player%", secondGamer.getColoredName());
             firstGamer.sendToServer(packet);
             firstGamer.sendToProxy(packet);
         }
 
         if (secondGamer.isOnline()) {
             // %player% removed you
-            secondGamer.sendLocalizedMessage(secondGamer.isModern(), "friend_removed_by", "%player%", firstGamer.getDisplayName());
+            secondGamer.sendLocalizedMessage(secondGamer.isModern(), "friend_removed_by", "%player%", firstGamer.getColoredName());
             secondGamer.sendToServer(packet);
             secondGamer.sendToProxy(packet);
         }
@@ -292,12 +292,12 @@ public final class FriendManager {
 
         if (denierGamer.isOnline()) {
             denierGamer.sendLocalizedMessage(denierGamer.isModern(), "friend_request_denied",
-                    "%player%", senderGamer.getDisplayName());
+                    "%player%", senderGamer.getColoredName());
         }
 
         if (senderGamer.isOnline()) {
             senderGamer.sendLocalizedMessage(senderGamer.isModern(), "friend_request_denied_by",
-                    "%player%", denierGamer.getDisplayName());
+                    "%player%", denierGamer.getColoredName());
         }
 
         friendshipMetas.remove(request);
