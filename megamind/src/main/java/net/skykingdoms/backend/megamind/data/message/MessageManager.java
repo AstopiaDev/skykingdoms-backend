@@ -118,10 +118,10 @@ public final class MessageManager implements Listener {
         }
 
         from.sendRawMessage(getMessage((Language) from.getLanguage(),
-                to.getName(), "Me", to.getDisplayName(), true, msg));
+                to.getName(), "Me", to.getPrefixedName(), true, msg));
 
         to.sendRawMessage(getMessage((Language) to.getLanguage(),
-                from.getName(), from.getDisplayName(), "Me", false, msg));
+                from.getName(), from.getPrefixedName(), "Me", false, msg));
 
         for (Gamer gamer : Gamer.getGamers()) {
             if (gamer.getGamerId() == to.getGamerId() || gamer.getGamerId() == from.getGamerId()) {

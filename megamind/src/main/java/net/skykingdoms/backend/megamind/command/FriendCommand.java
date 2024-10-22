@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
 @WithAlias("friends")
 @NamedCommand("friend")
 public final class FriendCommand {
-    
+
     @WithCondition("minArgs: 1")
     @WithAlias("invite")
     @SubcommandExecutor("add")
@@ -208,7 +208,7 @@ public final class FriendCommand {
                         return "N/A";
                     }
 
-                    String displayName = friend.getDisplayName();
+                    String displayName = friend.getColoredName();
 
                     if (!friend.isOnline()) {
                         return displayName + "§c is currently offline.";
