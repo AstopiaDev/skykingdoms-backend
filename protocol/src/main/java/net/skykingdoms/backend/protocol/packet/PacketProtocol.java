@@ -97,6 +97,7 @@ public enum PacketProtocol {
             toServer(33, ArenaBoot.Response.class, ArenaBoot.Response::new);
             toServer(34, C34GetBestDuelServer.class, C34GetBestDuelServer::new);
             toServer(35, C35RemoveDuelRequest.class, C35RemoveDuelRequest::new);
+            toServer(36, C36ServerCommand.class, C36ServerCommand::new);
         }
     };
 

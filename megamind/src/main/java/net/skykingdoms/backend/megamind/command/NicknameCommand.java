@@ -22,7 +22,7 @@ public class NicknameCommand {
             "nigger", "nigga", "dick", "muted", "immuted", "mute"
     );
 
-    private static final Pattern VALID_NICKNAME = Pattern.compile("^(&[0-9a-f-or])*[a-zA-Z_]+(&[0-9a-f-or]|[a-zA-Z_])*$");
+    private static final Pattern VALID_NICKNAME = Pattern.compile("^(&[0-9a-flm-or])*[a-zA-Z_]+(&[0-9a-flm-or]|[a-zA-Z_])*$");
 
     private static final int MIN_LENGTH = 3;
     private static final int MAX_LENGTH = 16;
