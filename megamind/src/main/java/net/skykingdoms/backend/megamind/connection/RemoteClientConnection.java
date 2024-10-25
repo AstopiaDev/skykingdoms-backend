@@ -24,6 +24,7 @@ import net.skykingdoms.backend.base.util.color.ChatColor;
 import net.skykingdoms.backend.base.util.time.Duration;
 import net.skykingdoms.backend.megamind.AsyncExecution;
 import net.skykingdoms.backend.megamind.MegamindApp;
+import net.skykingdoms.backend.megamind.api.command.ConsoleCommandSender;
 import net.skykingdoms.backend.megamind.data.gamer.Gamer;
 import net.skykingdoms.backend.megamind.event.GetBestServerEvent;
 import net.skykingdoms.backend.megamind.event.PlayerRedirectEvent;
@@ -849,6 +850,11 @@ public final class RemoteClientConnection extends AbstractRemoteClientChannel {
         if (gamer != null) {
             MegamindApp.INSTANCE.executeCommand(gamer, packet.getLine());
         }
+    }
+
+    @Override
+    public void process(C36ServerCommand packet, ChannelProcessorContext ctx) {
+        MegamindApp.INSTANCE.executeCommand(ConsoleCommandSender.INSTANCE, "/" + packet.getCommand());
     }
 
     @Override

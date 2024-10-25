@@ -99,7 +99,16 @@ public enum TagsSqlHandler {
 
     public void addPlayerTag(UUID playerId, int tagId) {
         databasePlayer.executeUpdate(ADD_PLAYER_TAG, playerId.toString(), tagId, tagId).join();
+
+        HashSet<Integer> tags = playerTags.getIfPresent(playerId);
+        if (tags == null) {
+            tags = new HashSet<>();
+        }
+        tags.add(tagId);
+
+        playerTags.put(playerId, tags);
     }
+
 
     public void removePlayerTag(UUID playerId, int tagId) {
         // Remove tag from the database

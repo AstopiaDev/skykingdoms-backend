@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
 @WithAlias("friends")
 @NamedCommand("friend")
 public final class FriendCommand {
-    
+
     @WithCondition("minArgs: 1")
     @WithAlias("invite")
     @SubcommandExecutor("add")

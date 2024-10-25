@@ -195,6 +195,9 @@ public final class Gamer extends CommonGamer implements CommandSender, IMegamind
 
     // region ranks
 
+    public String getPrefixedName() {
+        return ranks.getPriorityRank().getGroup().getPrefix() + name;
+    }
 
     public void checkExpiredRanks() {
         for (val rank : ranks.getExpiredRanks()) {

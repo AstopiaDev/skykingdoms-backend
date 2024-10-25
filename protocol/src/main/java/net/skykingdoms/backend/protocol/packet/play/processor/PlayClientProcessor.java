@@ -84,6 +84,10 @@ public interface PlayClientProcessor extends PlayProcessor {
         // override me
     }
 
+    default void process(C36ServerCommand packet, ChannelProcessorContext ctx) {
+        // override me
+    }
+
     default void process(C07ServerRegisterCommands packet, ChannelProcessorContext ctx) {
         // override me
     }
