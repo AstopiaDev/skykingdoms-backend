@@ -15,7 +15,6 @@ public final class ReplyCommand {
 
     @Executor
     @WithCondition("minArgs: 1")
-    
     public static void execute(CoreExecutionSession session) throws CommandTranslationException {
         val sending = session.getGamer();
         val receiving = MessageManager.INSTANCE.getLastTo(sending);
