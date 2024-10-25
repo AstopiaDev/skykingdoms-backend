@@ -20,7 +20,7 @@ public class StringPropertyType extends PropertyType<String> {
 
     @Override
     public String getInsertStatement(int playerId, String key) {
-        return TextFormat.formatText("INSERT INTO `StringProperties` (`GamerId`, `Property`, `Value`) VALUES ({}, '{}', {}) ON DUPLICATE KEY UPDATE `Value` = {};",
+        return TextFormat.formatText("INSERT INTO `StringProperties` (`GamerId`, `Property`, `Value`) VALUES ({}, '{}', '{}') ON DUPLICATE KEY UPDATE `Value` = '{}';",
                 playerId,        // 1
                 key,            // 2
                 value,          // 3

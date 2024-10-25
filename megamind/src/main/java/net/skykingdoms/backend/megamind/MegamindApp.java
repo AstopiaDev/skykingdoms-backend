@@ -393,6 +393,7 @@ public class MegamindApp extends MegamindAPI {
         commandManager.addCommand(RequestNodeSnapshotCommand.class);
         commandManager.addCommand(ProxyCommand.class);
         commandManager.addCommand(DuelInternalCommand.class);
+        commandManager.addCommand(NicknameCommand.class);
 /*        commandManager.addCommand(PointsCommand.class);*/
         commandManager.addCommand(FindCommand.class);
         commandManager.addCommand(GlistCommand.class);
