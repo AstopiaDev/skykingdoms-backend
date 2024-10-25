@@ -25,7 +25,7 @@ public final class TcpShieldBackendsCommand {
         val backends = TcpShieldManager.INSTANCE.getLoadedBackends();
         session.sendMessage("In total {} backends loaded (local){}", backends.size(), !backends.isEmpty() ? ":" : "");
         for (val backend : backends) {
-            session.sendMessage("{} -> {}:{}", backend.getId(), backend.getIp(), backend.getPort());
+           // session.sendMessage("{} -> {}:{}", backend.getId(), backend.getIp(), backend.getPort());
         }
     }
 

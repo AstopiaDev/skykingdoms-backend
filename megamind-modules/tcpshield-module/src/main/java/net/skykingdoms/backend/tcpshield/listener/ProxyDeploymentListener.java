@@ -20,22 +20,22 @@ public final class ProxyDeploymentListener implements Listener {
         this.instance = instance;
     }
 
-/*    @EventHandler
+    @EventHandler
     public void onProxyDeploy(final ProxyDeployEvent event) {
         val proxy = event.getProxyServer();
-        Logging.IMP.info("[NeoProtect] Deployed proxy at {}{} @ Backend ID: {}", proxy.getHost().getHostString() + ":" + proxy.getHost().getPort(),
-                event.isReconnect() ? " (reconnect)" : "", TcpShieldManager.INSTANCE.requestBackendId(
-                        proxy.getHost().getHostString(),
-                        proxy.getHost().getPort()).getId());
-    }*/
+        TcpShieldManager.INSTANCE.createBackend(
+                proxy.getHost().getHostString(),
+                proxy.getHost().getPort());
+        Logging.IMP.info("[TcpShield] Deployed proxy at {}{} {}", proxy.getHost().getHostString() + ":" + proxy.getHost().getPort(),
+                event.isReconnect() ? " (reconnect)" : "");
+    }
 
     @EventHandler
     public void onProxyRemoval(final ProxyRemoveEvent event) {
         val proxy = event.getProxyServer();
-/*        Logging.IMP.info("[NeoProtect] Removed proxy at {} @ Backend ID: {}", proxy.getHost().getHostString() + ":" + proxy.getHost().getPort(),
-                NeoProtectManager.INSTANCE.removeBackend(
-                        proxy.getHost().getHostString(),
-                        proxy.getHost().getPort()).getId());*/
+        val host = proxy.getHost();
+        TcpShieldManager.INSTANCE.removeBackend(host.getHostString(), host.getPort());
+        Logging.IMP.info("[TcpShield] Removed proxy at {}", proxy.getHost().getHostString() + ":" + proxy.getHost().getPort());
     }
 
 }

@@ -35,11 +35,12 @@ public final class TcpShieldModule extends Plugin {
         loadConfig();
 
         this.api = getConfig().getString("api-token");
-        getConfig().getString("server-id");
+        //getConfig().getString("server-id");
 
         TcpShieldManager.INSTANCE.postBootstrap(
                 this.api,
                 getConfig().getInt("server-id"),
+                getConfig().getString("backend-grup-name"),
                 getConfig().getInt("backend-group-id")
         );
 
@@ -49,8 +50,8 @@ public final class TcpShieldModule extends Plugin {
 
         val backends = TcpShieldManager.INSTANCE.getLoadedBackends();
         Logging.IMP.info("In total {} backends loaded (local){}", backends.size(), !backends.isEmpty() ? ":" : "");
-        for (val backend : backends) {
+/*        for (val backend : backends) {
             Logging.IMP.info("{} -> {}:{}", backend.getId(), backend.getIp(), backend.getPort());
-        }
+        }*/
     }
 }

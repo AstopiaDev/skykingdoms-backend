@@ -25,7 +25,7 @@ public class APIClientImpl implements APIClient {
     public APIClientImpl(String apiKey) {
         if (apiKey == null) throw new IllegalArgumentException("apiKey is null");
 
-        setupOverride();
+        //setupOverride();
         this.client = new RestClient(apiKey);
     }
 

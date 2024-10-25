@@ -8,20 +8,18 @@ import net.tcpshield.tcpshieldapi.exception.APIConnectionException;
 import net.tcpshield.tcpshieldapi.exception.status.NoPermissionException;
 import net.tcpshield.tcpshieldapi.exception.status.NotFoundException;
 
-import javax.net.ssl.HttpsURLConnection;
-import java.io.*;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
+import okhttp3.*;
+import java.io.IOException;
 import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 public class RestClient {
 
     private final Pattern HTTP_RESPONSE_CODE_EXCEPTION_PATTERN = Pattern.compile("^Server returned HTTP response code: (\\d+) for URL: .+$");
     private final String apiKey;
     private final ObjectMapper mapper = new ObjectMapper();
+    private final OkHttpClient client = new OkHttpClient();
 
     public RestClient(String apiKey) {
         this.apiKey = apiKey;
@@ -37,8 +35,6 @@ public class RestClient {
         int statusCode = -1;
         try {
             response = internalRequest(restRequest);
-        } catch (FileNotFoundException e) { // 404
-            statusCode = 404;
         } catch (IOException e) {
             String msg = e.getMessage();
             Matcher matcher = HTTP_RESPONSE_CODE_EXCEPTION_PATTERN.matcher(msg);
@@ -67,42 +63,36 @@ public class RestClient {
     private <T> RestResponse<T> internalRequest(RestRequest<T> request) throws IOException {
         String data = toJson(request.getData());
 
-        URL url = new URL(request.getURL());
+        RequestBody body = data == null ? null : RequestBody.create(MediaType.parse("application/json; charset=utf-8"), data);
 
-        HttpsURLConnection connection = null;
-        try {
-            connection = (HttpsURLConnection) url.openConnection();
+        Request.Builder requestBuilder = new Request.Builder()
+                .url(request.getURL())
+                .addHeader("X-API-Key", apiKey)
+                .addHeader("Content-Type", "application/json")
+                .addHeader("Content-Language", "en-US");
 
-            connection.setRequestMethod(request.getRequestType().name());
+        switch (request.getRequestType()) {
+            case PATCH:
+                requestBuilder.patch(body);
+                break;
+            case POST:
+                requestBuilder.post(body);
+                break;
+            case GET:
+                requestBuilder.get();
+                break;
+            case DELETE:
+                requestBuilder.delete(body);
+                break;
+        }
 
-            connection.setRequestProperty("X-API-Key", apiKey);
-            connection.setRequestProperty("Content-Type", "application/json");
-            connection.setRequestProperty("Content-Length", data == null ? "0" : String.valueOf(data.length()));
-            connection.setRequestProperty("Content-Language", "en-US");
+        Request httpRequest = requestBuilder.build();
+        Response response = client.newCall(httpRequest).execute();
+        try (ResponseBody responseBody = response.body()) {
+            int statusCode = response.code();
 
-            connection.setDoInput(true);
-            connection.setDoOutput(true);
-
-            connection.connect();
-
-            if (data != null) {
-                try (OutputStream outputStream = connection.getOutputStream();
-                     OutputStreamWriter writer = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8)) {
-                    writer.write(data);
-                }
-            }
-
-            try (InputStream inputStream = connection.getInputStream();
-                 BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream))) {
-                String response = bufferedReader.lines().filter(str -> !str.isEmpty()).collect(Collectors.joining("\n"));
-                int statusCode = connection.getResponseCode();
-
-                T parsed = parseJson(response, request.getResponseClass());
-                return new RestResponse<>(statusCode, parsed);
-            }
-        } finally {
-            if (connection != null)
-                connection.disconnect();
+            T parsed = parseJson(responseBody.string(), request.getResponseClass());
+            return new RestResponse<>(statusCode, parsed);
         }
     }
 
@@ -117,5 +107,4 @@ public class RestClient {
 
         return mapper.readValue(data, targetClass);
     }
-
 }

@@ -1,9 +1,11 @@
 package net.tcpshield.tcpshieldapi.response;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Date;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class NetworkResponse {
 
     @JsonProperty
@@ -28,6 +30,25 @@ public class NetworkResponse {
     private Date updatedAt;
     @JsonProperty("created_at")
     private Date createdAt;
+    @JsonProperty("vpn_block")
+    private boolean vpnBlock;
+    @JsonProperty("webhook_url")
+    private String webhookUrl;
+    @JsonProperty("antivpn_kick_msg")
+    private String antivpnKickMsg;
+    @JsonProperty("attack_emails")
+    private boolean attackEmails;
+    @JsonProperty("verification_server")
+    private boolean verificationServer;
+
+
+    public boolean isVpnBlock() {
+        return vpnBlock;
+    }
+
+    public String getWebhookUrl() {
+        return webhookUrl;
+    }
 
     public int getID() {
         return id;
