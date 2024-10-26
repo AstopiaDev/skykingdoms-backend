@@ -1,3 +1,4 @@
 api-token: "token-here"
-server-id: "server-id-here"
-backend-group-id: ""
+server-id: 11
+backend-group-name: "Development"
+backend-group-id: 11

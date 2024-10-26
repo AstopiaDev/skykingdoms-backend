@@ -8,13 +8,6 @@ import lombok.experimental.NonFinal;
 @AllArgsConstructor
 @Getter @Setter
 public final class Backend {
-    String id;
     @NonFinal String ip;
     int port;
-    boolean geyser;
-
-    public boolean compareById(final @NonNull String otherId) {
-        return id.equals(otherId);
-    }
-
 }

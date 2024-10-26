@@ -35,11 +35,12 @@ public final class TcpShieldModule extends Plugin {
         loadConfig();
 
         this.api = getConfig().getString("api-token");
-        getConfig().getString("server-id");
+        //getConfig().getString("server-id");
 
         TcpShieldManager.INSTANCE.postBootstrap(
                 this.api,
                 getConfig().getInt("server-id"),
+                getConfig().getString("backend-grup-name"),
                 getConfig().getInt("backend-group-id")
         );
 
