@@ -49,8 +49,8 @@ public final class TcpShieldModule extends Plugin {
 
         val backends = TcpShieldManager.INSTANCE.getLoadedBackends();
         Logging.IMP.info("In total {} backends loaded (local){}", backends.size(), !backends.isEmpty() ? ":" : "");
-        for (val backend : backends) {
+/*        for (val backend : backends) {
             Logging.IMP.info("{} -> {}:{}", backend.getId(), backend.getIp(), backend.getPort());
-        }
+        }*/
     }
 }
