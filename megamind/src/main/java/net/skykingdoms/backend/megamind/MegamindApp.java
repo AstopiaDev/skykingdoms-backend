@@ -429,6 +429,7 @@ public class MegamindApp extends MegamindAPI {
         commandManager.addCommand(ChatCommand.class);
         commandManager.addCommand(InsertMapCommand.class);
         commandManager.addCommand(TestCommand.class);
+        commandManager.addCommand(RealNameCommand.class);
 /*
         commandManager.addCommand(InternalRankCommand.class);
 */

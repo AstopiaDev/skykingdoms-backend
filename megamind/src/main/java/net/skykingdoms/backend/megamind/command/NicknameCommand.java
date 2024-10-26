@@ -6,6 +6,7 @@ import net.skykingdoms.api.backend.command.condition.WithCondition;
 import net.skykingdoms.api.backend.command.execution.Executor;
 import net.skykingdoms.api.protocol.logging.Logging;
 import net.skykingdoms.backend.base.data.network.NetworkSqlHandler;
+import net.skykingdoms.backend.base.data.property.PropertySqlHandler;
 import net.skykingdoms.backend.base.util.color.ChatColor;
 import net.skykingdoms.backend.megamind.api.command.CoreExecutionSession;
 import net.skykingdoms.backend.megamind.data.gamer.Gamer;
@@ -22,7 +23,7 @@ public class NicknameCommand {
             "nigger", "nigga", "dick", "muted", "immuted", "mute"
     );
 
-    private static final Pattern VALID_NICKNAME = Pattern.compile("^(&[0-9a-f-or])*[a-zA-Z_]+(&[0-9a-f-or]|[a-zA-Z_])*$");
+    private static final Pattern VALID_NICKNAME = Pattern.compile("^(&[0-9a-flm-or])*[a-zA-Z_]+(&[0-9a-flm-or]|[a-zA-Z_])*$");
 
     private static final int MIN_LENGTH = 3;
     private static final int MAX_LENGTH = 16;
