@@ -8,6 +8,8 @@ import net.skykingdoms.backend.restapi.endpoints.*;
 import spark.Request;
 import spark.Response;
 
+import javax.servlet.MultipartConfigElement;
+import javax.servlet.http.Part;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -18,17 +20,21 @@ import java.io.InputStream;
 @AuthorizedOnly
 public final class UploadEndpoint implements IEndpoint {
 
-    private static final String UPLOAD_DIRECTORY = MegamindApp.INSTANCE.directory().resolve("stash").resolve("SKYPVP").toString();
+    private static final String UPLOAD_DIRECTORY = MegamindApp.INSTANCE.directory().resolve("stash").resolve("SKYPVP").resolve("plugins").toString();
 
     @Override
     public Object handle(Request request, Response response) {
+        Logging.IMP.info("Received upload request.");
         try {
             if (!request.contentType().contains("multipart/form-data")) {
                 response.status(400);
                 return "Invalid content type. Please use 'multipart/form-data'.";
             }
 
-            val uploadedFile = request.raw().getPart("file");
+            // Set up multipart config for file upload
+            request.raw().setAttribute("org.eclipse.jetty.multipartConfig", new MultipartConfigElement(""));
+
+            Part uploadedFile = request.raw().getPart("file");
             if (uploadedFile == null) {
                 response.status(400);
                 return "File not provided.";
