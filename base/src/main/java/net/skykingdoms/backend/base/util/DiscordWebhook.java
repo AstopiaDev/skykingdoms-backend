@@ -7,11 +7,16 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.net.ssl.HttpsURLConnection;
 import java.awt.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.lang.reflect.Array;
 import java.net.URL;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Class used to execute Discord Webhooks with low effort
@@ -33,6 +38,7 @@ public class DiscordWebhook {
     String avatarUrl;
     boolean tts;
     final List<EmbedObject> embeds = new ArrayList<>();
+    final List<File> attachments = new ArrayList<>();
 
     /**
      * Constructs a new DiscordWebhook instance
@@ -45,6 +51,11 @@ public class DiscordWebhook {
 
     public DiscordWebhook setContent(final String content) {
         this.content = content;
+        return this;
+    }
+
+    public DiscordWebhook addAttachments(ArrayList<File> attachments) {
+        this.attachments.addAll(attachments);
         return this;
     }
 
@@ -155,24 +166,47 @@ public class DiscordWebhook {
         }
 
         try {
-
+            String boundary = UUID.randomUUID().toString();
             val url = new URL(this.url);
             val connection = (HttpsURLConnection) url.openConnection();
-            connection.addRequestProperty("Content-Type", "application/json");
             connection.addRequestProperty("User-Agent", "Java-DiscordWebhook-BY-Gelox_");
+            connection.addRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundary);
             connection.setDoOutput(true);
             connection.setRequestMethod("POST");
 
-            val stream = connection.getOutputStream();
-            stream.write(json.toString().getBytes());
-            stream.flush();
-            stream.close();
+            try (OutputStream output = connection.getOutputStream()) {
+                writeJson(output, boundary, json.toString());
+
+                int fileIndex = 1;
+                for (File file : attachments) {
+                    if (file != null && file.exists()) {
+                        writeFile(output, boundary, file.getName() + fileIndex++, file);
+                    }
+                }
+
+                output.write(("--" + boundary + "--\r\n").getBytes());
+                output.flush();
+            }
 
             connection.getInputStream().close(); //I'm not sure why, but it doesn't work without getting the InputStream
             connection.disconnect();
         } catch (final @NonNull Exception e) {
             Logging.IMP.stacktrace(e, "Exception raised on discord webhook send process");
         }
+    }
+
+    private void writeJson(OutputStream output, String boundary, String json) throws IOException {
+        output.write(("--" + boundary + "\r\n").getBytes());
+        output.write(("Content-Disposition: form-data; name=\"" + "payload_json" + "\"\r\n\r\n").getBytes());
+        output.write((json + "\r\n").getBytes());
+    }
+
+    private void writeFile(OutputStream output, String boundary, String name, File file) throws IOException {
+        output.write(("--" + boundary + "\r\n").getBytes());
+        output.write(("Content-Disposition: form-data; name=\"" + name + "\"; filename=\"" + file.getName() + "\"\r\n").getBytes());
+        output.write(("Content-Type: " + Files.probeContentType(file.toPath()) + "\r\n\r\n").getBytes());
+        Files.copy(file.toPath(), output);
+        output.write("\r\n".getBytes());
     }
 
     @Getter
@@ -269,7 +303,7 @@ public class DiscordWebhook {
         @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
         @AllArgsConstructor
         @Getter
-        private class Author {
+        private static class Author {
 
             String name;
             String url;
