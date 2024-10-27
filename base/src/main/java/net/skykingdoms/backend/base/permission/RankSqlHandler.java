@@ -14,8 +14,7 @@ import net.skykingdoms.backend.base.mysql.impl.MySQL;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -37,6 +36,9 @@ public final class RankSqlHandler {
 
     private static final String REMOVE_ALL_PLAYER_RANKS
             = "DELETE FROM `UserRanks` WHERE `UserId` = ?";
+
+    private static final String LOAD_PLAYER_IDS_BY_RANKS
+            = "SELECT GroupId, GROUP_CONCAT(u.Username) Usernames FROM UserRanks JOIN UserRecords u ON UserId = u.Id WHERE GroupId IN ? GROUP BY GroupId ORDER BY GroupId DESC;";
 
     Database database = new MySQL(DatabaseCredentials.MAIN.withDatabase("PlayerData"));
 
@@ -86,5 +88,16 @@ public final class RankSqlHandler {
                                                final @Nullable LocalDateTime expires) {
         return database.executeVoidUpdate(REMOVE_ALL_PLAYER_RANKS, userId)
                 .thenCompose(ignored -> addUserRank(userId, group, expires));
+    }
+
+    public CompletableFuture<HashMap<Integer, String[]>> readUsernamesByRanks(final @NonNull Set<Integer> rankIds) {
+        return database.executeQuery(LOAD_PLAYER_IDS_BY_RANKS, rankIds).thenApply(query -> {
+            val result = new HashMap<Integer, String[]>();
+            query.forEach(row -> {
+                result.put(row.getRequiredInt("GroupId"),row.getRequiredString("Usernames").split(","));
+            });
+
+            return result;
+        });
     }
 }
