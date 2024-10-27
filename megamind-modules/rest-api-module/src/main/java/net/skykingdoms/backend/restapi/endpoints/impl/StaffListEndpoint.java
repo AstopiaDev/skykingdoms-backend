@@ -41,6 +41,8 @@ public final class StaffListEndpoint implements IEndpoint {
             rankObject.addProperty("name", group.getName());
             rankObject.addProperty("color", group.getPrefixColor());
             rankObject.add("players", players);
+
+            jsonArray.add(rankObject);
         });
 
         response.type("application/json");

@@ -94,7 +94,7 @@ public final class RankSqlHandler {
         return database.executeQuery(LOAD_PLAYER_IDS_BY_RANKS, rankIds).thenApply(query -> {
             val result = new HashMap<Integer, String[]>();
             query.forEach(row -> {
-                result.put(row.getRequiredInt("GroupId"),row.getRequiredString("Usernames").split(","));
+                result.put(row.getRequiredInt("GroupId"), row.getRequiredString("Usernames").split(","));
             });
 
             return result;
