@@ -7,6 +7,8 @@ import lombok.val;
 import net.skykingdoms.api.backend.punishment.PunishmentMeta;
 import net.skykingdoms.api.backend.punishment.PunishmentRemoveMeta;
 import net.skykingdoms.api.backend.punishment.PunishmentType;
+import net.skykingdoms.backend.base.mysql.BufferedQuery;
+import net.skykingdoms.backend.base.mysql.BufferedRow;
 import net.skykingdoms.backend.base.mysql.DatabaseCredentials;
 import net.skykingdoms.backend.base.mysql.impl.MySQL;
 import org.jetbrains.annotations.NotNull;
@@ -17,6 +19,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 /**
  * @author Vihara
@@ -31,6 +34,8 @@ public final class PunishmentSqlHandler {
      * Loads all punishment metas from database
      */
     String LOAD_ALL_PUNISHMENTS = "SELECT * FROM `SysInternal`.`Punishments`;";
+    String LOAD_PUNISHMENTS_ASC = "SELECT * FROM `SysInternal`.`Punishments` WHERE `Id` > ? ORDER BY Id ASC LIMIT ?;";
+    String LOAD_PUNISHMENTS_DSC = "SELECT * FROM `SysInternal`.`Punishments` WHERE `Id` < ? ORDER BY Id DESC LIMIT ?;";
     String LOAD_PUNISHMENT      = "SELECT * FROM `SysInternal`.`Punishments` WHERE `Id` = ?;";
     String LOAD_PUNISHMENTS_FOR = "SELECT * FROM `SysInternal`.`Punishments` WHERE `ViolatorId` = ?;";
 
@@ -68,70 +73,56 @@ public final class PunishmentSqlHandler {
             .expireAfterWrite(30, TimeUnit.MINUTES)
             .build();
 
+    private PunishmentMeta createPunishmentMeta(BufferedRow row) {
+        return new PunishmentMeta(
+                row.getRequiredInt("Id"),
+                row.getString("Reason").orElse("Unspecified"),
+                row.getRequiredInt("ViolatorId"),
+                row.getRequiredInt("ExecutorId"),
+                row.getRequiredTimestamp("ExecutionDate"),
+                row.getTimestamp("ExpirationDate").orElse(null),
+                PunishmentType.VALUES[row.getRequiredInt("PunishmentType")],
+                row.getBoolean("Lifted"),
+                row.getInt("LiftMeta").orElse(-1)
+        );
+    }
+
+    Function<BufferedQuery, HashSet<PunishmentMeta>> packPunishmentMeta = (BufferedQuery rows) -> {
+            val ret = new HashSet<PunishmentMeta>();
+            for (val row : rows) {
+                ret.add(createPunishmentMeta(row));
+            }
+            return ret;
+    };
+
     /**
      * Loads all punishments
      */
     public CompletableFuture<Collection<@NotNull PunishmentMeta>> loadAllPunishments() {
-        return database.executeQuery(LOAD_ALL_PUNISHMENTS).thenApply(rows -> {
-            val ret = new HashSet<PunishmentMeta>();
-            for (val row : rows) {
-                ret.add(new PunishmentMeta(
-                        row.getRequiredInt("Id"),
-                        row.getString("Reason").orElse("Unspecified"),
-                        row.getRequiredInt("ViolatorId"),
-                        row.getRequiredInt("ExecutorId"),
-                        row.getRequiredTimestamp("ExecutionDate"),
-                        row.getTimestamp("ExpirationDate").orElse(null),
-                        PunishmentType.VALUES[row.getRequiredInt("PunishmentType")],
-                        row.getBoolean("Lifted"),
-                        row.getInt("LiftMeta").orElse(-1)
-                ));
-            }
-            return ret;
-        });
+        return database.executeQuery(LOAD_ALL_PUNISHMENTS).thenApply(packPunishmentMeta);
     }
+
+    /**
+     * Loads all punishments limited with cursor
+     */
+    public CompletableFuture<Collection<@NotNull PunishmentMeta>> loadAllPunishments(int cursor, int limit, int order) {
+        return database.executeQuery(order > 0 ? LOAD_PUNISHMENTS_ASC : LOAD_PUNISHMENTS_DSC, cursor, limit).thenApply(packPunishmentMeta);
+    }
+
     /**
      * Loads all punishments for player
      */
     public CompletableFuture<Collection<@NotNull PunishmentMeta>> loadAllPunishments(final int gamerId) {
-        return database.executeQuery(LOAD_PUNISHMENTS_FOR, gamerId).thenApply(rows -> {
-            val ret = new HashSet<PunishmentMeta>();
-            for (val row : rows) {
-                ret.add(new PunishmentMeta(
-                        row.getRequiredInt("Id"),
-                        row.getString("Reason").orElse("Unspecified"),
-                        row.getRequiredInt("ViolatorId"),
-                        row.getRequiredInt("ExecutorId"),
-                        row.getRequiredTimestamp("ExecutionDate"),
-                        row.getTimestamp("ExpirationDate").orElse(null),
-                        PunishmentType.VALUES[row.getRequiredInt("PunishmentType")],
-                        row.getBoolean("Lifted"),
-                        row.getInt("LiftMeta").orElse(-1)
-                ));
-            }
-            return ret;
-        });
+        return database.executeQuery(LOAD_PUNISHMENTS_FOR, gamerId).thenApply(packPunishmentMeta);
     }
 
     public CompletableFuture<PunishmentMeta> getPunishment(final int metaId) {
         return database.executeQuery(LOAD_PUNISHMENT, metaId).thenApply(rows -> {
-            if (rows.size() == 0) {
+            if (rows.isEmpty()) {
                 return null;
             }
 
-            val row = rows.getFirst();
-
-            return new PunishmentMeta(
-                        row.getRequiredInt("Id"),
-                        row.getString("Reason").orElse("Unspecified"),
-                        row.getRequiredInt("ViolatorId"),
-                        row.getRequiredInt("ExecutorId"),
-                        row.getRequiredTimestamp("ExecutionDate"),
-                        row.getTimestamp("ExpirationDate").orElse(null),
-                        PunishmentType.VALUES[row.getRequiredInt("PunishmentType")],
-                        row.getBoolean("Lifted"),
-                        row.getInt("LiftMeta").orElse(-1)
-            );
+            return createPunishmentMeta(rows.getFirst());
         });
     }
 
@@ -141,7 +132,7 @@ public final class PunishmentSqlHandler {
         }
 
         return database.executeQuery(LOAD_REMOVAL_META, metaId).thenApply(rows -> {
-            if (rows.size() == 0) {
+            if (rows.isEmpty()) {
                 return null;
             }
 
