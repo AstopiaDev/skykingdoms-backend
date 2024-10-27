@@ -49,7 +49,7 @@ public final class PunishmentSqlHandler {
     /**
      * Updates punishment metadata by its ID
      */
-    String UPDATE_PUNISHMENT    = "UPDATE `SysInternal`.`Punishments` SET `ExpirationDate` = ?, `Lifted` = ?, `LiftMeta` = ? WHERE `Id` = ?;";
+    String UPDATE_PUNISHMENT = "UPDATE `SysInternal`.`Punishments` SET `ExpirationDate` = ?, `Lifted` = ?, `LiftMeta` = ? WHERE `Id` = ?;";
 
     // --------------------------------------------------------------------------------------
 

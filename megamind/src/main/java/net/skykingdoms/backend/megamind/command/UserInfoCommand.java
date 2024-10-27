@@ -31,9 +31,6 @@ public final class UserInfoCommand {
                 "%domain%", gamer.isOnline() ? gamer.getDomain() : ChatColor.RED + "offline",
                 "%address%", gamer.isOnline() ? gamer.getAddress().getHostAddress() : ChatColor.RED + "offline",
                 "%rank%", gamer.getFormattedRank(gamer.getRanks().getPriorityRank().getGroup(), false) + ChatColor.WHITE + (gamer.getRanks().getPriorityRank(PermissionType.DEFAULT).getGroup() == Group.DEFAULT ? "" : " (" + gamer.getFormattedRank(gamer.getRanks().getPriorityRank(PermissionType.DEFAULT).getGroup(), false) + ChatColor.WHITE + ")"),
-/*
-                "%fakerank%", gamer.getFakeUserRank() == null ? ChatColor.RED + "N/A" : gamer.getFakeUserRank().getName(),
-*/
                 "%network%", gamer.isOnline() ? gamer.getProxyServer().getName() : ChatColor.RED + "offline",
                 "%server%", gamer.isOnline() ? gamer.getCurrentServer() != null ? gamer.getCurrentServer().getName() : "ERR" : ChatColor.RED + "offline",
                 "%firstLogin%", gamer.getFirstLogin());

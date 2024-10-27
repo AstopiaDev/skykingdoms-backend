@@ -4,6 +4,7 @@ import io.netty.channel.socket.SocketChannel;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import net.skykingdoms.api.backend.permission.Group;
+import net.skykingdoms.api.backend.punishment.PunishmentType;
 import net.skykingdoms.api.backend.setting.SettingType;
 import net.skykingdoms.api.backend.setting.impl.BooleanSetting;
 import net.skykingdoms.api.backend.setting.impl.EnumSetting;
@@ -26,6 +27,7 @@ import net.skykingdoms.backend.megamind.AsyncExecution;
 import net.skykingdoms.backend.megamind.MegamindApp;
 import net.skykingdoms.backend.megamind.api.command.ConsoleCommandSender;
 import net.skykingdoms.backend.megamind.data.gamer.Gamer;
+import net.skykingdoms.backend.megamind.data.punishment.PunishmentManager;
 import net.skykingdoms.backend.megamind.event.GetBestServerEvent;
 import net.skykingdoms.backend.megamind.event.PlayerRedirectEvent;
 import net.skykingdoms.backend.megamind.event.core.ClientActiveEvent;
@@ -201,13 +203,13 @@ public final class RemoteClientConnection extends AbstractRemoteClientChannel {
 
                 /*Logging.IMP.info("DO I EXIST?");*/
 
-/*                val activePunishment = PunishmentManager.INSTANCE.getActivePunishment(gamer.getGamerId(), PunishmentType.BAN);
+                val activePunishment = PunishmentManager.INSTANCE.getActivePunishment(gamer.getGamerId(), PunishmentType.BAN);
                 if (activePunishment != null) {
                     cancelled = true;
                     // we format ban by default language
                     reason = PunishmentManager.INSTANCE.getPunishmentReasonFormatted(activePunishment, Language.DEFAULT);
                     return;
-                }*/
+                }
 
                 /*Logging.IMP.info("maybe i do, who knowis");*/
 

@@ -39,6 +39,9 @@ import net.skykingdoms.backend.megamind.data.group.GroupListener;
 import net.skykingdoms.backend.megamind.data.message.command.AppendCommand;
 import net.skykingdoms.backend.megamind.data.message.command.MessageCommand;
 import net.skykingdoms.backend.megamind.data.message.command.ReplyCommand;
+import net.skykingdoms.backend.megamind.data.punishment.PunishmentListener;
+import net.skykingdoms.backend.megamind.data.punishment.PunishmentManager;
+import net.skykingdoms.backend.megamind.data.punishment.command.impl.*;
 import net.skykingdoms.backend.megamind.data.staffchat.StaffChatListener;
 import net.skykingdoms.backend.megamind.lookup.LookupManager;
 import net.skykingdoms.backend.megamind.manager.*;
@@ -118,6 +121,7 @@ public class MegamindApp extends MegamindAPI {
         ProxyManager.INSTANCE.postBootstrap();
         LobbyManager.INSTANCE.postBootstrap();
         FriendManager.INSTANCE.postBootstrap();
+        PunishmentManager.INSTANCE.postBootstrap();
         TestFlowManager.INSTANCE.postBootstrap();
         StatsManager.INSTANCE.postBootstrap();
         DuelManager.INSTANCE.postBootstrap();
@@ -369,17 +373,12 @@ public class MegamindApp extends MegamindAPI {
     private void registerListeners() {
         new FriendListener();
         new GroupListener();
+        new PunishmentListener();
         new StaffChatListener();
     }
 
     public void registerCommands() {
-/*
-        commandManager.addCommand(DebugReportsCommand.class);
-*/
         commandManager.addCommand(VanishCommand.class);
-/*
-        commandManager.addCommand(BuildModeCommand.class);
-*/
         commandManager.addCommand(MindReloadCommand.class);
         commandManager.addCommand(ShutdownCommand.class);
         commandManager.addCommand(DeployLobbyCommand.class);
@@ -394,14 +393,9 @@ public class MegamindApp extends MegamindAPI {
         commandManager.addCommand(ProxyCommand.class);
         commandManager.addCommand(DuelInternalCommand.class);
         commandManager.addCommand(NicknameCommand.class);
-/*        commandManager.addCommand(PointsCommand.class);*/
         commandManager.addCommand(FindCommand.class);
         commandManager.addCommand(GlistCommand.class);
-        commandManager.addCommand(LuckPermsTransferCommand.class);
-/*        commandManager.addCommand(ModernCommand.class);
-        commandManager.addCommand(ProtocolCommand.class);*/
         commandManager.addCommand(NodeListCommand.class);
-        commandManager.addCommand(TransferPropertiesCommand.class);
         commandManager.addCommand(DeployTestCommand.class);
         commandManager.addCommand(InternalRankCommand.class);
         commandManager.addCommand(DestroyInstanceCommand.class);
@@ -417,25 +411,35 @@ public class MegamindApp extends MegamindAPI {
         commandManager.addCommand(HubCommand.class);
         commandManager.addCommand(TestFlowCommand.class);
         commandManager.addCommand(ImportTagsCommand.class);
-        commandManager.addCommand(SkypvpCommand.class);
-        commandManager.addCommand(SurvivalCommand.class);
-        commandManager.addCommand(SurvivalBeesCommand.class);
-        commandManager.addCommand(SkyblockCommand.class);
-        commandManager.addCommand(BedwarsCommand.class);
-        commandManager.addCommand(MurderMysteryCommand.class);
-        commandManager.addCommand(BuildCommand.class);
         commandManager.addCommand(AllServersCommand.class);
-        commandManager.addCommand(SkywarsCommand.class);
         commandManager.addCommand(ChatCommand.class);
         commandManager.addCommand(InsertMapCommand.class);
         commandManager.addCommand(TestCommand.class);
-/*
-        commandManager.addCommand(InternalRankCommand.class);
-*/
         commandManager.addCommand(DeployTestCommand.class);
         commandManager.addCommand(MessageCommand.class);
         commandManager.addCommand(ReplyCommand.class);
         commandManager.addCommand(AppendCommand.class);
+        commandManager.addCommand(UnbanCommand.class);
+        commandManager.addCommand(UnmuteCommand.class);
+
+        commandManager.addCommand(new BanCommand());
+        commandManager.addCommand(new MuteCommand());
+        commandManager.addCommand(new BanListCommand());
+        commandManager.addCommand(new MuteListCommand());
+
+        for (GameMode gameMode : GameMode.VALUES) {
+            if (!gameMode.isStaticGame()) {
+                continue;
+            }
+
+            String name = gameMode.name().toLowerCase();
+
+            if (name.contains("_")) {
+                name = name.replace("_", "");
+            }
+
+            commandManager.registerCommand(name, new GameModeCommand(commandManager, name, gameMode));
+        }
     }
 
     public void executeCommand(final @NonNull CommandSender sender,

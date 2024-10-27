@@ -35,6 +35,7 @@ import net.skykingdoms.backend.velocity.connection.Connection;
 import net.skykingdoms.backend.velocity.event.PlayerConnectedEvent;
 import net.skykingdoms.backend.velocity.event.PlayerCoreCommandEvent;
 import net.skykingdoms.backend.velocity.gamer.Gamer;
+import net.skykingdoms.backend.velocity.punishments.VelocityPunishmentManager;
 import net.skykingdoms.backend.velocity.util.ServerUtil;
 
 import java.util.Map;
@@ -178,7 +179,7 @@ public final class PlayerListener {
 
             // we can invalidate the gamer mute, because it may already expire
             // the gamer is not connected to VelocityConnector.INSTANCE.boot() yet
-       /*     B*//*ungeePunishmentManager.INSTANCE.invalidateMetas(gamer);*/
+            VelocityPunishmentManager.INSTANCE.invalidateMetas(gamer);
 
             Connection.awaitPacket(loginFinishPacket).whenComplete((response, cause) -> {
                 if (cause != null) {
@@ -313,9 +314,9 @@ public final class PlayerListener {
         Gamer gamer = Gamer.getGamer(name);
 
         if (gamer != null) {
-/*
-            BungeePunishmentManager.INSTANCE.invalidateMetas(gamer);
-*/
+
+            VelocityPunishmentManager.INSTANCE.invalidateMetas(gamer);
+
 
             Gamer.removeGamer(gamer);
 
@@ -361,34 +362,15 @@ public final class PlayerListener {
             return;
         }*/
 
-/*        if (!event.isCommand() && BungeePunishmentManager.INSTANCE.isMuted(gamer.getGamerId())) {
-            gamer.sendMessage(BungeePunishmentManager.INSTANCE.getMuteMessage(gamer));
-            event.setCancelled(true);
+        if (event.getMessage().startsWith("/")) {
             return;
         }
 
-        if (!event.isCommand()) {
+        if (VelocityPunishmentManager.INSTANCE.isMuted(gamer.getGamerId())) {
+            gamer.sendMessage(VelocityPunishmentManager.INSTANCE.getMuteMessage(gamer));
+            event.setResult(PlayerChatEvent.ChatResult.denied());
             return;
         }
-
-        val message = event.getMessage().trim();
-        val command = message.substring(1).split("\\s+")[0].toLowerCase();
-
-        // если команда не зарегистрирована, она не дойдёт до баккита
-        if (!BungeeCommandCocker.INSTANCE.getCommands().contains(command)) {
-            return;
-        }
-
-        event.setCancelled(true);
-
-        val coreCommandEvent = new PlayerCoreCommandEvent(player, command);
-        VelocityConnector.INSTANCE.boot().getProxy().getPluginManager().callEvent(coreCommandEvent);
-
-        if (coreCommandEvent.isCancelled()) {
-            return;
-        }
-
-        Connection.sendPacket(new C09PlayerCommand(gamer.getGamerId(), message));*/
     }
 
     @Subscribe(order = PostOrder.LAST)

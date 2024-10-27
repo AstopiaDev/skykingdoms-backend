@@ -256,7 +256,7 @@ public final class PunishmentManager {
 
             sb.append(ChatColor.RED).append(" from this server!\n\n");
             sb.append(ChatColor.GRAY).append("Reason: ").append(ChatColor.WHITE).append(meta.getReason()).append("\n");
-            sb.append(ChatColor.GRAY).append("Find out more: ").append(ChatColor.AQUA).append(ChatColor.UNDERLINE).append("https://astrona.net/\n\n");
+            sb.append(ChatColor.GRAY).append("Find out more: ").append(ChatColor.AQUA).append(ChatColor.UNDERLINE).append("https://skykingdoms.net/\n\n");
             sb.append(ChatColor.GRAY).append("Ban ID: ").append(ChatColor.WHITE).append("#").append(Integer.toHexString(meta.getMetaId())).append("\n");
             sb.append(ChatColor.GRAY).append("Sharing your Ban ID may affect the processing of your appeal!");
         } else { // but translate mute messages

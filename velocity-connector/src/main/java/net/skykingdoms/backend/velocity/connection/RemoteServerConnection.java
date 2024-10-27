@@ -28,10 +28,11 @@ import net.skykingdoms.backend.protocol.type.reconnect.impl.FluentProxyDataImpl;
 import net.skykingdoms.backend.velocity.VelocityConnector;
 import net.skykingdoms.backend.velocity.command.FakeCommandProxy;
 import net.skykingdoms.backend.velocity.command.VelocityCommandCocker;
-import net.skykingdoms.backend.velocity.command.VelocityCommandManager;
 import net.skykingdoms.backend.velocity.event.ServerActiveEvent;
 import net.skykingdoms.backend.velocity.event.ServerInactiveEvent;
 import net.skykingdoms.backend.velocity.gamer.Gamer;
+import net.skykingdoms.backend.velocity.punishments.VelocityPunishmentManager;
+import net.skykingdoms.backend.velocity.punishments.MinimalMuteData;
 import net.skykingdoms.backend.velocity.security.BungeeSecurityManager;
 
 import java.net.InetSocketAddress;
@@ -258,21 +259,21 @@ public final class RemoteServerConnection extends AbstractRemoteServerChannel {
         player.changeLanguage(language, false);
     }
 
-/*    @Override
+    @Override
     public void process(S24PlayerMuteAction packet, ChannelProcessorContext ctx) {
         if (packet.getAction() == S24PlayerMuteAction.Action.REMOVE_MUTE) {
-            BungeePunishmentManager.INSTANCE.removeMute(packet.getMuteId());
+            VelocityPunishmentManager.INSTANCE.removeMute(packet.getMuteId());
         }
 
         if (packet.getAction() == S24PlayerMuteAction.Action.ADD_MUTE) {
-            BungeePunishmentManager.INSTANCE.addMute(new MinimalMuteData(
+            VelocityPunishmentManager.INSTANCE.addMute(new MinimalMuteData(
                     packet.getMuteId(),
                     packet.getViolatorId(),
                     packet.getReason(),
                     packet.getExpiration()
             ));
         }
-    }*/
+    }
 
     @Override
     public void process(S13SendTitle packet, ChannelProcessorContext ctx) {
