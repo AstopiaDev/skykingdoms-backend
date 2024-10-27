@@ -49,6 +49,12 @@ public final class PunishmentMeta {
      */
     LocalDateTime expirationTime;
 
+    /*
+     * The server the player was punished
+     * on!
+     */
+    String orignatedServer;
+
     /**
      * Punishment type
      */

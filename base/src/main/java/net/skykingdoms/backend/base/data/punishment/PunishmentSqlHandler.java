@@ -43,8 +43,8 @@ public final class PunishmentSqlHandler {
      * Creates a punishment record
      */
     String INSERT_PUNISHMENT    = "INSERT INTO `SysInternal`.`Punishments` " +
-            "(`ViolatorId`, `ExecutorId`, `Reason`, `ExecutionDate`, `ExpirationDate`, `PunishmentType`, `Lifted`, `LiftMeta`) " +
-            "VALUES(?, ?, ?, ?, ?, ?, ?, ?);";
+            "(`ViolatorId`, `ExecutorId`, `Reason`, `ExecutionDate`, `ExpirationDate`, `OriginatedServer`, `PunishmentType`, `Lifted`, `LiftMeta`) " +
+            "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?);";
 
     /**
      * Updates punishment metadata by its ID
@@ -81,6 +81,7 @@ public final class PunishmentSqlHandler {
                 row.getRequiredInt("ExecutorId"),
                 row.getRequiredTimestamp("ExecutionDate"),
                 row.getTimestamp("ExpirationDate").orElse(null),
+                row.getRequiredString("OriginatedServer"),
                 PunishmentType.VALUES[row.getRequiredInt("PunishmentType")],
                 row.getBoolean("Lifted"),
                 row.getInt("LiftMeta").orElse(-1)
@@ -159,6 +160,7 @@ public final class PunishmentSqlHandler {
      * @param executorId        id of executor (0 if console/system)
      * @param reason            reason for punishment
      * @param expiration        date of expiration (null if permanent)
+     * @param originatedServer   the server the gamer is getting punished on
      * @param punishmentType    type of punishment
      *
      * @return                  PunishmentMeta instance
@@ -167,14 +169,15 @@ public final class PunishmentSqlHandler {
                                                  final int executorId,
                                                  final @NonNull String reason,
                                                  final @Nullable LocalDateTime expiration,
+                                                 final @NonNull String originatedServer,
                                                  final @NonNull PunishmentType punishmentType) {
         val punishmentMeta = new PunishmentMeta(
                 0, reason, violatorId, executorId, LocalDateTime.now(),
-                expiration, punishmentType, false, -1);
+                expiration, originatedServer, punishmentType, false, -1);
 
         // Updating punishment meta ID from database
         punishmentMeta.setMetaId(database.executeUpdate(INSERT_PUNISHMENT,
-                violatorId, executorId, reason, punishmentMeta.getExecutionDate(), expiration, punishmentType.ordinal(), false, -1
+                violatorId, executorId, reason, punishmentMeta.getExecutionDate(), expiration, originatedServer, punishmentType.ordinal(), false, -1
         ).join().getGeneratedKey());
 
         return punishmentMeta;

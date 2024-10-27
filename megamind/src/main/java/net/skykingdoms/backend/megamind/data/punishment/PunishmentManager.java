@@ -163,6 +163,7 @@ public final class PunishmentManager {
                                   final int executorId,
                                   final @NonNull String reason,
                                   final @Nullable java.time.Duration duration,
+                                  final @NotNull String originatedServer,
                                   final @NonNull PunishmentType type) {
         // already punished
         if (getActivePunishment(gamerId, type) != null) {
@@ -172,6 +173,7 @@ public final class PunishmentManager {
         val bakedPunishmentMeta = PunishmentSqlHandler.INSTANCE.createPunishmentRecord(
                 gamerId,
                 executorId, reason, duration == null ? null : LocalDateTime.now().plus(duration),
+                originatedServer,
                 type);
 
         activePunishments.add(bakedPunishmentMeta);

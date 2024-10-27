@@ -65,7 +65,7 @@ public abstract class PunishmentCommand {
         val punishment = PunishmentManager.INSTANCE.performPunishment(
                 target.getGamerId(),
                 executor.isConsole() ? 0 : ((Gamer) executor).getGamerId(),
-                reason, duration, punishmentType);
+                reason, duration, target.getCurrentServer().getName(), punishmentType);
 
         if (punishmentType == PunishmentType.BAN) {
             //noinspection DataFlowIssue
