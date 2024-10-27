@@ -12,7 +12,7 @@ import spark.Request;
 import spark.Response;
 
 @ApiMethod(RequestType.GET)
-@Endpoint("/list")
+@Endpoint("list")
 public final class PlayerListEndpoint implements IEndpoint {
 
     @Override

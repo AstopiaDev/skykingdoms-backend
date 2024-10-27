@@ -16,7 +16,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 
 @ApiMethod(RequestType.GET)
-@Endpoint("/staff")
+@Endpoint("staff")
 public final class StaffListEndpoint implements IEndpoint {
 
     @Override
