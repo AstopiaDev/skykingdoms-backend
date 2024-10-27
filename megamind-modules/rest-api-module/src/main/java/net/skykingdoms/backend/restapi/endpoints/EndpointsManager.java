@@ -89,5 +89,7 @@ public final class EndpointsManager {
         endpoints.add(new PlayerDataEndpoint());
         endpoints.add(new PlayerStatusEndpoint());
         endpoints.add(new StatsEndpoint());
+        endpoints.add(new PlayerListEndpoint());
+        endpoints.add(new StaffListEndpoint());
     }
 }
