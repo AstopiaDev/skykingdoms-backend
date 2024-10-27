@@ -5,6 +5,7 @@ import lombok.experimental.FieldDefaults;
 import net.skykingdoms.api.backend.gamer.IGamer;
 import net.skykingdoms.api.backend.permission.Group;
 import net.skykingdoms.api.backend.permission.IUserRank;
+import net.skykingdoms.api.backend.permission.UserRankContainer;
 import net.skykingdoms.api.backend.setting.Setting;
 import net.skykingdoms.api.backend.setting.SettingType;
 import net.skykingdoms.api.backend.type.property.PropertyType;
@@ -28,6 +29,7 @@ import net.skykingdoms.backend.protocol.packet.Packet;
 import net.skykingdoms.backend.protocol.packet.play.*;
 import net.skykingdoms.backend.protocol.server.IPlayableBukkitServer;
 import net.skykingdoms.backend.protocol.type.connect.ConnectStatus;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.net.InetAddress;
@@ -481,6 +483,16 @@ public final class Gamer extends CommonGamer implements CommandSender, IMegamind
     }
 
     @Override
+    public void sendLocalizedMessage(boolean modern, @NonNull String key, Object... objects) {
+        super.sendLocalizedMessage(modern, key, objects);
+    }
+
+    @Override
+    public @NotNull String getLowerName() {
+        return super.getLowerName();
+    }
+
+    @Override
     public void sendMessage(@NonNull String message) {
         sendToProxy(new B106Chat(gamerId, message, false));
     }
@@ -704,5 +716,21 @@ public final class Gamer extends CommonGamer implements CommandSender, IMegamind
     public static int getTotalOnline() {
         return CommonGamer.getTotalOnline();
     }
+
+    @Override
+    public void dispatchCommand(@NonNull String command) {
+        CommandSender.super.dispatchCommand(command);
+    }
+
+    @Override
+    public void sendCommandUsageMessage(@NonNull String usageKey) {
+        CommandSender.super.sendCommandUsageMessage(usageKey);
+    }
+
+    @Override
+    public UserRanks getRanks() {
+        return (UserRanks) ranks;
+    }
+
     // endregion
 }

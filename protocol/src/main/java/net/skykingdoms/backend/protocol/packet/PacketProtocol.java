@@ -49,6 +49,7 @@ public enum PacketProtocol {
             toClient(21, S21SetGlobalOnline.class, S21SetGlobalOnline::new);
             toClient(22, S22ConnectResponse.class, S22ConnectResponse::new);
             toClient(23, S23FriendshipAction.class, S23FriendshipAction::new);
+            toClient(24, S24PlayerMuteAction.class, S24PlayerMuteAction::new);
             toClient(25, S25UpdateGameMap.class, S25UpdateGameMap::new);
             toClient(26, S26UpdatePlayerGameServer.class, S26UpdatePlayerGameServer::new);
             toClient(27, GameBoot.Response.class, GameBoot.Response::new);

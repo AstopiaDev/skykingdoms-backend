@@ -41,6 +41,10 @@ public interface PlayServerProcessor extends PlayProcessor {
         // override me
     }
 
+    default void process(S24PlayerMuteAction packet, ChannelProcessorContext ctx) {
+        // override me
+    }
+
     default void process(S23FriendshipAction packet, ChannelProcessorContext ctx) {
         // override me
     }
