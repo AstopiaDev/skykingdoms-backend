@@ -32,16 +32,18 @@ public final class StaffListEndpoint implements IEndpoint {
 
         val result = RankSqlHandler.INSTANCE.readUsernamesByRanks(staffRanks.keySet()).join();
 
-        staffRanks.forEach((id, group) -> {
+        result.forEach((id, players) -> {
             val rankObject = new JsonObject();
 
-            val players = new JsonArray();
-            Arrays.stream(result.get(id)).forEach(players::add);
+            val jsonPlayers = new JsonArray();
+            Arrays.stream(players).forEach(jsonPlayers::add);
+
+            val group = staffRanks.get(id);
 
             rankObject.addProperty("id", id);
             rankObject.addProperty("name", group.getName());
             rankObject.addProperty("color", group.getPrefixColor());
-            rankObject.add("players", players);
+            rankObject.add("players", jsonPlayers);
 
             jsonArray.add(rankObject);
         });

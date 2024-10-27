@@ -40,7 +40,12 @@ public final class RankSqlHandler {
             = "DELETE FROM `UserRanks` WHERE `UserId` = ?";
 
     private static final String LOAD_PLAYER_IDS_BY_RANKS
-            = "SELECT GroupId, GROUP_CONCAT(u.Username) Usernames FROM UserRanks JOIN UserRecords u ON UserId = u.Id WHERE GroupId IN ({}) GROUP BY GroupId ORDER BY GroupId DESC;";
+            = "SELECT GroupId, GROUP_CONCAT(DISTINCT(u.Username)) Usernames " +
+            "FROM UserRanks " +
+            "JOIN UserRecords u ON UserId = u.Id " +
+            "WHERE GroupId IN ({}) " +
+            "AND u.Username <> \"Unknown\" " +
+            "GROUP BY GroupId ORDER BY GroupId DESC;";
 
     Database database = new MySQL(DatabaseCredentials.MAIN.withDatabase("PlayerData"));
 
@@ -92,12 +97,12 @@ public final class RankSqlHandler {
                 .thenCompose(ignored -> addUserRank(userId, group, expires));
     }
 
-    public CompletableFuture<HashMap<Integer, String[]>> readUsernamesByRanks(final @NonNull Set<Integer> rankIds) {
+    public CompletableFuture<LinkedHashMap<Integer, String[]>> readUsernamesByRanks(final @NonNull Set<Integer> rankIds) {
         String rankIdsFormatted = String.join(", ", rankIds.stream().map(String::valueOf).toArray(String[]::new));
         String formattedQuery = TextFormat.formatText(LOAD_PLAYER_IDS_BY_RANKS, rankIdsFormatted);
 
         return database.executeQuery(formattedQuery).thenApply(rows -> {
-            val result = new HashMap<Integer, String[]>();
+            val result = new LinkedHashMap<Integer, String[]>();
 
             rows.forEach(row -> {
                 result.put(
