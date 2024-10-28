@@ -3,6 +3,7 @@ package net.skykingdoms.backend.base.util;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import net.skykingdoms.api.protocol.logging.Logging;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -37,8 +38,8 @@ public class DiscordWebhook {
     String username;
     String avatarUrl;
     boolean tts;
+    List<File> attachments = new ArrayList<>();
     final List<EmbedObject> embeds = new ArrayList<>();
-    final List<File> attachments = new ArrayList<>();
 
     /**
      * Constructs a new DiscordWebhook instance
@@ -54,8 +55,8 @@ public class DiscordWebhook {
         return this;
     }
 
-    public DiscordWebhook addAttachments(ArrayList<File> attachments) {
-        this.attachments.addAll(attachments);
+    public DiscordWebhook addAttachments(List<File> attachments) {
+        this.attachments = attachments;
         return this;
     }
 
@@ -197,13 +198,13 @@ public class DiscordWebhook {
         }
     }
 
-    private void writeJson(OutputStream output, String boundary, String json) throws IOException {
+    private void writeJson(@NotNull OutputStream output, String boundary, String json) throws IOException {
         output.write(("--" + boundary + "\r\n").getBytes());
-        output.write(("Content-Disposition: form-data; name=\"" + "payload_json" + "\"\r\n\r\n").getBytes());
+        output.write("Content-Disposition: form-data; name=\"payload_json\"\r\n\r\n".getBytes());
         output.write((json + "\r\n").getBytes());
     }
 
-    private void writeFile(OutputStream output, String boundary, String name, File file) throws IOException {
+    private void writeFile(@NotNull OutputStream output, String boundary, String name, @NotNull File file) throws IOException {
         output.write(("--" + boundary + "\r\n").getBytes());
         output.write(("Content-Disposition: form-data; name=\"" + name + "\"; filename=\"" + file.getName() + "\"\r\n").getBytes());
         output.write(("Content-Type: " + Files.probeContentType(file.toPath()) + "\r\n\r\n").getBytes());
@@ -247,8 +248,7 @@ public class DiscordWebhook {
             return this;
         }
 
-        public EmbedObject setFooter(final String text,
-                                     final String icon) {
+        public EmbedObject setFooter(final String text, final String icon) {
             this.footer = new Footer(text, icon);
             return this;
         }
@@ -263,16 +263,12 @@ public class DiscordWebhook {
             return this;
         }
 
-        public EmbedObject setAuthor(final String name,
-                                     final String url,
-                                     final String icon) {
+        public EmbedObject setAuthor(final String name, final String url, final String icon) {
             this.author = new Author(name, url, icon);
             return this;
         }
 
-        public EmbedObject addField(final String name,
-                                    final String value,
-                                    final boolean inline) {
+        public EmbedObject addField(final String name, final String value, final boolean inline) {
             this.fields.add(new Field(name, value, inline));
             return this;
         }
@@ -339,7 +335,7 @@ public class DiscordWebhook {
         }
 
         @Override
-        public String toString() {
+        public @NotNull String toString() {
             val builder = new StringBuilder();
             val entrySet = map.entrySet();
             builder.append("{");
@@ -372,7 +368,8 @@ public class DiscordWebhook {
             return builder.toString();
         }
 
-        private String quote(final String string) {
+        @Contract(pure = true)
+        private @NotNull String quote(final String string) {
             return "\"" + string + "\"";
         }
     }
