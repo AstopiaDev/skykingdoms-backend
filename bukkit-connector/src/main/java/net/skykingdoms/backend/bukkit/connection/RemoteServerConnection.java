@@ -19,6 +19,7 @@ import net.skykingdoms.backend.protocol.packet.ChannelProcessorContext;
 import net.skykingdoms.backend.protocol.packet.PacketProtocol;
 import net.skykingdoms.backend.protocol.packet.handshake.Handshake;
 import net.skykingdoms.backend.protocol.packet.play.S04UpdateRemoteData;
+import net.skykingdoms.backend.protocol.packet.play.S11ServerCommand;
 import net.skykingdoms.backend.protocol.packet.play.S15ReloadLanguages;
 import net.skykingdoms.backend.protocol.packet.play.SecurityToken;
 import net.skykingdoms.backend.protocol.type.reconnect.impl.FluentBukkitDataImpl;
@@ -85,6 +86,12 @@ public final class RemoteServerConnection extends AbstractRemoteServerChannel { 
 
         BukkitConnector.INSTANCE.plugin().getServer().getPluginManager().callEvent(new ConnectionEstablishedEvent(this));
         BukkitConnector.INSTANCE.reconnecting(false);
+    }
+
+    @Override
+    public void process(final @NonNull S11ServerCommand packet, final @NonNull ChannelProcessorContext ctx) {
+        val command = packet.getCommand();
+        BukkitConnector.INSTANCE.plugin().getServer().dispatchCommand(BukkitConnector.INSTANCE.plugin().getServer().getConsoleSender(), command);
     }
 
     @Override

@@ -373,6 +373,13 @@ public final class ServerManager {
                 .orElse(null);
     }
 
+    public PersistentServer getPersistentServer(final @NonNull String persistentServer) {
+        return persistentServers.stream()
+                .filter(s -> s.getName().equalsIgnoreCase(persistentServer))
+                .findFirst()
+                .orElse(null);
+    }
+
     public GameServer getGameServer(final @NonNull String gameServerName) {
         return gameServers.stream()
                 .filter(s -> s.getName().equalsIgnoreCase(gameServerName))

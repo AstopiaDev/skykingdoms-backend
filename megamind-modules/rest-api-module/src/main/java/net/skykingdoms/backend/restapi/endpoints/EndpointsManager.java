@@ -92,5 +92,7 @@ public final class EndpointsManager {
         endpoints.add(new PlayerListEndpoint());
         endpoints.add(new StaffListEndpoint());
         endpoints.add(new UploadEndpoint());
+        endpoints.add(new RestartEndpoint());
+        endpoints.add(new ReconnectEndpoint());
     }
 }
