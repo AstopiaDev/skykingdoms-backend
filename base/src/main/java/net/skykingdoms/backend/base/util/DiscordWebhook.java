@@ -181,6 +181,8 @@ public class DiscordWebhook {
                 for (File file : attachments) {
                     if (file != null && file.exists()) {
                         writeFile(output, boundary, file.getName() + fileIndex++, file);
+                    } else {
+                        throw new IllegalArgumentException("Attachment " + (file != null ? file.getName() : "[no filename found]") + " not found");
                     }
                 }
 
