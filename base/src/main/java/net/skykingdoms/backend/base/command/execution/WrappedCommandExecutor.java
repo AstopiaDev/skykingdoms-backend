@@ -101,7 +101,7 @@ public class WrappedCommandExecutor {
     }
 
     /**
-     * Возвращает ключ локализации в формате command_$команда$(_$подкоманда$)
+     * Returns the localization key in the format command_$command$(_$subcommand$)
      */
     public String getLocalizationKey() {
         if (localizationKey == null) {
