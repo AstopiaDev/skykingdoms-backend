@@ -7,6 +7,7 @@ import net.skykingdoms.api.protocol.logging.Logging;
 import net.skykingdoms.backend.protocol.packet.BossProcessor;
 import net.skykingdoms.backend.protocol.packet.ChannelProcessorContext;
 import net.skykingdoms.backend.protocol.packet.Packet;
+import net.skykingdoms.backend.protocol.packet.handshake.Handshake;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.ExecutorService;
@@ -32,6 +33,19 @@ public final class PacketHandler extends SimpleChannelInboundHandler<Packet<?>> 
 
     @Override
     public void channelRead0(@NotNull ChannelHandlerContext ctx, @NotNull Packet packet) {
+        if (packet instanceof Handshake.Response || packet instanceof Handshake.Request) {
+            ChannelProcessorContext context = new ChannelProcessorContext(packet, processor, ctx);
+
+            try {
+                processor.callProcessor(context);
+            } catch (Throwable t) {
+                Logging.IMP.stacktrace(t, "Error occurred whilst processing packet: " + packet);
+            } finally {
+                context.post();
+            }
+            return;
+        }
+
         executorService.submit(() -> {
             ChannelProcessorContext context = new ChannelProcessorContext(packet, processor, ctx);
 

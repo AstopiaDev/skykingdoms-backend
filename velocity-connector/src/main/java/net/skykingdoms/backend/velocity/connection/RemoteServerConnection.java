@@ -71,32 +71,30 @@ public final class RemoteServerConnection extends AbstractRemoteServerChannel {
 
     @Override
     public void process(Handshake.Response packet, ChannelProcessorContext ctx) {
-        ctx.getContext().channel().eventLoop().submit(() -> {
-            if (packet.getResult() != Handshake.Result.SUCCESS) {
-                Logging.IMP.warn("[HANDSHAKE] Unable to connect to coordinator: {}", packet.getMessage());
+        if (packet.getResult() != Handshake.Result.SUCCESS) {
+            Logging.IMP.warn("[HANDSHAKE] Unable to connect to coordinator: {}", packet.getMessage());
+            return;
+        }
+
+        Logging.IMP.info("[HANDSHAKE] Connected to coordinator successfully!");
+
+        upgradeConnection(PacketProtocol.PLAY);
+
+        sendPacket(new C17LookupGlobalOnline());
+
+        Connection.awaitPacket(new SecurityToken.Request()).whenComplete((response, throwable) -> {
+            if (throwable != null) {
+                Logging.IMP.stacktrace(throwable, "Exception raised on token request! Shutting down the proxy...");
+                VelocityConnector.INSTANCE.server().shutdown();
                 return;
             }
 
-            upgradeConnection(PacketProtocol.PLAY);
-
-            sendPacket(new C17LookupGlobalOnline());
-
-            Logging.IMP.info("Established connection with coordinator successfully!");
-
-            Connection.awaitPacket(new SecurityToken.Request()).whenComplete((response, throwable) -> {
-                if (throwable != null) {
-                    Logging.IMP.stacktrace(throwable, "Exception raised on token request! Shutting down the proxy...");
-                    VelocityConnector.INSTANCE.server().shutdown();
-                    return;
-                }
-
-                BungeeSecurityManager.INSTANCE.updateToken(response.getToken());
-                BungeeSecurityManager.INSTANCE.updatePlayersConnections();
-            });
-
-            reconnectPlayers();
-            VelocityConnector.INSTANCE.reconnecting(false);
+            BungeeSecurityManager.INSTANCE.updateToken(response.getToken());
+            BungeeSecurityManager.INSTANCE.updatePlayersConnections();
         });
+
+        reconnectPlayers();
+        VelocityConnector.INSTANCE.reconnecting(false);
     }
 
     @Override
@@ -143,20 +141,24 @@ public final class RemoteServerConnection extends AbstractRemoteServerChannel {
 
     @Override
     public void active() {
-        VelocityConnector.INSTANCE.server().getEventManager().fire(new ServerActiveEvent(this));
+        channel.eventLoop().execute(() -> {
+            VelocityConnector.INSTANCE.server().getEventManager().fire(new ServerActiveEvent(this));
 
-        EnumSet<Handshake.RequestFlag> flags = EnumSet.noneOf(Handshake.RequestFlag.class);
-        if (VelocityConnector.INSTANCE.reconnecting()) {
-            flags.add(Handshake.RequestFlag.IS_RECONNECT);
-        }
-        flags.add(Handshake.RequestFlag.HAS_FLUENT_DATA);
+            upgradeConnection(PacketProtocol.HANDSHAKE);
 
-        sendPacket(new Handshake.Request(
-                RemoteConnectedType.PROXY,
-                System.getenv("CORD_SECRET"),
-                UUID.fromString(System.getenv("CORD_TID")),
-                flags,
-                VelocityConnector.INSTANCE.proxyData(), 0));
+            EnumSet<Handshake.RequestFlag> flags = EnumSet.noneOf(Handshake.RequestFlag.class);
+            if (VelocityConnector.INSTANCE.reconnecting()) {
+                flags.add(Handshake.RequestFlag.IS_RECONNECT);
+            }
+            flags.add(Handshake.RequestFlag.HAS_FLUENT_DATA);
+
+            sendPacket(new Handshake.Request(
+                    RemoteConnectedType.PROXY,
+                    System.getenv("CORD_SECRET"),
+                    UUID.fromString(System.getenv("CORD_TID")),
+                    flags,
+                    VelocityConnector.INSTANCE.proxyData(), 0));
+        });
     }
 
 

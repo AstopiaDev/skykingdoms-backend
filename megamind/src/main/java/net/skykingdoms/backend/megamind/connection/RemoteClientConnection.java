@@ -471,33 +471,31 @@ public final class RemoteClientConnection extends AbstractRemoteClientChannel {
     @Override
     public void process(final @NonNull Handshake.Request packet,
                         final @NonNull ChannelProcessorContext ctx) {
-        ctx.getContext().channel().eventLoop().execute(() -> {
-            if (!packet.getSecret().equals(MegamindApp.INSTANCE.secret())) {
-                ctx.setResponse(new Handshake.Response(Handshake.Result.FAILED, "Invalid secret token!"));
-                Logging.IMP.info("[HS/D] Aborted handshake request of {} due to invalid secret key ({}), should be ({})!",
-                        getDisplayName(), packet.getSecret(), MegamindApp.INSTANCE.secret());
-                close();
-                return;
-            }
+        if (!packet.getSecret().equals(MegamindApp.INSTANCE.secret())) {
+            ctx.setResponse(new Handshake.Response(Handshake.Result.FAILED, "Invalid secret token!"));
+            Logging.IMP.info("[HS/D] Aborted handshake request of {} due to invalid secret key ({}), should be ({})!",
+                    getDisplayName(), packet.getSecret(), MegamindApp.INSTANCE.secret());
+            close();
+            return;
+        }
 
-            if(!DeploymentManager.INSTANCE.validateConnection(packet)) {
-                Logging.IMP.info("[HS/D] Rejected handshake of {}", getDisplayName());
-                ctx.setResponse(new Handshake.Response(Handshake.Result.FAILED, "Invalid remote client connection"));
-                close();
-                return;
-            }
+        if(!DeploymentManager.INSTANCE.validateConnection(packet)) {
+            Logging.IMP.info("[HS/D] Rejected handshake of {}", getDisplayName());
+            ctx.setResponse(new Handshake.Response(Handshake.Result.FAILED, "Invalid remote client connection"));
+            close();
+            return;
+        }
 
-            sendPacket(new Handshake.Response(Handshake.Result.SUCCESS, null));
-            upgradeConnection(PacketProtocol.PLAY);
-            ctx.done();
+        sendPacket(new Handshake.Response(Handshake.Result.SUCCESS, null));
+        upgradeConnection(PacketProtocol.PLAY);
+        ctx.done();
 
-            DeploymentManager.INSTANCE.handleRemoteConnection(
-                    this,
-                    packet
-            );
+        DeploymentManager.INSTANCE.handleRemoteConnection(
+                this,
+                packet
+        );
 
-            Logging.IMP.info("[HS/D] Accepted handshake of {}", getDisplayName());
-        });
+        Logging.IMP.info("[HS/D] Accepted handshake of {}", getDisplayName());
     }
 
     @Override

@@ -1,5 +1,6 @@
 package net.skykingdoms.backend.node.connection;
 
+import com.mysql.cj.log.Log;
 import io.netty.channel.socket.SocketChannel;
 import lombok.AccessLevel;
 import lombok.NonNull;
@@ -120,21 +121,20 @@ public final class RemoteServerConnection extends AbstractRemoteServerChannel {
     @Override
     public void process(final @NonNull Handshake.Response packet,
                         final @NonNull ChannelProcessorContext ctx) {
-        ctx.getContext().channel().eventLoop().execute(() -> {
-            if (packet.getResult() == Handshake.Result.FAILED) {
-                Logging.IMP.error("[HANDSHAKE] Unable to connect to coordinator: {}", packet.getMessage());
-                return;
-            }
+        if (packet.getResult() == Handshake.Result.FAILED) {
+            Logging.IMP.error("[HANDSHAKE] Unable to connect to coordinator: {}", packet.getMessage());
+            return;
+        }
 
-            upgradeConnection(PacketProtocol.PLAY);
-        });
+        Logging.IMP.info("Successfully connected to coordinator");
+
+        upgradeConnection(PacketProtocol.PLAY);
     }
 
     @Override
     public void process(final @NonNull S04UpdateRemoteData packet,
                         final @NonNull ChannelProcessorContext ctx) {
-        ctx.getContext().channel().eventLoop().execute(() -> {
-            NodeApp.INSTANCE.nodeData((FluentNodeDataImpl) packet.getServerDataUpdate());
-        });
+        NodeApp.INSTANCE.nodeData((FluentNodeDataImpl) packet.getServerDataUpdate());
+        Logging.IMP.info(packet.getServerDataUpdate().toString());
     }
 }
