@@ -19,6 +19,7 @@ import net.skykingdoms.backend.velocity.listener.KickListener;
 import net.skykingdoms.backend.velocity.listener.PingListener;
 import net.skykingdoms.backend.velocity.listener.PlayerListener;
 import net.skykingdoms.backend.velocity.listener.TabCompleteListener;
+import net.skykingdoms.backend.velocity.util.MinecraftAuthenticator;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,8 +36,8 @@ public enum VelocityConnector {
     @Setter FluentProxyDataImpl proxyData;
     @Setter boolean reconnecting = false;
     boolean initialized = false;
-    AuthMeVelocityAPI authMeAPI;
     Configuration configuration;
+    MinecraftAuthenticator authenticator = new MinecraftAuthenticator();
     VelocityConnectorBoot boot;
     ProxyServer server;
 
@@ -54,15 +55,6 @@ public enum VelocityConnector {
     @SneakyThrows
     public void init() {
         initialized = true;
-
-        try {
-            this.authMeAPI = (AuthMeVelocityAPI) server.getPluginManager()
-                    .getPlugin("authmevelocity")
-                    .get().getInstance().get();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
         this.reloadConfiguration();
 
         this.connection = new VelocityLocalClientConnection(

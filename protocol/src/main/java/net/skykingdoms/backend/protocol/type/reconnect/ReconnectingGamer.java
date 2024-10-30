@@ -22,6 +22,7 @@ public final class ReconnectingGamer implements Serializable<ReconnectingGamer> 
 
     String domain;
     int protocol;
+    boolean loggedIn;
 
     String server;
 
@@ -33,6 +34,7 @@ public final class ReconnectingGamer implements Serializable<ReconnectingGamer> 
         PacketUtils.writeString(out, server);
         PacketUtils.writeString(out, domain);
         PacketUtils.writeVarInt(out, protocol);
+        out.writeBoolean(loggedIn);
 
         return this;
     }
@@ -46,6 +48,7 @@ public final class ReconnectingGamer implements Serializable<ReconnectingGamer> 
         server = PacketUtils.readString(in);
         domain = PacketUtils.readString(in);
         protocol = PacketUtils.readVarInt(in);
+        loggedIn = in.readBoolean();
 
         return this;
     }

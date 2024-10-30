@@ -30,24 +30,28 @@ public final class RemoteServerConnection extends AbstractRemoteServerChannel {
 
     @Override
     public void active() {
-        NodeApp.INSTANCE.reloadNodeData();
+        channel.eventLoop().execute(() -> {
+            NodeApp.INSTANCE.reloadNodeData();
 
-        EnumSet<Handshake.RequestFlag> flags = EnumSet.noneOf(Handshake.RequestFlag.class);
-        if (NodeApp.INSTANCE.reconnecting()) {
-            flags.add(Handshake.RequestFlag.IS_RECONNECT);
-        }
-        flags.add(Handshake.RequestFlag.HAS_FLUENT_DATA);
+            upgradeConnection(PacketProtocol.HANDSHAKE);
 
-        sendPacket(
-                new Handshake.Request(
-                        RemoteConnectedType.NODE,
-                        NodeApp.INSTANCE.nodeConfiguration().getSecret(),
-                        UUID.randomUUID(), // any value for NODE, doesn't matter
-                        flags,
-                        NodeApp.INSTANCE.nodeData(),
-                0
-                )
-        );
+            EnumSet<Handshake.RequestFlag> flags = EnumSet.noneOf(Handshake.RequestFlag.class);
+            if (NodeApp.INSTANCE.reconnecting()) {
+                flags.add(Handshake.RequestFlag.IS_RECONNECT);
+            }
+            flags.add(Handshake.RequestFlag.HAS_FLUENT_DATA);
+
+            sendPacket(
+                    new Handshake.Request(
+                            RemoteConnectedType.NODE,
+                            NodeApp.INSTANCE.nodeConfiguration().getSecret(),
+                            UUID.randomUUID(), // any value for NODE, doesn't matter
+                            flags,
+                            NodeApp.INSTANCE.nodeData(),
+                            0
+                    )
+            );
+        });
     }
 
     @Override
@@ -116,17 +120,21 @@ public final class RemoteServerConnection extends AbstractRemoteServerChannel {
     @Override
     public void process(final @NonNull Handshake.Response packet,
                         final @NonNull ChannelProcessorContext ctx) {
-        if (packet.getResult() == Handshake.Result.FAILED) {
-            Logging.IMP.error("[HANDSHAKE] Unable to connect to coordinator: {}", packet.getMessage());
-            return;
-        }
+        ctx.getContext().channel().eventLoop().execute(() -> {
+            if (packet.getResult() == Handshake.Result.FAILED) {
+                Logging.IMP.error("[HANDSHAKE] Unable to connect to coordinator: {}", packet.getMessage());
+                return;
+            }
 
-        upgradeConnection(PacketProtocol.PLAY);
+            upgradeConnection(PacketProtocol.PLAY);
+        });
     }
 
     @Override
     public void process(final @NonNull S04UpdateRemoteData packet,
                         final @NonNull ChannelProcessorContext ctx) {
-        NodeApp.INSTANCE.nodeData((FluentNodeDataImpl) packet.getServerDataUpdate());
+        ctx.getContext().channel().eventLoop().execute(() -> {
+            NodeApp.INSTANCE.nodeData((FluentNodeDataImpl) packet.getServerDataUpdate());
+        });
     }
 }

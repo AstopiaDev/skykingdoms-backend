@@ -158,4 +158,8 @@ public interface PlayServerProcessor extends PlayProcessor {
     default void process(S38UpdateDuelData packet, ChannelProcessorContext ctx) {
         // override me
     }
+
+    default void process(S39UpdateAuth packet, ChannelProcessorContext ctx) {
+        // override me
+    }
 }

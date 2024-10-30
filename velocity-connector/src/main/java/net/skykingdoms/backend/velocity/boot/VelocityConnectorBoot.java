@@ -16,9 +16,6 @@ import java.util.logging.Logger;
         version = "1.0",
         authors = {
                 "SkyKingdoms"
-        },
-        dependencies = {
-                @Dependency(id = "authmevelocity")
         }
 )
 public class VelocityConnectorBoot {

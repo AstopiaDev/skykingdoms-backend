@@ -67,25 +67,27 @@ public final class RemoteServerConnection extends AbstractRemoteServerChannel { 
     @Override
     public void process(final @NonNull Handshake.Response packet,
                         final @NonNull ChannelProcessorContext ctx) {
-        if (packet.getResult() == Handshake.Result.FAILED) {
-            Logging.IMP.error("[HANDSHAKE] Unable to connect to coordinator: {}", packet.getMessage());
-            return;
-        }
-
-        upgradeConnection(PacketProtocol.PLAY);
-
-        Connection.awaitPacket(new SecurityToken.Request()).whenComplete((response, throwable) -> {
-            if (throwable != null) {
-                Logging.IMP.stacktrace(throwable, "Exception raised on token request! Shutting down the proxy...");
-                Bukkit.shutdown();
+        ctx.getContext().channel().eventLoop().submit(() -> {
+            if (packet.getResult() == Handshake.Result.FAILED) {
+                Logging.IMP.error("[HANDSHAKE] Unable to connect to coordinator: {}", packet.getMessage());
                 return;
             }
 
-            BukkitSecurityManager.INSTANCE.updateToken(response.getToken());
-        });
+            upgradeConnection(PacketProtocol.PLAY);
 
-        BukkitConnector.INSTANCE.plugin().getServer().getPluginManager().callEvent(new ConnectionEstablishedEvent(this));
-        BukkitConnector.INSTANCE.reconnecting(false);
+            Connection.awaitPacket(new SecurityToken.Request()).whenComplete((response, throwable) -> {
+                if (throwable != null) {
+                    Logging.IMP.stacktrace(throwable, "Exception raised on token request! Shutting down the proxy...");
+                    Bukkit.shutdown();
+                    return;
+                }
+
+                BukkitSecurityManager.INSTANCE.updateToken(response.getToken());
+            });
+
+            BukkitConnector.INSTANCE.plugin().getServer().getPluginManager().callEvent(new ConnectionEstablishedEvent(this));
+            BukkitConnector.INSTANCE.reconnecting(false);
+        });
     }
 
     @Override

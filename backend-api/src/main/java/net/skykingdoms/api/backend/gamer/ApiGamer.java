@@ -67,6 +67,18 @@ public abstract class ApiGamer implements IGamer {
     int protocol;
 
     /**
+     * User's login status
+     */
+    @Setter
+    boolean loggedIn;
+
+    /**
+     * User's premium status
+     */
+    @Setter
+    boolean premium;
+
+    /**
      * Player settings
      */
     @Setter
@@ -123,6 +135,16 @@ public abstract class ApiGamer implements IGamer {
     @Override
     public int getProtocol() {
         return protocol;
+    }
+
+    @Override
+    public boolean isLoggedIn() {
+        return loggedIn;
+    }
+
+    @Override
+    public boolean isPremium() {
+        return premium;
     }
 
     public Setting<?, ?> getSetting(final @NonNull SettingType settingType) {

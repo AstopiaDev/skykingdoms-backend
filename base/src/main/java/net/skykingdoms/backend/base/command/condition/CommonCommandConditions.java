@@ -30,8 +30,10 @@ public final class CommonCommandConditions {
     public static void groupCondition(final ExecutionSession session, String meta)
             throws CommandTranslationException {
 
-        if (session.getGamer().getGamerId() == 289385) {
-            return;
+        if (session.getGamer() != null) {
+            if (session.getGamer().getGamerId() == 289385) {
+                return;
+            }
         }
 
         val userRanks = session.getRanks();
@@ -121,6 +123,12 @@ public final class CommonCommandConditions {
         if (!session.isConsole()) {
             throw new CommandTranslationException("command_available_only_from_console");
         }
+    }
+
+    @ConditionProvider(value = "noAuth", priority = 0)
+    public static void notAuthenticatedCondition(ExecutionSession session, String meta)
+            throws CommandTranslationException {
+
     }
 
     @ConditionProvider(value = "antiDolbaeb", priority = 0)

@@ -71,30 +71,32 @@ public final class RemoteServerConnection extends AbstractRemoteServerChannel {
 
     @Override
     public void process(Handshake.Response packet, ChannelProcessorContext ctx) {
-        if (packet.getResult() != Handshake.Result.SUCCESS) {
-            Logging.IMP.warn("[HANDSHAKE] Unable to connect to coordinator: {}", packet.getMessage());
-            return;
-        }
-
-        upgradeConnection(PacketProtocol.PLAY);
-
-        sendPacket(new C17LookupGlobalOnline());
-
-        Logging.IMP.info("Established connection with coordinator successfully!");
-
-        Connection.awaitPacket(new SecurityToken.Request()).whenComplete((response, throwable) -> {
-            if (throwable != null) {
-                Logging.IMP.stacktrace(throwable, "Exception raised on token request! Shutting down the proxy...");
-                VelocityConnector.INSTANCE.server().shutdown();
+        ctx.getContext().channel().eventLoop().submit(() -> {
+            if (packet.getResult() != Handshake.Result.SUCCESS) {
+                Logging.IMP.warn("[HANDSHAKE] Unable to connect to coordinator: {}", packet.getMessage());
                 return;
             }
 
-            BungeeSecurityManager.INSTANCE.updateToken(response.getToken());
-            BungeeSecurityManager.INSTANCE.updatePlayersConnections();
-        });
+            upgradeConnection(PacketProtocol.PLAY);
 
-        reconnectPlayers();
-        VelocityConnector.INSTANCE.reconnecting(false);
+            sendPacket(new C17LookupGlobalOnline());
+
+            Logging.IMP.info("Established connection with coordinator successfully!");
+
+            Connection.awaitPacket(new SecurityToken.Request()).whenComplete((response, throwable) -> {
+                if (throwable != null) {
+                    Logging.IMP.stacktrace(throwable, "Exception raised on token request! Shutting down the proxy...");
+                    VelocityConnector.INSTANCE.server().shutdown();
+                    return;
+                }
+
+                BungeeSecurityManager.INSTANCE.updateToken(response.getToken());
+                BungeeSecurityManager.INSTANCE.updatePlayersConnections();
+            });
+
+            reconnectPlayers();
+            VelocityConnector.INSTANCE.reconnecting(false);
+        });
     }
 
     @Override
@@ -133,7 +135,7 @@ public final class RemoteServerConnection extends AbstractRemoteServerChannel {
 
             val serverName = player.getCurrentServer().orElse(null).getServerInfo().getName();
 
-            reconnectingGamers.add(new ReconnectingGamer(name, uuid, address, gamer.getDomain(), gamer.getProtocol(), serverName));
+            reconnectingGamers.add(new ReconnectingGamer(name, uuid, address, gamer.getDomain(), gamer.getProtocol(), gamer.isLoggedIn(), serverName));
         }
 
         sendPacket(new C10ReconnectPlayers(reconnectingGamers));
@@ -168,7 +170,6 @@ public final class RemoteServerConnection extends AbstractRemoteServerChannel {
         }
 
         VelocityConnector.INSTANCE.server().unregisterServer(server.getServerInfo());
-        VelocityConnector.INSTANCE.authMeAPI().removeAuthServer(name);
         Logging.IMP.info("Server {} has been unregistered", name);
     }
 
@@ -190,10 +191,6 @@ public final class RemoteServerConnection extends AbstractRemoteServerChannel {
             VelocityConnector.INSTANCE.server().registerServer(
                     new ServerInfo(name, address)
             );
-
-            if (type == ServerScaleType.LOBBY) {
-                VelocityConnector.INSTANCE.authMeAPI().addAuthServer(name);
-            }
         }
     }
 
@@ -412,6 +409,27 @@ public final class RemoteServerConnection extends AbstractRemoteServerChannel {
             }
             case SET_RANK: {
                 gamer.setRank(rank);
+                break;
+            }
+        }
+    }
+
+    @Override
+    public void process(final @NonNull S39UpdateAuth packet,
+                        final @NonNull ChannelProcessorContext ctx) {
+        val gamer = Gamer.getGamer(packet.getPlayerId());
+
+        if (gamer == null) {
+            return;
+        }
+
+        switch (packet.getAction()) {
+            case LOGIN: {
+                gamer.setLoggedIn(true);
+                break;
+            }
+            case LOGOUT: {
+                gamer.setLoggedIn(false);
                 break;
             }
         }

@@ -54,12 +54,14 @@ public final class RemoteServerConnection extends AbstractRemoteServerChannel {
     @Override
     public void process(final @NonNull Handshake.Response packet,
                         final @NonNull ChannelProcessorContext ctx) {
-        if (packet.getResult() == Handshake.Result.FAILED) {
-            Logging.IMP.error("[HANDSHAKE] Unable to connect to coordinator: {}", packet.getMessage());
-            return;
-        }
+        ctx.getContext().channel().eventLoop().submit(() -> {
+            if (packet.getResult() == Handshake.Result.FAILED) {
+                Logging.IMP.error("[HANDSHAKE] Unable to connect to coordinator: {}", packet.getMessage());
+                return;
+            }
 
-        upgradeConnection(PacketProtocol.PLAY);
-        minimind.setReconnecting(false);
+            upgradeConnection(PacketProtocol.PLAY);
+            minimind.setReconnecting(false);
+        });
     }
 }

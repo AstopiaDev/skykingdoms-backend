@@ -15,6 +15,7 @@ dependencies {
     // YAML and JSON controller
     api 'org.yaml:snakeyaml:2.0'
     implementation 'com.google.code.gson:gson:2.11.0'
+    implementation 'at.favre.lib:bcrypt:0.10.2'
 
     // Bytecode library
     api 'org.ow2.asm:asm:9.4'

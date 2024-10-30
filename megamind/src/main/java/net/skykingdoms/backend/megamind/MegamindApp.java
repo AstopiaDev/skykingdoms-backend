@@ -30,8 +30,11 @@ import net.skykingdoms.backend.base.util.color.ChatColor;
 import net.skykingdoms.backend.megamind.api.command.CommandSender;
 import net.skykingdoms.backend.megamind.api.command.CoreCommandManager;
 import net.skykingdoms.backend.megamind.command.*;
+import net.skykingdoms.backend.megamind.command.auth.LoginCommand;
+import net.skykingdoms.backend.megamind.command.auth.RegisterCommand;
 import net.skykingdoms.backend.megamind.command.condition.CoreCommandConditions;
 import net.skykingdoms.backend.megamind.connection.LocalServerConnection;
+import net.skykingdoms.backend.megamind.data.auth.AuthManager;
 import net.skykingdoms.backend.megamind.data.friend.FriendListener;
 import net.skykingdoms.backend.megamind.data.friend.FriendManager;
 import net.skykingdoms.backend.megamind.data.gamer.Gamer;
@@ -125,6 +128,7 @@ public class MegamindApp extends MegamindAPI {
         TestFlowManager.INSTANCE.postBootstrap();
         StatsManager.INSTANCE.postBootstrap();
         DuelManager.INSTANCE.postBootstrap();
+        AuthManager.INSTANCE.postBootstrap();
         Logging.IMP.info("[Megamind] Finished loading managers!");
 
         connection = new LocalServerConnection(
@@ -421,6 +425,8 @@ public class MegamindApp extends MegamindAPI {
         commandManager.addCommand(AppendCommand.class);
         commandManager.addCommand(UnbanCommand.class);
         commandManager.addCommand(UnmuteCommand.class);
+        commandManager.addCommand(RegisterCommand.class);
+        commandManager.addCommand(LoginCommand.class);
 
         commandManager.addCommand(new BanCommand());
         commandManager.addCommand(new MuteCommand());

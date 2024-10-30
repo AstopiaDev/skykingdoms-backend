@@ -26,6 +26,7 @@ import net.skykingdoms.backend.base.util.time.Duration;
 import net.skykingdoms.backend.megamind.AsyncExecution;
 import net.skykingdoms.backend.megamind.MegamindApp;
 import net.skykingdoms.backend.megamind.api.command.ConsoleCommandSender;
+import net.skykingdoms.backend.megamind.data.auth.AuthManager;
 import net.skykingdoms.backend.megamind.data.gamer.Gamer;
 import net.skykingdoms.backend.megamind.data.punishment.PunishmentManager;
 import net.skykingdoms.backend.megamind.event.GetBestServerEvent;
@@ -132,18 +133,14 @@ public final class RemoteClientConnection extends AbstractRemoteClientChannel {
         val uuid = packet.getUuid();
         val gamer = Gamer.getGamer(name);
 
-   /*     Logging.IMP.info("right. heloo.");*/
-
         // FIXME
         synchronized (PENDING_LOGINS) {
             if ((gamer != null && gamer.isOnline()) ||
                     (!packet.contains(ProxyPlayerLogin.FINISH) && !PENDING_LOGINS.add(uuid))) {
-                ctx.setResponse(new ProxyPlayerLogin.Response(true, "§cYou are already connected to the server"));
+                ctx.setResponse(new ProxyPlayerLogin.Response(true, false, "§cYou are already connected to the server"));
                 return;
             }
         }
-
-       /* Logging.IMP.info("HEWO XDXDXD.");*/
 
         ctx.addLatch();
 
@@ -167,6 +164,7 @@ public final class RemoteClientConnection extends AbstractRemoteClientChannel {
     private void asyncProxyPlayerLogin(ProxyPlayerLogin.Request packet, ChannelProcessorContext ctx) {
         boolean cancelled = false;
         String reason = null;
+        boolean sessionLogin = false;
 
         try {
             val uuid = packet.getUuid();
@@ -174,18 +172,14 @@ public final class RemoteClientConnection extends AbstractRemoteClientChannel {
             val address = packet.getAddress();
 
             if (packet.contains(ProxyPlayerLogin.FINISH)) {
-                /*Logging.IMP.info("I still exist btw.");*/
                 val playerLoginEvent = callLoginEvent(name, uuid, address, PlayerLoginEvent.State.POST);
 
-                /*Logging.IMP.info("FUCKING RATS.a");*/
                 if (playerLoginEvent.isCancelled()) {
                     cancelled = true;
                     reason = playerLoginEvent.getKickReason();
 
                     return;
                 }
-
-                /*Logging.IMP.info("XDD LOLOLOLO");*/
 
                 val proxy = (ProxyServer) connectable;
 
@@ -201,8 +195,6 @@ public final class RemoteClientConnection extends AbstractRemoteClientChannel {
                     return;
                 }
 
-                /*Logging.IMP.info("DO I EXIST?");*/
-
                 val activePunishment = PunishmentManager.INSTANCE.getActivePunishment(gamer.getGamerId(), PunishmentType.BAN);
                 if (activePunishment != null) {
                     cancelled = true;
@@ -211,13 +203,13 @@ public final class RemoteClientConnection extends AbstractRemoteClientChannel {
                     return;
                 }
 
-                /*Logging.IMP.info("maybe i do, who knowis");*/
-
                 gamer.load();
 
                 gamer.setDomain(packet.getDomain());
                 gamer.setProtocol(packet.getProtocol());
                 gamer.setName(packet.getName());
+                gamer.setPremium(packet.isPremium());
+                gamer.setLoggedIn(packet.isPremium());
 
                 // Listening and loading all the connection in GamerLoadEvent
                 val event = new GamerLoadEvent(gamer);
@@ -225,12 +217,21 @@ public final class RemoteClientConnection extends AbstractRemoteClientChannel {
 
                 val offline = Gamer.getOfflineGamer(uuid);
 
-                // удаляем из кеша оффлайн копию этого игрока
                 if (offline != null) {
+                    UUID session = offline.getSession();
+                    if (!packet.isPremium() && session != null) {
+                        if (AuthManager.INSTANCE.sessionMatches(address.getHostAddress(), session)) {
+                            sessionLogin = true;
+                            gamer.setLoggedIn(true);
+                        }
+                    }
                     Gamer.invalidateOfflinePlayer(offline);
                 }
 
-                /*Logging.IMP.info("DO I tho...");*/
+                if (!gamer.isLoggedIn()) {
+                    AuthManager.INSTANCE.addAuthenticator(gamer);
+                }
+
 
                 val gple = MegamindApp.INSTANCE.pluginManager().callEvent(new GamerProxyLoginEvent(gamer, false));
                 if (gple.isCancelled()) {
@@ -239,17 +240,13 @@ public final class RemoteClientConnection extends AbstractRemoteClientChannel {
                     return;
                 }
 
-                /*Logging.IMP.info("I think i do.");*/
-
                 Gamer.addGamer(gamer);
 
                 proxy.addPlayer(gamer);
                 gamer.setProxyServer(proxy);
-                /*Logging.IMP.info("HEWOOOOOOOOOOOOOOOOOOOOOOO");*/
             }
         } finally {
-            /*Logging.IMP.info("RESPONDING.");*/
-            ctx.setResponse(new ProxyPlayerLogin.Response(cancelled, reason));
+            ctx.setResponse(new ProxyPlayerLogin.Response(cancelled, sessionLogin, reason));
         }
     }
 
@@ -411,6 +408,7 @@ public final class RemoteClientConnection extends AbstractRemoteClientChannel {
             gamer.setDomain(reconnectingGamer.getDomain());
             gamer.setProtocol(reconnectingGamer.getProtocol());
             gamer.setProxyServer(proxy);
+            gamer.setLoggedIn(reconnectingGamer.isLoggedIn());
             gamer.load();
 
             // we already had this player connected
@@ -473,31 +471,33 @@ public final class RemoteClientConnection extends AbstractRemoteClientChannel {
     @Override
     public void process(final @NonNull Handshake.Request packet,
                         final @NonNull ChannelProcessorContext ctx) {
-        if (!packet.getSecret().equals(MegamindApp.INSTANCE.secret())) {
-            ctx.setResponse(new Handshake.Response(Handshake.Result.FAILED, "Invalid secret token!"));
-            Logging.IMP.info("[HS/D] Aborted handshake request of {} due to invalid secret key ({}), should be ({})!",
-                    getDisplayName(), packet.getSecret(), MegamindApp.INSTANCE.secret());
-            close();
-            return;
-        }
+        ctx.getContext().channel().eventLoop().execute(() -> {
+            if (!packet.getSecret().equals(MegamindApp.INSTANCE.secret())) {
+                ctx.setResponse(new Handshake.Response(Handshake.Result.FAILED, "Invalid secret token!"));
+                Logging.IMP.info("[HS/D] Aborted handshake request of {} due to invalid secret key ({}), should be ({})!",
+                        getDisplayName(), packet.getSecret(), MegamindApp.INSTANCE.secret());
+                close();
+                return;
+            }
 
-        if(!DeploymentManager.INSTANCE.validateConnection(packet)) {
-            Logging.IMP.info("[HS/D] Rejected handshake of {}", getDisplayName());
-            ctx.setResponse(new Handshake.Response(Handshake.Result.FAILED, "Invalid remote client connection"));
-            close();
-            return;
-        }
+            if(!DeploymentManager.INSTANCE.validateConnection(packet)) {
+                Logging.IMP.info("[HS/D] Rejected handshake of {}", getDisplayName());
+                ctx.setResponse(new Handshake.Response(Handshake.Result.FAILED, "Invalid remote client connection"));
+                close();
+                return;
+            }
 
-        sendPacket(new Handshake.Response(Handshake.Result.SUCCESS, null));
-        upgradeConnection(PacketProtocol.PLAY);
-        ctx.done();
+            sendPacket(new Handshake.Response(Handshake.Result.SUCCESS, null));
+            upgradeConnection(PacketProtocol.PLAY);
+            ctx.done();
 
-        DeploymentManager.INSTANCE.handleRemoteConnection(
-                this,
-                packet
-        );
+            DeploymentManager.INSTANCE.handleRemoteConnection(
+                    this,
+                    packet
+            );
 
-        Logging.IMP.info("[HS/D] Accepted handshake of {}", getDisplayName());
+            Logging.IMP.info("[HS/D] Accepted handshake of {}", getDisplayName());
+        });
     }
 
     @Override
@@ -524,7 +524,7 @@ public final class RemoteClientConnection extends AbstractRemoteClientChannel {
                         ? "NULL"
                         : gamer.getCurrentlyConnectingTo().getName();
                 player = new NetworkPlayerLoad.PlayerHolder(
-                        true, playerId, gamer.getProtocol(), serverName
+                        true, playerId, gamer.getProtocol(), gamer.isLoggedIn(), serverName
                 );
             }
 

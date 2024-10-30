@@ -26,19 +26,24 @@ public final class NetworkPlayerLoad {
         boolean online;
         int playerId;
         int protocol;
+        boolean loggedIn;
 
         final String server;
 
         public PlayerHolder(int playerId) {
-            this(false, playerId, 0, null);
+            this(false, playerId, 0, false, null);
         }
 
         public PlayerHolder(int playerId, String server) {
-            this(true, playerId, 0, server);
+            this(true, playerId, 0, false, server);
         }
 
         public PlayerHolder(int playerId, String server, int protocol) {
-            this(true, playerId, protocol, server);
+            this(true, playerId, protocol, false, server);
+        }
+
+        public PlayerHolder(int playerId, String server, int protocol, boolean loggedIn) {
+            this(true, playerId, protocol, loggedIn, server);
         }
     }
 
@@ -63,15 +68,16 @@ public final class NetworkPlayerLoad {
                 int protocol = PacketUtils.readVarInt(buf);
 
                 boolean online = false;
-
+                boolean loggedIn = false;
                 String server = null;
 
                 if ((mask & IS_ONLINE) == IS_ONLINE) {
                     online = true;
+                    loggedIn = buf.readBoolean();
                     server = PacketUtils.readString(buf);
                 }
 
-                return new PlayerHolder(online, playerId, protocol, server);
+                return new PlayerHolder(online, playerId, protocol, loggedIn, server);
             });
         }
 
@@ -83,6 +89,7 @@ public final class NetworkPlayerLoad {
                 PacketUtils.writeVarInt(buf, player.protocol);
 
                 if (player.online) {
+                    buf.writeBoolean(player.loggedIn);
                     PacketUtils.writeString(buf, player.server);
                 }
             });

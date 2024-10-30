@@ -215,6 +215,11 @@ public final class SocialGamer extends CommonGamer implements CommandSender, IMe
     }
 
     @Override
+    public boolean isRegistered() {
+        return false;
+    }
+
+    @Override
     public void updateSetting(@NonNull SettingType settingType, @NonNull Setting<?, ?> value) {
 
     }

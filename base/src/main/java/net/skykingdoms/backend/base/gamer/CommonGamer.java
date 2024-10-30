@@ -8,6 +8,7 @@ import net.skykingdoms.api.backend.permission.Group;
 import net.skykingdoms.api.backend.setting.SettingType;
 import net.skykingdoms.api.protocol.logging.Logging;
 import net.skykingdoms.api.protocol.packet.serialize.Serializable;
+import net.skykingdoms.backend.base.data.auth.AuthSqlHandler;
 import net.skykingdoms.backend.base.data.friends.FriendsSqlHandler;
 import net.skykingdoms.backend.base.data.friends.FriendshipMeta;
 import net.skykingdoms.backend.base.data.network.NetworkSqlHandler;

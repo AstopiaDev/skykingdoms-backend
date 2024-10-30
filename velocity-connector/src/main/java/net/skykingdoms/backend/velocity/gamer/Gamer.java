@@ -84,6 +84,10 @@ public final class Gamer extends CommonGamer implements IGamer, ProxiedCommandSe
         super(uuid);
     }
 
+    public Gamer(final int id) {
+        super(id);
+    }
+
     public boolean updateName(final @NonNull String name) {
         if (gamerId < 0 || this.name.equals(name)) {
             return false;
