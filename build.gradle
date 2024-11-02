@@ -2,8 +2,8 @@ plugins {
     id "com.github.johnrengelman.shadow" version "7.0.0" apply false
 }
 
-def user = findProperty("repo.mexish.user")
-def pass = findProperty("repo.mexish.pass")
+def user = findProperty("repo.skykingdoms.user")
+def pass = findProperty("repo.skykingdoms.pass")
 
 allprojects {
     group = 'net.skykingdoms.backend'
@@ -22,7 +22,7 @@ configure(subprojects) {
         mavenCentral()
 
         maven {
-            url = "https://repo.mexish.net/repository/maven-releases/"
+            url = "https://repo.skykingdoms.net/repository/maven-releases/"
 
             credentials {
                 username = user
@@ -35,7 +35,7 @@ configure(subprojects) {
         }
 
         maven {
-            url = "https://repo.mexish.net/repository/maven-snapshots/"
+            url = "https://repo.skykingdoms.net/repository/maven-snapshots/"
 
             credentials {
                 username = user
@@ -82,7 +82,7 @@ configure(subprojects) {
         }
     }
 
-/*    publishing {
+    publishing {
 
         repositories {
             maven {
@@ -92,9 +92,9 @@ configure(subprojects) {
                 }
 
                 if (project.version.endsWith("-SNAPSHOT")) {
-                    url = "https://repo.mexish.net/repository/maven-snapshots/"
+                    url = "https://repo.skykingdoms.net/repository/maven-snapshots/"
                 } else {
-                    url = "https://repo.mexish.net/repository/maven-releases/"
+                    url = "https://repo.skykingdoms.net/repository/maven-releases/"
                 }
             }
         }
@@ -104,7 +104,7 @@ configure(subprojects) {
                 from components.java
             }
         }
-    }*/
+    }
 
     dependencies {
         compileOnly "org.projectlombok:lombok:1.18.30"

@@ -1,7 +1,6 @@
 package net.skykingdoms.backend.velocity;
 
 import com.velocitypowered.api.proxy.ProxyServer;
-import io.github._4drian3d.authmevelocity.api.velocity.AuthMeVelocityAPI;
 import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldDefaults;

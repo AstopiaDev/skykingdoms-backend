@@ -1,7 +1,5 @@
 package net.skykingdoms.backend.bukkit.security.impl;
 
-import com.destroystokyo.paper.profile.PlayerProfile;
-import net.skykingdoms.api.protocol.logging.Logging;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
@@ -38,8 +36,8 @@ public final class SecurityHandshakeListener implements Listener {
     @EventHandler
     public void onHandshake(AsyncPlayerPreLoginEvent e) {
 /*       try {*/
-           PlayerProfile playerProfile = e.getPlayerProfile();
-           Logging.IMP.info("Player {} has profile {}", e.getName(), playerProfile.hasProperty("security-token"));
+           //PlayerProfile playerProfile = e.getPlayerProfile();
+           //Logging.IMP.info("Player {} has profile {}", e.getName(), playerProfile.hasProperty("security-token"));
  /*      } catch (Exception e) {
            e.printStackTrace();
        }*/
