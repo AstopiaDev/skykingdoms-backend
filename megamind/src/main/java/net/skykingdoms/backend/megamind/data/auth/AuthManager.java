@@ -53,8 +53,43 @@ public enum AuthManager {
         gamer.setRegistered(true);
         gamer.setLoggedIn(true);
 
-        this.sendLoginPacket(gamer);
+        this.sendLoginPacket(gamer, S39UpdateAuth.Action.LOGIN);
         this.insertSession(gamer.getAddress().getHostAddress(), UUID.randomUUID());
+    }
+
+    public boolean unregisterGamer(Gamer gamer, String password) {
+        Pair<String, HashType> hashInfo = AuthSqlHandler.INSTANCE.getPassword(gamer.getGamerId()).join();
+        String hashPass = hashInfo.getFirst();
+        HashType hashType = hashInfo.getSecond();
+
+        if (hashType.comparePassword(password, hashPass)) {
+            AuthSqlHandler.INSTANCE.removeAuthRecord(gamer.getGamerId());
+            gamer.setRegistered(false);
+            gamer.setLoggedIn(false);
+            addAuthenticator(gamer);
+            this.sendLoginPacket(gamer, S39UpdateAuth.Action.LOGOUT);
+            return true;
+        }
+
+        return false;
+    }
+
+    public void forceUnregisterGamer(Gamer gamer) {
+        AuthSqlHandler.INSTANCE.removeAuthRecord(gamer.getGamerId());
+        gamer.setRegistered(false);
+        gamer.setLoggedIn(false);
+        addAuthenticator(gamer);
+        this.sendLoginPacket(gamer, S39UpdateAuth.Action.LOGOUT);
+    }
+
+    public boolean logoutGamer(Gamer gamer) {
+        if (gamer.isLoggedIn()) {
+            gamer.setLoggedIn(false);
+            addAuthenticator(gamer);
+            this.sendLoginPacket(gamer, S39UpdateAuth.Action.LOGOUT);
+            return true;
+        }
+        return false;
     }
 
     public boolean loginGamer(Gamer gamer, String password) {
@@ -64,7 +99,7 @@ public enum AuthManager {
 
         if (hashType.comparePassword(password, hashPass)) {
             gamer.setLoggedIn(true);
-            this.sendLoginPacket(gamer);
+            this.sendLoginPacket(gamer, S39UpdateAuth.Action.LOGIN);
             this.insertSession(gamer.getAddress().getHostAddress(), UUID.randomUUID());
             return true;
         }
@@ -72,8 +107,31 @@ public enum AuthManager {
         return false;
     }
 
-    private void sendLoginPacket(Gamer gamer) {
-        S39UpdateAuth packet = new S39UpdateAuth(gamer.getGamerId(), S39UpdateAuth.Action.LOGIN);
+    public boolean changePassword(Gamer gamer, String oldPassword, String newPassword) {
+        Pair<String, HashType> hashInfo = AuthSqlHandler.INSTANCE.getPassword(gamer.getGamerId()).join();
+        String hashPass = hashInfo.getFirst();
+        HashType hashType = hashInfo.getSecond();
+
+        if (hashType.comparePassword(oldPassword, hashPass)) {
+            AuthSqlHandler.INSTANCE.insertAuthRecord(gamer.getGamerId(), false, HashType.BCRYPT.hashPassword(newPassword), HashType.BCRYPT);
+            gamer.setLoggedIn(false);
+            addAuthenticator(gamer);
+            this.sendLoginPacket(gamer, S39UpdateAuth.Action.LOGOUT);
+            return true;
+        }
+
+        return false;
+    }
+
+    public void forceChangePassword(Gamer gamer, String newPassword) {
+        AuthSqlHandler.INSTANCE.insertAuthRecord(gamer.getGamerId(), false, HashType.BCRYPT.hashPassword(newPassword), HashType.BCRYPT);
+        gamer.setLoggedIn(false);
+        addAuthenticator(gamer);
+        this.sendLoginPacket(gamer, S39UpdateAuth.Action.LOGOUT);
+    }
+
+    private void sendLoginPacket(Gamer gamer, S39UpdateAuth.Action action) {
+        S39UpdateAuth packet = new S39UpdateAuth(gamer.getGamerId(), action);
         gamer.sendToProxy(packet);
         gamer.sendToServer(packet);
     }

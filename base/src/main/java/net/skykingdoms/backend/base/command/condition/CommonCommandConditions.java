@@ -134,7 +134,7 @@ public final class CommonCommandConditions {
     @ConditionProvider(value = "antiDolbaeb", priority = 0)
     public static void antiDolbaeb(ExecutionSession session, String meta)
             throws CommandTranslationException {
-        if (session.getSender() instanceof CommonGamer && session.getGamer().getGamerId() == 2) {
+        if (session.getSender() instanceof CommonGamer && session.getGamer().getName().equals("insertagamertag")) {
             throw new CommandTranslationException("command_dolbaeb_protection");
         }
     }

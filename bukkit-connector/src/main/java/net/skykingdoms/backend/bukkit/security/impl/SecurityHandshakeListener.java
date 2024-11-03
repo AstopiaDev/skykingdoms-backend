@@ -29,7 +29,7 @@ public final class SecurityHandshakeListener implements Listener {
             return ".";
         } else {
             String version = server.getName().substring("org.bukkit.craftbukkit".length());
-            return version.substring(0, version.length() - "CraftServer".length());
+            return version.substring(0, version.length() - "CraftServer".length())
         }
     }*/
 

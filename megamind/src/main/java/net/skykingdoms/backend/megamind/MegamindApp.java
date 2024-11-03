@@ -30,8 +30,7 @@ import net.skykingdoms.backend.base.util.color.ChatColor;
 import net.skykingdoms.backend.megamind.api.command.CommandSender;
 import net.skykingdoms.backend.megamind.api.command.CoreCommandManager;
 import net.skykingdoms.backend.megamind.command.*;
-import net.skykingdoms.backend.megamind.command.auth.LoginCommand;
-import net.skykingdoms.backend.megamind.command.auth.RegisterCommand;
+import net.skykingdoms.backend.megamind.command.auth.*;
 import net.skykingdoms.backend.megamind.command.condition.CoreCommandConditions;
 import net.skykingdoms.backend.megamind.connection.LocalServerConnection;
 import net.skykingdoms.backend.megamind.data.auth.AuthManager;
@@ -427,6 +426,9 @@ public class MegamindApp extends MegamindAPI {
         commandManager.addCommand(UnmuteCommand.class);
         commandManager.addCommand(RegisterCommand.class);
         commandManager.addCommand(LoginCommand.class);
+        commandManager.addCommand(LogoutCommand.class);
+        commandManager.addCommand(UnregisterCommand.class);
+        commandManager.addCommand(ChangePasswordCommand.class);
 
         commandManager.addCommand(new BanCommand());
         commandManager.addCommand(new MuteCommand());

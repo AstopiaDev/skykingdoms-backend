@@ -15,6 +15,7 @@ public enum AuthSqlHandler {
     private static final String FETCH_AUTH_RECORD = "SELECT * FROM `AuthRecords` WHERE `Id` = ?;";
     private static final String INSERT_AUTH_RECORD = "INSERT INTO `AuthRecords` (`Id`, `Premium`, `Password`, `HashType`)" +
             " VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE `Premium` = ?, `Password` = ?, `HashType` = ?;";
+    private static final String REMOVE_AUTH_RECORD = "DELETE FROM `AuthRecords` WHERE `Id` = ?;";
     private static final String CHECK_EXISTENCE = "SELECT 1 FROM `AuthRecords` WHERE `Id` = ? LIMIT 1;";
 
     private MySQL database = new MySQL(DatabaseCredentials.MAIN.withDatabase("PlayerData"));
@@ -51,5 +52,10 @@ public enum AuthSqlHandler {
     public CompletableFuture<Boolean> exists(int gamerId) {
         return database.executeQuery(CHECK_EXISTENCE, gamerId)
                 .thenApply(rows -> !rows.isEmpty());
+    }
+
+    public CompletableFuture<Void> removeAuthRecord(int gamerId) {
+        return database.executeUpdate(REMOVE_AUTH_RECORD, gamerId)
+                .thenApply(rowsAffected -> null);
     }
 }
