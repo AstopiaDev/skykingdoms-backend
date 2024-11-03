@@ -208,7 +208,7 @@ public final class Gamer extends CommonGamer implements IGamer, ProxiedCommandSe
 
         if (properties.containsKey(key)) {
             properties.remove(key);
-            PropertySqlHandler.INSTANCE.removeProperty(gamerId, key);
+            PropertySqlHandler.INSTANCE.removeProperty(gamerId, key).join();
         }
     }
 
