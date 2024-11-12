@@ -156,7 +156,7 @@ public enum PropertySqlHandler {
 
     // we don't actually delete shit from database, just setting value to 0
     public CompletableFuture<?> removeProperty(final int playerId, @NonNull String key) {
-        return database.executeQuery(TextFormat.formatText("DELETE FROM properties WHERE GamerId = {} AND Key = '{}'", playerId, key));
+        return database.executeVoidUpdate(TextFormat.formatText("DELETE FROM `StringProperties` WHERE GamerId = {} AND Property = '{}'", playerId, key));
     }
 
 

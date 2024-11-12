@@ -40,6 +40,7 @@ public class DiscordWebhook {
     boolean tts;
     List<File> attachments = new ArrayList<>();
     final List<EmbedObject> embeds = new ArrayList<>();
+    final List<File> attachments = new ArrayList<>();
 
     /**
      * Constructs a new DiscordWebhook instance

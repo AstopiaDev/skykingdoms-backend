@@ -429,7 +429,7 @@ public final class Gamer extends CommonGamer implements CommandSender, IMegamind
         }
 
         properties.remove(key);
-        PropertySqlHandler.INSTANCE.removeProperty(gamerId, key);
+        PropertySqlHandler.INSTANCE.removeProperty(gamerId, key).join();
     }
 
     // endregion
