@@ -98,6 +98,18 @@ public final class ProxyManager {
         return proxyServers.containsKey(name);
     }
 
+    public boolean isProxyRegistered(final @NonNull String ip, final int port) {
+        for (ProxyServer proxyServer : proxyServers.values()) {
+            val host = proxyServer.getHost();
+
+            if (host.getHostString().equals(ip) && host.getPort() == port) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public void sendToProxies(final @NonNull Packet<?> packet) {
         proxyServers.values().forEach(proxyServer -> proxyServer.getChannel().sendPacket(packet));
     }

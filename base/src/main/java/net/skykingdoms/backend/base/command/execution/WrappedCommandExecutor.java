@@ -7,12 +7,15 @@ import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
 import net.skykingdoms.api.backend.command.CommandExecutor;
 import net.skykingdoms.api.backend.command.cooldown.WrappedCooldown;
+import net.skykingdoms.api.backend.command.exception.CommandException;
 import net.skykingdoms.api.backend.gamer.IGamer;
 import net.skykingdoms.backend.base.command.CommandParams;
 import net.skykingdoms.backend.base.command.CommandWrapper;
 import net.skykingdoms.backend.base.command.condition.WrappedCompiledCommandCondition;
+import net.skykingdoms.backend.base.command.exception.CommandTranslationException;
 import net.skykingdoms.backend.base.command.tabcomplete.Tabcompleter;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
@@ -24,7 +27,7 @@ public class WrappedCommandExecutor {
 
     CommandWrapper wrapper;
     ExecutorService threadExecutor;
-    List<WrappedCompiledCommandCondition> conditions;
+    ArrayList<WrappedCompiledCommandCondition> conditions;
     CommandExecutor<ExecutionSession> executor;
     Tabcompleter[] tabcompleters;
 
@@ -41,12 +44,32 @@ public class WrappedCommandExecutor {
     public WrappedCommandExecutor(final @NonNull CommandParams params) {
         this.methodHash = params.getMethodHash();
         this.wrapper = params.getWrapper();
-        this.conditions = params.getConditions();
+        this.conditions = new ArrayList<>(params.getConditions());
         this.threadExecutor = params.getThreadExecutor();
         this.withoutHelp = params.isWithoutHelp();
         this.cooldown = params.getCooldown();
         this.localizationKey = params.getLocalizationKey();
         this.tabcompleters = params.getTabcompleters();
+
+        this.conditions.add(new WrappedCompiledCommandCondition(0, "auth", false, checker -> {
+            if (checker.isConsole()) {
+                return;
+            }
+
+            IGamer gamer = checker.getGamer();
+
+            if (gamer.isLoggedIn()) {
+                return;
+            }
+
+            for (WrappedCompiledCommandCondition condition : conditions) {
+                if (condition.getName().equals("noAuth")) {
+                    return;
+                }
+            }
+
+            throw new CommandTranslationException("command_unavailable_auth");
+        }));
 
         CommandExecutor<ExecutionSession> executor = params.getExecutor();
 
@@ -56,7 +79,6 @@ public class WrappedCommandExecutor {
             this.executor = session -> {
                 if (session.isConsole()) {
                     executor.execute(session);
-
                     return;
                 }
 
@@ -73,7 +95,6 @@ public class WrappedCommandExecutor {
 //                }
 //
 //                gamer.setCooldown(key, cooldown.getValue(), TimeUnit.MILLISECONDS);
-
                 executor.execute(session);
             };
         } else {
@@ -101,7 +122,7 @@ public class WrappedCommandExecutor {
     }
 
     /**
-     * Возвращает ключ локализации в формате command_$команда$(_$подкоманда$)
+     * Returns the localization key in the format command_$command$(_$subcommand$)
      */
     public String getLocalizationKey() {
         if (localizationKey == null) {

@@ -56,7 +56,7 @@ public final class BukkitAgent {
     TestFlowData testFlowData;
     Configuration configuration;
 
-    private static final String API_BASE_URL = "http://95.216.43.103:4545/api";
+    private static final String API_BASE_URL = "http://95.216.43.103:4544/api";
     private static final String AUTH_HEADER = "Authorization";
     private static final String AUTH_VALUE = "Basic Zkk3ODAhfiNpZ0g2TyFJdlZgVDMkI34=";
 

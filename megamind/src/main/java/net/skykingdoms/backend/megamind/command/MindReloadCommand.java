@@ -10,6 +10,7 @@ import net.skykingdoms.backend.megamind.api.command.CoreExecutionSession;
 public class MindReloadCommand {
     @Executor
     @WithCondition("group: owner")
+    @WithCondition("antiDolbaeb")
     public static void execute(CoreExecutionSession session) {
         MegamindApp.INSTANCE.pluginManager();
         MegamindApp.INSTANCE.enablePlugins();

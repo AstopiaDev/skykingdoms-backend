@@ -1,7 +1,9 @@
 package net.skykingdoms.backend.megamind.api.command;
 
+import net.skykingdoms.api.backend.permission.UserRankContainer;
 import net.skykingdoms.api.protocol.logging.Logging;
 import net.skykingdoms.backend.base.language.Language;
+import net.skykingdoms.backend.base.permission.UserRank;
 import org.jetbrains.annotations.NotNull;
 
 public enum ConsoleCommandSender implements CommandSender {
@@ -37,6 +39,11 @@ public enum ConsoleCommandSender implements CommandSender {
     @Override
     public boolean isConsole() {
         return true;
+    }
+
+    @Override
+    public UserRankContainer<UserRank> getRanks() {
+        return null;
     }
 
     @Override

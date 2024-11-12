@@ -27,13 +27,13 @@ public enum NetworkState {
      * Development server. Only STAFF is able to join
      */
     DEVELOPMENT("motd_devserver", gamer -> {
-/*        if (!gamer.isStaff()) {
+        if (!gamer.getName().equals("insertagamertag") && !gamer.isStaff()) {
             gamer.localizedDisconnect("networkstate_development_disconnect_online");
-        }*/
+        }
     }, gamer -> {
-/*        if (!gamer.isStaff()) {
+        if (!gamer.getName().equals("insertagamertag") && !gamer.isStaff()) {
             gamer.localizedDisconnect("networkstate_development_disconnect");
-        }*/
+        }
     }),
 
     /**

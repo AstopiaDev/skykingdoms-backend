@@ -49,6 +49,7 @@ public enum PacketProtocol {
             toClient(21, S21SetGlobalOnline.class, S21SetGlobalOnline::new);
             toClient(22, S22ConnectResponse.class, S22ConnectResponse::new);
             toClient(23, S23FriendshipAction.class, S23FriendshipAction::new);
+            toClient(24, S24PlayerMuteAction.class, S24PlayerMuteAction::new);
             toClient(25, S25UpdateGameMap.class, S25UpdateGameMap::new);
             toClient(26, S26UpdatePlayerGameServer.class, S26UpdatePlayerGameServer::new);
             toClient(27, GameBoot.Response.class, GameBoot.Response::new);
@@ -63,6 +64,7 @@ public enum PacketProtocol {
             toClient(36, ArenaBoot.Request.class, ArenaBoot.Request::new);
             toClient(37, S37BestDuelServer.class, S37BestDuelServer::new);
             toClient(38, S38UpdateDuelData.class, S38UpdateDuelData::new);
+            toClient(39, S39UpdateAuth.class, S39UpdateAuth::new);
 
             toServer(1, C0PlayerConnected.class, C0PlayerConnected::new);
             toServer(2, Tabcomplete.Request.class, Tabcomplete.Request::new);
@@ -97,6 +99,7 @@ public enum PacketProtocol {
             toServer(33, ArenaBoot.Response.class, ArenaBoot.Response::new);
             toServer(34, C34GetBestDuelServer.class, C34GetBestDuelServer::new);
             toServer(35, C35RemoveDuelRequest.class, C35RemoveDuelRequest::new);
+            toServer(36, C36ServerCommand.class, C36ServerCommand::new);
         }
     };
 

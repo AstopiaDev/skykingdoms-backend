@@ -50,6 +50,16 @@ public interface IGamer extends ICommandSender {
      */
     int getProtocol();
 
+    /**
+     * @return player's auth status?
+     */
+    boolean isPremium();
+
+    /**
+     * @return player's login status
+     */
+    boolean isLoggedIn();
+
     default void sendRawMessage(String message) {
         sendMessage(message);
     }

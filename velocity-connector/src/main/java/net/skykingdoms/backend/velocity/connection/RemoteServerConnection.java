@@ -28,10 +28,11 @@ import net.skykingdoms.backend.protocol.type.reconnect.impl.FluentProxyDataImpl;
 import net.skykingdoms.backend.velocity.VelocityConnector;
 import net.skykingdoms.backend.velocity.command.FakeCommandProxy;
 import net.skykingdoms.backend.velocity.command.VelocityCommandCocker;
-import net.skykingdoms.backend.velocity.command.VelocityCommandManager;
 import net.skykingdoms.backend.velocity.event.ServerActiveEvent;
 import net.skykingdoms.backend.velocity.event.ServerInactiveEvent;
 import net.skykingdoms.backend.velocity.gamer.Gamer;
+import net.skykingdoms.backend.velocity.punishments.VelocityPunishmentManager;
+import net.skykingdoms.backend.velocity.punishments.MinimalMuteData;
 import net.skykingdoms.backend.velocity.security.BungeeSecurityManager;
 
 import java.net.InetSocketAddress;
@@ -75,11 +76,11 @@ public final class RemoteServerConnection extends AbstractRemoteServerChannel {
             return;
         }
 
+        Logging.IMP.info("[HANDSHAKE] Connected to coordinator successfully!");
+
         upgradeConnection(PacketProtocol.PLAY);
 
         sendPacket(new C17LookupGlobalOnline());
-
-        Logging.IMP.info("Established connection with coordinator successfully!");
 
         Connection.awaitPacket(new SecurityToken.Request()).whenComplete((response, throwable) -> {
             if (throwable != null) {
@@ -132,7 +133,7 @@ public final class RemoteServerConnection extends AbstractRemoteServerChannel {
 
             val serverName = player.getCurrentServer().orElse(null).getServerInfo().getName();
 
-            reconnectingGamers.add(new ReconnectingGamer(name, uuid, address, gamer.getDomain(), gamer.getProtocol(), serverName));
+            reconnectingGamers.add(new ReconnectingGamer(name, uuid, address, gamer.getDomain(), gamer.getProtocol(), gamer.isLoggedIn(), serverName));
         }
 
         sendPacket(new C10ReconnectPlayers(reconnectingGamers));
@@ -140,20 +141,24 @@ public final class RemoteServerConnection extends AbstractRemoteServerChannel {
 
     @Override
     public void active() {
-        VelocityConnector.INSTANCE.server().getEventManager().fire(new ServerActiveEvent(this));
+        channel.eventLoop().execute(() -> {
+            VelocityConnector.INSTANCE.server().getEventManager().fire(new ServerActiveEvent(this));
 
-        EnumSet<Handshake.RequestFlag> flags = EnumSet.noneOf(Handshake.RequestFlag.class);
-        if (VelocityConnector.INSTANCE.reconnecting()) {
-            flags.add(Handshake.RequestFlag.IS_RECONNECT);
-        }
-        flags.add(Handshake.RequestFlag.HAS_FLUENT_DATA);
+            upgradeConnection(PacketProtocol.HANDSHAKE);
 
-        sendPacket(new Handshake.Request(
-                RemoteConnectedType.PROXY,
-                System.getenv("CORD_SECRET"),
-                UUID.fromString(System.getenv("CORD_TID")),
-                flags,
-                VelocityConnector.INSTANCE.proxyData(), 0));
+            EnumSet<Handshake.RequestFlag> flags = EnumSet.noneOf(Handshake.RequestFlag.class);
+            if (VelocityConnector.INSTANCE.reconnecting()) {
+                flags.add(Handshake.RequestFlag.IS_RECONNECT);
+            }
+            flags.add(Handshake.RequestFlag.HAS_FLUENT_DATA);
+
+            sendPacket(new Handshake.Request(
+                    RemoteConnectedType.PROXY,
+                    System.getenv("CORD_SECRET"),
+                    UUID.fromString(System.getenv("CORD_TID")),
+                    flags,
+                    VelocityConnector.INSTANCE.proxyData(), 0));
+        });
     }
 
 
@@ -167,7 +172,6 @@ public final class RemoteServerConnection extends AbstractRemoteServerChannel {
         }
 
         VelocityConnector.INSTANCE.server().unregisterServer(server.getServerInfo());
-        VelocityConnector.INSTANCE.authMeAPI().removeAuthServer(name);
         Logging.IMP.info("Server {} has been unregistered", name);
     }
 
@@ -189,10 +193,6 @@ public final class RemoteServerConnection extends AbstractRemoteServerChannel {
             VelocityConnector.INSTANCE.server().registerServer(
                     new ServerInfo(name, address)
             );
-
-            if (type == ServerScaleType.LOBBY) {
-                VelocityConnector.INSTANCE.authMeAPI().addAuthServer(name);
-            }
         }
     }
 
@@ -258,21 +258,21 @@ public final class RemoteServerConnection extends AbstractRemoteServerChannel {
         player.changeLanguage(language, false);
     }
 
-/*    @Override
+    @Override
     public void process(S24PlayerMuteAction packet, ChannelProcessorContext ctx) {
         if (packet.getAction() == S24PlayerMuteAction.Action.REMOVE_MUTE) {
-            BungeePunishmentManager.INSTANCE.removeMute(packet.getMuteId());
+            VelocityPunishmentManager.INSTANCE.removeMute(packet.getMuteId());
         }
 
         if (packet.getAction() == S24PlayerMuteAction.Action.ADD_MUTE) {
-            BungeePunishmentManager.INSTANCE.addMute(new MinimalMuteData(
+            VelocityPunishmentManager.INSTANCE.addMute(new MinimalMuteData(
                     packet.getMuteId(),
                     packet.getViolatorId(),
                     packet.getReason(),
                     packet.getExpiration()
             ));
         }
-    }*/
+    }
 
     @Override
     public void process(S13SendTitle packet, ChannelProcessorContext ctx) {
@@ -411,6 +411,27 @@ public final class RemoteServerConnection extends AbstractRemoteServerChannel {
             }
             case SET_RANK: {
                 gamer.setRank(rank);
+                break;
+            }
+        }
+    }
+
+    @Override
+    public void process(final @NonNull S39UpdateAuth packet,
+                        final @NonNull ChannelProcessorContext ctx) {
+        val gamer = Gamer.getGamer(packet.getPlayerId());
+
+        if (gamer == null) {
+            return;
+        }
+
+        switch (packet.getAction()) {
+            case LOGIN: {
+                gamer.setLoggedIn(true);
+                break;
+            }
+            case LOGOUT: {
+                gamer.setLoggedIn(false);
                 break;
             }
         }

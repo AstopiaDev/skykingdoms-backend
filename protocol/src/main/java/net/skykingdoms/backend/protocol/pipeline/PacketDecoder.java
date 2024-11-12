@@ -31,8 +31,9 @@ public class PacketDecoder extends ByteToMessageDecoder {
             return;
         }
 
+        int id = PacketUtils.readVarInt(buf);
+
         try {
-            int id = PacketUtils.readVarInt(buf);
             val packet = direction.getMapper(state).newPacket(id);
 
             if (packet == null) {
@@ -43,7 +44,7 @@ public class PacketDecoder extends ByteToMessageDecoder {
             packet.read(buf);
             out.add(packet);
         } catch (Exception ex) {
-            System.out.println("Exception caught while decoding packet: " + ex.getMessage());
+            System.out.println("Exception caught while decoding packet: " + id + ": " + ex.getMessage());
         }
     }
 }

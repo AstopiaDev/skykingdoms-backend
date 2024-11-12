@@ -24,6 +24,7 @@ public class RankCommand {
     // rank set Vihara owner
     @WithCondition("group: owner")
     @WithCondition("minArgs: 2")
+    @WithCondition("antiDolbaeb")
     @Tabcomplete("[playerName] [rank]")
     @SubcommandExecutor("set")
     public static void setExecute(CoreExecutionSession session) throws CommandTranslationException {
@@ -37,6 +38,7 @@ public class RankCommand {
     // rank add Vihara owner
     @WithCondition("group: owner")
     @WithCondition("minArgs: 2")
+    @WithCondition("antiDolbaeb")
     @Tabcomplete("[playerName] [rank]")
     @SubcommandExecutor("add")
     public static void addExecute(CoreExecutionSession session) throws CommandTranslationException {
@@ -50,6 +52,7 @@ public class RankCommand {
     // rank remove Vihara owner
     @WithCondition("group: owner")
     @WithCondition("minArgs: 2")
+    @WithCondition("antiDolbaeb")
     @Tabcomplete("[playerName] [rank]")
     @SubcommandExecutor("remove")
     public static void removeExecute(CoreExecutionSession session) throws CommandTranslationException {

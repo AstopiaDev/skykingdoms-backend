@@ -38,6 +38,7 @@ public final class ProxyPlayerLogin {
         String domain;
 
         int protocol;
+        boolean premium;
         byte mask;
 
         public boolean contains(int i) {
@@ -55,6 +56,7 @@ public final class ProxyPlayerLogin {
             name = PacketUtils.readString(buf);
 
             address = PacketUtils.readAddress(buf);
+            premium = buf.readBoolean();
             mask = buf.readByte();
 
             if (contains(FINISH)) {
@@ -69,6 +71,7 @@ public final class ProxyPlayerLogin {
             PacketUtils.writeString(buf, name);
 
             PacketUtils.writeAddress(buf, address);
+            buf.writeBoolean(premium);
             buf.writeByte(mask);
 
             if (contains(FINISH)) {
@@ -96,10 +99,12 @@ public final class ProxyPlayerLogin {
     public static class Response extends Packet.Response<PlayServerProcessor> {
 
         boolean cancelled;
+        boolean sessionLogin;
         String message;
 
-        public Response(boolean cancelled, String message) {
+        public Response(boolean cancelled, boolean sessionLogin, String message) {
             this.cancelled = cancelled;
+            this.sessionLogin = sessionLogin;;
 
             if (cancelled && message == null) {
                 message = "";
@@ -124,6 +129,8 @@ public final class ProxyPlayerLogin {
 
             if (cancelled) {
                 message = PacketUtils.readString(buf);
+            } else {
+                sessionLogin = buf.readBoolean();
             }
         }
 
@@ -133,6 +140,8 @@ public final class ProxyPlayerLogin {
 
             if (cancelled) {
                 PacketUtils.writeString(buf, message);
+            } else {
+                buf.writeBoolean(sessionLogin);
             }
         }
     }

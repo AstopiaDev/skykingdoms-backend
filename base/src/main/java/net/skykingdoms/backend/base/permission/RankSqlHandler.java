@@ -7,6 +7,8 @@ import lombok.NonNull;
 import lombok.experimental.FieldDefaults;
 import lombok.val;
 import net.skykingdoms.api.backend.permission.Group;
+import net.skykingdoms.api.protocol.logging.Logging;
+import net.skykingdoms.api.protocol.util.TextFormat;
 import net.skykingdoms.backend.base.mysql.BufferedRow;
 import net.skykingdoms.backend.base.mysql.Database;
 import net.skykingdoms.backend.base.mysql.DatabaseCredentials;
@@ -14,8 +16,7 @@ import net.skykingdoms.backend.base.mysql.impl.MySQL;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -37,6 +38,14 @@ public final class RankSqlHandler {
 
     private static final String REMOVE_ALL_PLAYER_RANKS
             = "DELETE FROM `UserRanks` WHERE `UserId` = ?";
+
+    private static final String LOAD_PLAYER_IDS_BY_RANKS
+            = "SELECT GroupId, GROUP_CONCAT(DISTINCT(u.Username)) Usernames " +
+            "FROM UserRanks " +
+            "JOIN UserRecords u ON UserId = u.Id " +
+            "WHERE GroupId IN ({}) " +
+            "AND u.Username <> \"Unknown\" " +
+            "GROUP BY GroupId ORDER BY GroupId DESC;";
 
     Database database = new MySQL(DatabaseCredentials.MAIN.withDatabase("PlayerData"));
 
@@ -86,5 +95,23 @@ public final class RankSqlHandler {
                                                final @Nullable LocalDateTime expires) {
         return database.executeVoidUpdate(REMOVE_ALL_PLAYER_RANKS, userId)
                 .thenCompose(ignored -> addUserRank(userId, group, expires));
+    }
+
+    public CompletableFuture<LinkedHashMap<Integer, String[]>> readUsernamesByRanks(final @NonNull Set<Integer> rankIds) {
+        String rankIdsFormatted = String.join(", ", rankIds.stream().map(String::valueOf).toArray(String[]::new));
+        String formattedQuery = TextFormat.formatText(LOAD_PLAYER_IDS_BY_RANKS, rankIdsFormatted);
+
+        return database.executeQuery(formattedQuery).thenApply(rows -> {
+            val result = new LinkedHashMap<Integer, String[]>();
+
+            rows.forEach(row -> {
+                result.put(
+                        row.getRequiredInt("GroupId"),
+                        row.getRequiredString("Usernames").split(",")
+                );
+            });
+
+            return result;
+        });
     }
 }

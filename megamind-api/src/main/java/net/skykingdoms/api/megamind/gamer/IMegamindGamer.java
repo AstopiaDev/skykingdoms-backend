@@ -11,6 +11,9 @@ public interface IMegamindGamer {
     LocalDateTime getFirstLogin();
     LocalDateTime getLastLogin();
     boolean isOnline();
+    boolean isRegistered();
+    boolean isLoggedIn();
+    boolean isPremium();
     void quit();
     void setSetting(final @NonNull SettingType settingType, final @NonNull Setting<?, ?> value);
     void updateSetting(final @NonNull SettingType settingType, final @NonNull Setting<?, ?> value);

@@ -5,12 +5,14 @@ import lombok.experimental.FieldDefaults;
 import net.skykingdoms.api.backend.gamer.IGamer;
 import net.skykingdoms.api.backend.permission.Group;
 import net.skykingdoms.api.backend.permission.IUserRank;
+import net.skykingdoms.api.backend.permission.UserRankContainer;
 import net.skykingdoms.api.backend.setting.Setting;
 import net.skykingdoms.api.backend.setting.SettingType;
 import net.skykingdoms.api.backend.type.property.PropertyType;
 import net.skykingdoms.api.megamind.event.impl.gamer.*;
 import net.skykingdoms.api.megamind.gamer.IMegamindGamer;
 import net.skykingdoms.api.protocol.logging.Logging;
+import net.skykingdoms.backend.base.data.auth.AuthSqlHandler;
 import net.skykingdoms.backend.base.data.network.NetworkSqlHandler;
 import net.skykingdoms.backend.base.data.property.PropertySqlHandler;
 import net.skykingdoms.backend.base.data.settings.SettingsSqlHandler;
@@ -28,6 +30,7 @@ import net.skykingdoms.backend.protocol.packet.Packet;
 import net.skykingdoms.backend.protocol.packet.play.*;
 import net.skykingdoms.backend.protocol.server.IPlayableBukkitServer;
 import net.skykingdoms.backend.protocol.type.connect.ConnectStatus;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.net.InetAddress;
@@ -48,58 +51,65 @@ public final class Gamer extends CommonGamer implements CommandSender, IMegamind
     /**
      * Which hostname user used to connect to le server
      */
-    @Setter
-    String domain;
+    @Setter String domain;
 
     /**
      * Login date
      */
-    @Getter @Setter
-    LocalDateTime firstLogin;
-    @Getter @Setter
-    LocalDateTime lastLogin;
+    @Setter LocalDateTime firstLogin;
+    @Setter LocalDateTime lastLogin;
 
     /**
      * If the player is online
      */
-    @Getter @Setter boolean online;
+    @Setter boolean online;
+
+    /**
+     * User's session uuid
+     */
+    @Setter
+    UUID session;
+
+    /**
+     * If the player is registered
+     */
+    @Setter boolean registered;
 
     /**
      * The proxy which player is connected to
      */
-    @Getter @Setter ProxyServer proxyServer;
+    @Setter ProxyServer proxyServer;
 
     /**
      * The game instance server player is connected to
      */
-    @Getter @Setter BukkitServer bukkitServer;
+    @Setter BukkitServer bukkitServer;
 
     /**
      * Current game instance server (null if not on game server)
      */
-    @Getter @Setter GameServer gameServer;
+    @Setter GameServer gameServer;
 
     /**
      * Current lobby server (null if not in lobby)
      */
-    @Getter @Setter LobbyServer lobbyServer;
+    @Setter LobbyServer lobbyServer;
 
     /**
      * Current persistent server (null if not in a persistent server)
      */
-    @Getter @Setter PersistentServer persistentServer;
+    @Setter PersistentServer persistentServer;
 
     /**
      * A field used to indicate to which server we are currently trying to connect.
      * When not connecting, it equals to NULL :3
      */
-    @Getter @Setter IPlayableBukkitServer currentlyConnectingTo;
+    @Setter IPlayableBukkitServer currentlyConnectingTo;
 
     /**
      * A flag that indicates that player just joined the network
      */
-    @Getter @Setter
-    boolean justJoined = true;
+    @Setter boolean justJoined = true;
 
     public Gamer(@NonNull UUID playerUniqueId) {
         super(playerUniqueId);
@@ -461,6 +471,7 @@ public final class Gamer extends CommonGamer implements CommandSender, IMegamind
     @Override
     public void load() {
         super.load();
+        this.loadAuth();
         // todo: add more ...
     }
 
@@ -481,8 +492,26 @@ public final class Gamer extends CommonGamer implements CommandSender, IMegamind
     }
 
     @Override
+    public void sendLocalizedMessage(boolean modern, @NonNull String key, Object... objects) {
+        super.sendLocalizedMessage(modern, key, objects);
+    }
+
+    @Override
+    public @NotNull String getLowerName() {
+        return super.getLowerName();
+    }
+
+    @Override
     public void sendMessage(@NonNull String message) {
         sendToProxy(new B106Chat(gamerId, message, false));
+    }
+
+    private void loadAuth() {
+        if (gamerId == -1) {
+            return;
+        }
+
+        registered = AuthSqlHandler.INSTANCE.exists(gamerId).join();
     }
 
 
@@ -704,5 +733,21 @@ public final class Gamer extends CommonGamer implements CommandSender, IMegamind
     public static int getTotalOnline() {
         return CommonGamer.getTotalOnline();
     }
+
+    @Override
+    public void dispatchCommand(@NonNull String command) {
+        CommandSender.super.dispatchCommand(command);
+    }
+
+    @Override
+    public void sendCommandUsageMessage(@NonNull String usageKey) {
+        CommandSender.super.sendCommandUsageMessage(usageKey);
+    }
+
+    @Override
+    public UserRanks getRanks() {
+        return (UserRanks) ranks;
+    }
+
     // endregion
 }
