@@ -14,19 +14,14 @@ public class DependencyInjection {
     }
 
     public static void injectDependencies(Class<?> cls, Object object) {
-        // сначала перебираем все поля
         for (Field field : cls.getDeclaredFields()) {
 
-            // потом смотрим, если у этого поля аннотация Dependency,
-            // если нет, то пропускаем его
             if (!field.isAnnotationPresent(Dependency.class)) {
                 continue;
             }
 
-            // потом загружаем зависимость
             Object dependency = loadDependency(field.getType());
 
-            // а потом устанавливаем зависимость
             try {
                 field.setAccessible(true);
 

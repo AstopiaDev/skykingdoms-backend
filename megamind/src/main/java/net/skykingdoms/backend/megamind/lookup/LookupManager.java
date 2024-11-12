@@ -5,7 +5,6 @@ import lombok.NonNull;
 import lombok.experimental.FieldDefaults;
 import lombok.val;
 import net.skykingdoms.api.backend.util.collection.CollectionUtil;
-import net.skykingdoms.api.protocol.server.GameState;
 import net.skykingdoms.api.protocol.server.impl.ScalableDataImpl;
 import net.skykingdoms.backend.megamind.data.gamer.Gamer;
 import net.skykingdoms.backend.megamind.manager.ServerManager;
@@ -197,10 +196,8 @@ public final class LookupManager {
             for (val target : lookup.getTargets()) {
                 val targetMask = allFlags ? target.getMask() : mask;
 
-                //Logging.IMP.info("[" + lookup.getServer().getName() + "] -> " + server.bakeServerData() + " [" + server.getName() + "] [P: " + server.getPlayerIds().length + "]" + (server instanceof GameServer ? " [S: " + ((GameServer) server).getMap() + "/" + ((GameServer) server).getCurrentState() : ""));
                 if (target.isTarget(server.bakeServerData())) {
                     val response = new LookupResponse(createLookupServer(server, targetMask, ServerManager.INSTANCE.getServers().stream().anyMatch(s -> s.getName().equals(server.getName()))));
-                    //Logging.IMP.info(lookup.getServer().getName() + " is target !!!" );
                     lookup.queueResponse(response);
                 }
             }
@@ -214,8 +211,8 @@ public final class LookupManager {
 
         return new LookupServer(
                 System.currentTimeMillis(), server.getName(), new ScalableDataImpl(server.getServerScale(), server.getGameType(), server.getGameMode()), online,
-                server instanceof GameServer ? ((GameServer) server).getCurrentState() : GameState.STAND_BY,
-                server instanceof GameServer ? ((GameServer) server).getMap() : "",
+                server instanceof GameServer ? ((GameServer) server).getCurrentState() : null,
+                server instanceof GameServer ? ((GameServer) server).getMap() : null,
                 players.length, server.getSlots(), players,
                 mask
         );
