@@ -54,15 +54,18 @@ public enum Group {
     TRANSLATOR(110, 5, "§7TRANSLATOR", "§7[TRANSLATOR] ", "§7", PermissionType.OTHER),
 
     /**
-     * Люди, старающиеся на благо сервера - персонал
+     * People trying for the benefit of the server - staff
      */
     BUILDER(50, 40, "§2§lBuilder", "§2§lBuilder §8» §2", "§2", PermissionType.STAFF),
+    JR_HELPER(63, 43, "§a§lJr. Helper", "§a§lJr. Helper §8» §a", "§a", PermissionType.STAFF),
     HELPER(65, 45, "§a§lHelper", "§a§lHelper §8» §a", "§a", PermissionType.STAFF),
     MODERATOR(70, 50, "§6§lMod", "§6§lMod §8» §6", "§6", PermissionType.STAFF),
+    JR_DEV(72, 52, "§5§lJr. Dev", "§5§lJr. Dev §8» §5", "§5", PermissionType.STAFF),
+    DEV(75, 55, "§5§lDev", "§5§lDev §8» §5", "§5", PermissionType.STAFF),
     ADMIN(80, 60, "§c§lAdmin", "§c§lAdmin §8» §c", "§c", PermissionType.STAFF),
 
     /**
-     * Высшая администрация проекта
+     * seniorProjectAdministration
      */
     OWNER(100, 100, "§4Owner", "§4§lOwner §8» §4", "§4", PermissionType.STAFF);
 
@@ -77,9 +80,9 @@ public enum Group {
     }
 
     /**
-     * Получить отображаемое имя группы
+     * getGroupDisplayName
      *
-     * @return - отображаемое имя группы
+     * @return - groupDisplayName
      */
     public String getDisplayName() {
         return name;
@@ -102,22 +105,22 @@ public enum Group {
     }
 
     /**
-     * Получить группу по ее ID. Если такой группы нет,
-     * вернется группа по умолчанию (DEFAULT)
+     * getAGroupByItsIDIfThereIsNoSuchGroup
+     * theDefaultGroupWillReturn DEFAULT
      *
-     * @param id - id группы
-     * @return - группа по этому идентификатору
+     * @param id - groupId
+     * @return - groupByThisID
      */
     private static Stream<Group> _getById(int id) {
         return Arrays.stream(VALUES).filter(group -> group.getId() == id);
     }
 
     /**
-     * Получить группу по ее названию. Если такой группы нет,
-     * вернется группа по умолчанию (DEFAULT)
+     * Get a group by its name. If there is no such group,
+     * theDefaultGroupWillReturn (DEFAULT)
      *
-     * @param legacyName - название группы со старого сервера
-     * @return - группа по этому имени
+     * @param legacyName - legacyGroupName
+     * @return - groupByThisName
      */
     public static Group fromLegacyGroup(@NonNull String legacyName) {
         return Arrays.stream(VALUES)
