@@ -160,7 +160,7 @@ public abstract class CommonGamer extends ApiGamer implements IBaseGamer, Serial
     }
 
     public final boolean isStaff() {
-        return ranks.canApply(Group.HELPER);
+        return ranks.canApply(Group.JR_HELPER);
     }
 
     @Override
