@@ -4,11 +4,9 @@ import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.experimental.FieldDefaults;
 import lombok.val;
-import net.skykingdoms.api.protocol.logging.Logging;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
-
 
 
 @FieldDefaults(level = AccessLevel.PRIVATE)

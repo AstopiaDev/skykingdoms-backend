@@ -15,7 +15,7 @@ import net.skykingdoms.backend.megamind.manager.StaffChatManager;
 @NamedCommand("staffchat")
 public final class StaffChatCommand {
 
-    @WithCondition("group: helper")
+    @WithCondition("group: jr_helper")
     @WithCondition("minArgs: 1")
     @Executor
     public static void execute(final CoreExecutionSession session) {
