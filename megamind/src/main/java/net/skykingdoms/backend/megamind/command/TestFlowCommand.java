@@ -107,7 +107,7 @@ public final class TestFlowCommand {
                     if (sender instanceof Gamer) {
                         val gamer = (Gamer) sender;
 
-/*                        val party = gamer.getParty();
+ /*                       val party = gamer.getParty();
                         if (party == null) {
                             sender.sendMessage(ChatColor.GRAY + "Btw you dont have a party!");
                         }*/
@@ -118,7 +118,7 @@ public final class TestFlowCommand {
                             AsyncExecution.INSTANCE.runLater(() -> {
                                 // delay to let party manager warp ppl property
 
-           /*                     if (party != null) {
+          /*                      if (party != null) {
                                     PartyManager.INSTANCE.warpTo(gamer);
                                 }*/
 

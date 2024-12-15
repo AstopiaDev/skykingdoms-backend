@@ -78,12 +78,13 @@ public final class DeploymentManager {
                 testFlowPort = TestFlowManager.INSTANCE.getTestFlow(testFlowName).getDebugPort();
             } catch (NullPointerException exception) { testFlowPort = -1; }
 
-            node.getChannel().awaitPacket(new ServerDeploy.Request(target, request, testFlow, testFlowName, testFlowPort, testFlowId)).thenAcceptAsync(response -> {
+            node.getChannel().awaitPacket(new ServerDeploy.Request(target, request, testFlow, testFlowName, testFlowPort, testFlowId)).thenAccept(response -> {
                 val result = response.getDeploymentResult();
 
                 //Logging.IMP.info("[Deploy] Deployment request #{}, result: {}", request.getTransactionId().toString(), result.name());
 
                 if (result == ServerDeploy.DeploymentResult.ACCEPTED) {
+                    Logging.IMP.info("Deployment accepted!");
                     if (resultConsumer != null) {
                         resultConsumer.accept(DeploymentResponse.successful(request.getTransactionId()));
                     }
@@ -566,6 +567,8 @@ public final class DeploymentManager {
 
             TestFlowManager.INSTANCE.handleServerAction(TestFlowManager.ServerAction.ADD_BUKKIT,
                     handshake.getTestFlowId(), bukkitServer);
+
+            Logging.IMP.info("[TestFlow/Id] Testflow " + handshake.getTestFlowId());
 
             Logging.IMP.info("[Deploy] Registered new bukkit server instance {} @ {} @ {} @ {}",
                     name,

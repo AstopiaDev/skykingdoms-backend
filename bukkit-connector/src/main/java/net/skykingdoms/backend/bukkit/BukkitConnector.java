@@ -63,9 +63,9 @@ public enum BukkitConnector {
         // env vars
         this.secret = configuration == null ? System.getenv("CORD_SECRET") : configuration.getString("CORD_SECRET");
         this.transactionId = configuration == null ? UUID.fromString(System.getenv("CORD_TID")) : UUID.fromString(configuration.getString("CORD_TID"));
-        this.testFlowId = System.getenv().containsKey("TEST_FLOW_ID")
-                ? Integer.parseInt(System.getenv("TEST_FLOW_ID"))
-                : -1;
+        this.testFlowId = Integer.parseInt(System.getProperty("testFlowId", "-1"));
+
+        Logging.IMP.info("[TestFlow] -> {}", testFlowId);
 
         this.address = new InetSocketAddress(
                 plugin.getConfig().getString("megamind-ip"),

@@ -1,4 +1,4 @@
-package net.skykingdoms.backend.megamind.data.message;
+package net.skykingdoms.backend.messagechannel.manager;
 
 import lombok.AccessLevel;
 import lombok.NonNull;
@@ -40,10 +40,7 @@ public final class MessageManager implements Listener {
         return lastTo.get(gamer);
     }
 
-    @EventHandler
-    public void onUnload(final @NonNull GamerQuitEvent event) {
-        val gamer = event.getGamer();
-
+    public void unloadGamer(Gamer gamer) {
         lastFrom.remove(gamer);
         lastFrom.values().remove(gamer);
 

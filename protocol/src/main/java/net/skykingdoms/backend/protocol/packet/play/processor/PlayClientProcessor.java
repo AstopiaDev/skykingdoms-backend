@@ -33,7 +33,7 @@ public interface PlayClientProcessor extends PlayProcessor {
         // override me
     }
 
-    default void process(C20StaffChatMessage packet, ChannelProcessorContext ctx) {
+    default void process(C20MessageChannelMessage packet, ChannelProcessorContext ctx) {
         // override me
     }
 

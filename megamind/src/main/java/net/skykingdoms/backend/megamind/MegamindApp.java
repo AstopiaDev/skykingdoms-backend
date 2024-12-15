@@ -15,6 +15,7 @@ import net.skykingdoms.api.backend.util.config.ConfigurationProvider;
 import net.skykingdoms.api.backend.util.config.YamlConfiguration;
 import net.skykingdoms.api.megamind.MegamindAPI;
 import net.skykingdoms.api.megamind.event.impl.gamer.CommandEvent;
+import net.skykingdoms.api.megamind.plugin.PluginDescription;
 import net.skykingdoms.api.protocol.logging.Logging;
 import net.skykingdoms.api.protocol.type.GameMode;
 import net.skykingdoms.api.protocol.type.NetworkType;
@@ -38,9 +39,6 @@ import net.skykingdoms.backend.megamind.data.friend.FriendListener;
 import net.skykingdoms.backend.megamind.data.friend.FriendManager;
 import net.skykingdoms.backend.megamind.data.gamer.Gamer;
 import net.skykingdoms.backend.megamind.data.group.GroupListener;
-import net.skykingdoms.backend.megamind.data.message.command.AppendCommand;
-import net.skykingdoms.backend.megamind.data.message.command.MessageCommand;
-import net.skykingdoms.backend.megamind.data.message.command.ReplyCommand;
 import net.skykingdoms.backend.megamind.data.punishment.PunishmentListener;
 import net.skykingdoms.backend.megamind.data.punishment.PunishmentManager;
 import net.skykingdoms.backend.megamind.data.punishment.command.impl.*;
@@ -269,6 +267,10 @@ public class MegamindApp extends MegamindAPI {
         commands.put(name.toLowerCase(), command);
     }
 
+    public void removeCommand(final @NonNull String name) {
+        commands.remove(name.toLowerCase());
+    }
+
     private void registerCommandCompleters() {
         TabcompleteManager.IMP.addCompleter("void", new AbstractTabcompleter() {
             @Override
@@ -371,6 +373,17 @@ public class MegamindApp extends MegamindAPI {
                 return any(label, Arrays.stream(Group.VALUES).map(Group::name));
             }
         });
+
+        TabcompleteManager.IMP.addCompleter("pluginName", new AbstractTabcompleter() {
+            @Override
+            public List<String> complete(final @NonNull ICommandSender sender,
+                                         final @NonNull String label) {
+                return any(label, pluginManager.getPlugins().stream().map((plugin) -> {
+                    PluginDescription description = plugin.getDescription();
+                    return description.getName();
+                }));
+            }
+        });
     }
 
     private void registerListeners() {
@@ -419,9 +432,6 @@ public class MegamindApp extends MegamindAPI {
         commandManager.addCommand(InsertMapCommand.class);
         commandManager.addCommand(TestCommand.class);
         commandManager.addCommand(DeployTestCommand.class);
-        commandManager.addCommand(MessageCommand.class);
-        commandManager.addCommand(ReplyCommand.class);
-        commandManager.addCommand(AppendCommand.class);
         commandManager.addCommand(UnbanCommand.class);
         commandManager.addCommand(UnmuteCommand.class);
         commandManager.addCommand(RegisterCommand.class);
@@ -429,6 +439,7 @@ public class MegamindApp extends MegamindAPI {
         commandManager.addCommand(LogoutCommand.class);
         commandManager.addCommand(UnregisterCommand.class);
         commandManager.addCommand(ChangePasswordCommand.class);
+        commandManager.addCommand(AuthMeTransferCommand.class);
 
         commandManager.addCommand(new BanCommand());
         commandManager.addCommand(new MuteCommand());

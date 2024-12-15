@@ -85,7 +85,7 @@ public enum PacketProtocol {
             toServer(17, C17LookupGlobalOnline.class, C17LookupGlobalOnline::new);
             toServer(18, C18ConnectExact.class, C18ConnectExact::new);
             toServer(19, C19LoadFriends.class, C19LoadFriends::new);
-            toServer(20, C20StaffChatMessage.class, C20StaffChatMessage::new);
+            toServer(20, C20MessageChannelMessage.class, C20MessageChannelMessage::new);
             toServer(21, C21RegisterGameInstance.class, C21RegisterGameInstance::new);
             toServer(22, C22UpdateGameState.class, C22UpdateGameState::new);
             toServer(23, GameBoot.Request.class, GameBoot.Request::new);

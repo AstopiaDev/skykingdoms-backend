@@ -1,0 +1,9 @@
+dependencies {
+
+}
+
+tasks {
+    shadowJar {
+        archiveFileName = "MessageChannel-Megamind.jar"
+    }
+}

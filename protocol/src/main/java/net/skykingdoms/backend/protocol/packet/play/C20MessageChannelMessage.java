@@ -18,12 +18,13 @@ import org.jetbrains.annotations.NotNull;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public final class C20StaffChatMessage extends Packet<PlayClientProcessor> {
+public final class C20MessageChannelMessage extends Packet<PlayClientProcessor> {
 
     /**
      * Not a LanguageContext, because i have no clue how to serialize it :(
      */
     int gamerId;
+    int channelId;
     String message;
 
     @Override
@@ -39,12 +40,14 @@ public final class C20StaffChatMessage extends Packet<PlayClientProcessor> {
     @Override
     public void read0(@NotNull ByteBuf buf) throws Exception {
         this.gamerId = PacketUtils.readVarInt(buf);
+        this.channelId = PacketUtils.readVarInt(buf);
         this.message = PacketUtils.readString(buf);
     }
 
     @Override
     public void write0(@NotNull ByteBuf buf) throws Exception {
         PacketUtils.writeVarInt(buf, gamerId);
+        PacketUtils.writeVarInt(buf, channelId);
         PacketUtils.writeString(buf, message);
     }
 }

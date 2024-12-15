@@ -24,6 +24,7 @@ import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.experimental.SuperBuilder;
 import lombok.val;
 import net.kyori.adventure.text.Component;
 import net.skykingdoms.api.protocol.logging.Logging;
@@ -97,40 +98,38 @@ public final class PlayerListener {
             if (premium) {
                 event.setResult(PreLoginEvent.PreLoginComponentResult.forceOnlineMode());
             }
-            return;
-        }
-
-        try {
-            Optional<Profile> mcProfile = VelocityConnector.INSTANCE.authenticator().findProfile(event.getUsername());
-            mcProfile.ifPresent(profile -> {
-                Gamer gamer = new Gamer(UuidUtils.fromUndashed(profile.id));
-                gamer.setPremium(true);
-                gamer.setLoggedIn(true);
-
-                loadedData.put(event.getUsername(), gamer);
-
-                event.setResult(PreLoginEvent.PreLoginComponentResult.forceOnlineMode());
-
-                AuthSqlHandler.INSTANCE.insertAuthRecord(id, true, null, null);
-            });
-        } catch (Exception e) {
-
         }
     }
 
     @Subscribe
     public void onGameProfileRequest(GameProfileRequestEvent event) {
         if (event.isOnlineMode()) {
-            UUID verifiedUUID = event.getGameProfile().getId();
-            String verifiedUsername = event.getUsername();
-            Gamer session = Gamer.getGamer(verifiedUsername);
+            Gamer session;
 
-            if (session != null) {
-                session.setPlayerUniqueId(verifiedUUID);
+            if (!loadedData.containsKey(event.getUsername())) {
+                try {
+                    Optional<Profile> mcProfile = VelocityConnector.INSTANCE.authenticator().findProfile(event.getUsername());
+                    if (mcProfile.isPresent())  {
+                        Profile profile = mcProfile.get();
+                        session = new Gamer(UuidUtils.fromUndashed(profile.id));
+                        session.setPremium(true);
+                        session.setLoggedIn(true);
+
+                        loadedData.put(event.getUsername(), session);
+                    } else {
+                        if (event.getConnection() instanceof Player player) {
+                            player.disconnect(Component.text("§cAn error occured while trying to conect you to the server\n §c[VelocityAuth/PL]\n§r\n§cContact support at discord.skykingdoms.net"));
+                        }
+                    }
+                } catch (Exception e) {
+
+                }
             }
 
             List<GameProfile.Property> newProp = removeSkin(event.getGameProfile().getProperties());
             event.setGameProfile(event.getGameProfile().withProperties(newProp));
+        } else {
+            Logging.IMP.info("Is offline mode");
         }
     }
 
@@ -174,7 +173,10 @@ public final class PlayerListener {
             }
 
             if ($gamer == null || !$gamer.hasPlayerId()) {
-                NetworkSqlHandler.INSTANCE.createUserRecord(uuid, name, Language.ENGLISH, connection.getRemoteAddress().getAddress());
+                int gamerId = NetworkSqlHandler.INSTANCE.createUserRecord(uuid, name, Language.ENGLISH, connection.getRemoteAddress().getAddress());
+                if ($gamer != null && $gamer.isPremium() && $gamer.isLoggedIn()) {
+                    AuthSqlHandler.INSTANCE.insertAuthRecord(gamerId, true, null, null);
+                }
             }
 
             VelocityConnector.INSTANCE.server().getEventManager().fire(new PlayerConnectedEvent(
@@ -236,6 +238,8 @@ public final class PlayerListener {
                     gamer.getProtocol(), gamer.isPremium(),
                     ProxyPlayerLogin.FINISH
             );
+
+            Logging.IMP.info("Premium: {}, Logged in: {}", gamer.isPremium(), gamer.isLoggedIn());
 
             // we can invalidate the gamer mute, because it may already expire
             // the gamer is not connected to VelocityConnector.INSTANCE.boot() yet

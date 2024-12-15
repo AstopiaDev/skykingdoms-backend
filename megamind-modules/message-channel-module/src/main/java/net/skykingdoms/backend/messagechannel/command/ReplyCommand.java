@@ -1,4 +1,4 @@
-package net.skykingdoms.backend.megamind.data.message.command;
+package net.skykingdoms.backend.messagechannel.command;
 
 import lombok.val;
 import net.skykingdoms.api.backend.command.NamedCommand;
@@ -7,7 +7,7 @@ import net.skykingdoms.api.backend.command.condition.WithCondition;
 import net.skykingdoms.api.backend.command.execution.Executor;
 import net.skykingdoms.backend.base.command.exception.CommandTranslationException;
 import net.skykingdoms.backend.megamind.api.command.CoreExecutionSession;
-import net.skykingdoms.backend.megamind.data.message.MessageManager;
+import net.skykingdoms.backend.messagechannel.manager.MessageManager;
 
 @WithAlias("r")
 @NamedCommand("reply")

@@ -171,6 +171,8 @@ public enum DeploymentManager {
         String containerId = deployments.get(deploymentTarget).handle(request, hostConfig, port,
                 testFlow ? testFlowName : null, debugPort, testFlowId);
 
+        Logging.IMP.info("[Deploy] T: {}, T-NAME: {}, T-ID: {}", testFlow, testFlowName != null ? testFlowName : "none", testFlowId);
+
         client.renameContainerCmd(containerId).withName(request.getTransactionId().toString()).exec();
         client.startContainerCmd(containerId).exec();
 

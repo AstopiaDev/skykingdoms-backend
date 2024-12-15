@@ -8,10 +8,7 @@ import net.skykingdoms.api.backend.punishment.PunishmentType;
 import net.skykingdoms.api.backend.setting.SettingType;
 import net.skykingdoms.api.backend.setting.impl.BooleanSetting;
 import net.skykingdoms.api.backend.setting.impl.EnumSetting;
-import net.skykingdoms.api.megamind.event.impl.gamer.GamerJoinEvent;
-import net.skykingdoms.api.megamind.event.impl.gamer.GamerLoadEvent;
-import net.skykingdoms.api.megamind.event.impl.gamer.GamerProxyLoginEvent;
-import net.skykingdoms.api.megamind.event.impl.gamer.PlayerLoginEvent;
+import net.skykingdoms.api.megamind.event.impl.gamer.*;
 import net.skykingdoms.api.protocol.logging.Logging;
 import net.skykingdoms.api.protocol.server.GameType;
 import net.skykingdoms.api.protocol.server.ServerScaleType;
@@ -22,7 +19,6 @@ import net.skykingdoms.backend.base.data.sql.sql.MapSqlHandler;
 import net.skykingdoms.backend.base.language.Language;
 import net.skykingdoms.backend.base.permission.UserRank;
 import net.skykingdoms.backend.base.util.color.ChatColor;
-import net.skykingdoms.backend.base.util.time.Duration;
 import net.skykingdoms.backend.megamind.AsyncExecution;
 import net.skykingdoms.backend.megamind.MegamindApp;
 import net.skykingdoms.backend.megamind.api.command.ConsoleCommandSender;
@@ -50,7 +46,6 @@ import net.skykingdoms.backend.protocol.type.connect.ConnectStatus;
 import net.skykingdoms.backend.protocol.type.reconnect.FailedReconnectGamer;
 
 import java.net.InetAddress;
-import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -730,21 +725,23 @@ public final class RemoteClientConnection extends AbstractRemoteClientChannel {
     }
 
     @Override
-    public void process(C20StaffChatMessage packet, ChannelProcessorContext ctx) {
+    public void process(C20MessageChannelMessage packet, ChannelProcessorContext ctx) {
         int playerId = packet.getGamerId();
+        int channelId = packet.getChannelId();
+        String message = packet.getMessage();
 
-        if (playerId != -1) {
-            Gamer gamer = Gamer.getGamer(playerId);
-
-            if (gamer == null) {
-                return;
-            }
-
-            StaffChatManager.INSTANCE.sendMessage(gamer.getDisplayName() + ChatColor.WHITE + ": " + packet.getMessage());
+        if (playerId == -1) {
             return;
         }
 
-        StaffChatManager.INSTANCE.sendMessage(packet.getMessage());
+        Gamer gamer = Gamer.getGamer(playerId);
+
+        if (gamer == null) {
+            MegamindApp.INSTANCE.pluginManager().callEvent(new GamerMessageChannelEvent(null, channelId, message));
+            return;
+        }
+
+        MegamindApp.INSTANCE.pluginManager().callEvent(new GamerMessageChannelEvent(gamer, channelId, message));
     }
 
     @Override

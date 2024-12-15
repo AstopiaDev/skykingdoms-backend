@@ -169,6 +169,32 @@ public final class PluginManager implements IPluginManager {
     }
 
     @Override
+    public void disablePlugin(final @NonNull String name) {
+        Plugin plugin = plugins.get(name);
+        if (plugin == null) {
+            Logging.IMP.warn("Plugin {} not found or already disabled.", name);
+            return;
+        }
+
+        PluginDescription description = plugin.getDescription();
+
+        try {
+            unregisterListeners(plugin);
+
+            plugin.onDisable();
+
+            plugins.remove(name);
+
+            Logging.IMP.info("Disabled plugin {} version {} by {}",
+                    description.getName(),
+                    description.getVersion(),
+                    description.getAuthor());
+        } catch (Throwable t) {
+            Logging.IMP.stacktrace(t, "Exception encountered while disabling plugin: {}", name);
+        }
+    }
+
+    @Override
     public void detectPlugins(final @NonNull Path folder) {
         if (!Files.isDirectory(folder)) {
             throw new IllegalStateException(folder + " must be a directory");
@@ -247,4 +273,46 @@ public final class PluginManager implements IPluginManager {
             it.remove();
         }
     }
+
+    public void disableAllPlugins() {
+        for (String pluginName : new ArrayList<>(plugins.keySet())) {
+            disablePlugin(pluginName);
+        }
+        Logging.IMP.info("All plugins have been disabled.");
+    }
+
+    @Override
+    public void reloadPlugins(@NonNull Path pluginFolder) {
+        disableAllPlugins();
+        plugins.clear();
+        listenersByPlugin.clear();
+        toLoad = new HashMap<>();
+
+        detectPlugins(pluginFolder);
+        loadPlugins();
+        enablePlugins();
+    }
+
+    @Override
+    public void reloadPlugin(@NonNull String pluginName) {
+        Plugin plugin = plugins.get(pluginName);
+
+        if (plugin == null) {
+            Logging.IMP.warn("Plugin '{}' is not loaded and cannot be reloaded.", pluginName);
+            return;
+        }
+
+        try {
+            disablePlugin(pluginName);
+
+            plugins.remove(pluginName);
+
+            listenersByPlugin.removeAll(plugin);
+
+            enablePlugin(new HashMap<>(), new Stack<>(), plugin.getDescription());
+        } catch (Exception e) {
+            Logging.IMP.stacktrace(e, "Failed to reload plugin '{}'", pluginName);
+        }
+    }
+
 }
