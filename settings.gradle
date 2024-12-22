@@ -27,4 +27,5 @@ include 'megamind-modules:discord-module'
 findProject(':megamind-modules:discord-module')?.name = 'discord-module'
 include 'megamind-modules:message-channel-module'
 findProject(':megamind-modules:message-channel-module')?.name = 'message-channel-module'
+include 'minestom-connector'
 
