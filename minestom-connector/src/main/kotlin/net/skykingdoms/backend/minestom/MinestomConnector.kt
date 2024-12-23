@@ -1,5 +1,6 @@
 package net.skykingdoms.backend.minestom
 
+import net.minestom.server.MinecraftServer
 import net.skykingdoms.api.backend.util.config.Configuration
 import net.skykingdoms.api.backend.util.config.ConfigurationProvider
 import net.skykingdoms.api.backend.util.config.YamlConfiguration
@@ -62,7 +63,7 @@ class MinestomConnector {
     }
 
     fun shutdown() {
-
+        MinecraftServer
     }
 
     fun loadConfig() {

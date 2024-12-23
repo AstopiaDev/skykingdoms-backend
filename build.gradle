@@ -64,10 +64,9 @@ subprojects {
             }
         }
 
-        // !!! Minimal runtime version required is 17 !!!
         compileJava {
-            targetCompatibility = JavaVersion.VERSION_11
-            sourceCompatibility = JavaVersion.VERSION_11
+            targetCompatibility = JavaVersion.VERSION_23
+            sourceCompatibility = JavaVersion.VERSION_23
             options.encoding = "UTF-8"
         }
 

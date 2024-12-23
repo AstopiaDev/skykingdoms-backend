@@ -32,3 +32,7 @@ tasks {
         archiveFileName.set("BukkitConnector.jar")
     }
 }
+
+kotlin {
+    jvmToolchain(23)
+}
