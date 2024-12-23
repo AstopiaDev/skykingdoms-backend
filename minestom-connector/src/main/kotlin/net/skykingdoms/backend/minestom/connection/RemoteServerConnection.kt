@@ -1,45 +1,87 @@
 package net.skykingdoms.backend.minestom.connection
 
 import io.netty.channel.socket.SocketChannel
+import net.minestom.server.MinecraftServer
 import net.skykingdoms.api.protocol.logging.Logging
+import net.skykingdoms.api.protocol.type.RemoteConnectedType
+import net.skykingdoms.backend.minestom.HeartBeat
+import net.skykingdoms.backend.minestom.MinestomConnector
+import net.skykingdoms.backend.minestom.event.ConnectionEstablishedEvent
+import net.skykingdoms.backend.minestom.event.InstanceActiveEvent
+import net.skykingdoms.backend.minestom.event.InstanceDataUpdateEvent
+import net.skykingdoms.backend.minestom.event.InstanceInactiveEvent
 import net.skykingdoms.backend.protocol.channel.AbstractClientChannel
 import net.skykingdoms.backend.protocol.channel.AbstractRemoteServerChannel
 import net.skykingdoms.backend.protocol.packet.ChannelProcessorContext
+import net.skykingdoms.backend.protocol.packet.PacketProtocol
 import net.skykingdoms.backend.protocol.packet.handshake.Handshake
 import net.skykingdoms.backend.protocol.packet.play.S04UpdateRemoteData
+import net.skykingdoms.backend.protocol.packet.play.S11ServerCommand
+import net.skykingdoms.backend.protocol.packet.play.SecurityToken
 import net.skykingdoms.backend.protocol.type.reconnect.impl.FluentBukkitDataImpl
-import org.bukkit.Bukkit
 import java.util.EnumSet
 
 class RemoteServerConnection(local: AbstractClientChannel?, channel: SocketChannel?) :
     AbstractRemoteServerChannel(local, channel) {
 
     override fun onServerDisconnect() {
-
+        HeartBeat.callEvent(InstanceInactiveEvent())
+        MinestomConnector.instance.reconnect = true
     }
 
     override fun active() {
-        val flags: EnumSet<Handshake.RequestFlag> = EnumSet.noneOf(Handshake.RequestFlag::class.java)
+        HeartBeat.callEvent(InstanceActiveEvent(this))
 
+        val flags: EnumSet<Handshake.RequestFlag> = EnumSet.of<Handshake.RequestFlag>(Handshake.RequestFlag.HAS_FLUENT_DATA)
+        if (MinestomConnector.instance.reconnect) {
+            flags.add(Handshake.RequestFlag.IS_RECONNECT)
+        }
+        if (MinestomConnector.instance.testFlowId > -1) {
+            flags.add(Handshake.RequestFlag.IS_TESTFLOW)
+        }
+
+        sendPacket(Handshake.Request(
+            RemoteConnectedType.SERVER,
+            MinestomConnector.instance.secret,
+            MinestomConnector.instance.transactionId,
+            flags,
+            MinestomConnector.instance.instanceData,
+            MinestomConnector.instance.testFlowId
+        ))
     }
 
     override fun process(packet: Handshake.Response?, ctx: ChannelProcessorContext?) {
+        if (packet?.result == Handshake.Result.FAILED) {
+            Logging.IMP.error("[HANDSHAKE] Unable to connect to coordinator: {}", packet.message)
+            return
+        }
 
+        upgradeConnection(PacketProtocol.PLAY)
+
+        Connection.awaitPacket(SecurityToken.Request())?.whenComplete { response, throwable ->
+            if (throwable != null) {
+                Logging.IMP.stacktrace(throwable, "Exception raised on token request! Shutting down the server...");
+                MinecraftServer.getServer().stop()
+                return@whenComplete
+            }
+
+            HeartBeat.callEvent(ConnectionEstablishedEvent(this))
+            MinestomConnector.instance.reconnect = false
+        }
+    }
+
+    override fun process(packet: S11ServerCommand, ctx: ChannelProcessorContext?) {
+        MinecraftServer.getCommandManager().executeServerCommand(packet.command)
     }
 
     override fun process(packet: S04UpdateRemoteData, ctx: ChannelProcessorContext?) {
-        val cockData = packet.serverDataUpdate as FluentBukkitDataImpl
+        val updatedData = packet.serverDataUpdate as FluentBukkitDataImpl
+        val currentData = MinestomConnector.instance.instanceData
 
-        BukkitConnector.INSTANCE.fluentBukkitData().setNodeName(cockData.nodeName)
-        BukkitConnector.INSTANCE.fluentBukkitData().setServerName(cockData.serverName)
+        currentData.serverName = updatedData.serverName
+        currentData.nodeName = updatedData.nodeName
 
-        Bukkit.getScheduler().runTask(
-            BukkitConnector.INSTANCE.plugin()
-        ) {
-            BukkitConnector.INSTANCE.plugin().getServer().getPluginManager()
-                .callEvent(ServerDataUpdateEvent(BukkitConnector.INSTANCE.fluentBukkitData()))
-        }
-
-        Logging.IMP.info("Updated server data: {} @ {}", cockData.serverName, cockData.nodeName)
+        HeartBeat.callEvent(InstanceDataUpdateEvent(updatedData))
+        Logging.IMP.info("Updated instance data: {} @ {}", currentData.serverName, currentData.nodeName)
     }
 }

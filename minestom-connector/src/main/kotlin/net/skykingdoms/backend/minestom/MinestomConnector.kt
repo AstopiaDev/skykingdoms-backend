@@ -8,6 +8,7 @@ import net.skykingdoms.api.protocol.logging.Logging
 import net.skykingdoms.api.protocol.server.GameType
 import net.skykingdoms.api.protocol.server.ServerScaleType
 import net.skykingdoms.api.protocol.type.GameMode
+import net.skykingdoms.api.protocol.util.TextFormat
 import net.skykingdoms.backend.base.dependency.Dependency
 import net.skykingdoms.backend.base.language.Language
 import net.skykingdoms.backend.minestom.connection.Connection
@@ -26,12 +27,12 @@ class MinestomConnector {
     }
 
     lateinit var instanceData: FluentBukkitDataImpl
-    lateinit var connection: LocalClientConnection
-    var config: Configuration? = null;
+    private lateinit var connection: LocalClientConnection
+    private var config: Configuration? = null;
     lateinit var secret: String
     lateinit var transactionId: UUID
     var gameMode: GameMode? = null;
-    lateinit var address: SocketAddress
+    private lateinit var address: SocketAddress
     var testFlowId: Int = -1
     var reconnect = false
 
@@ -63,7 +64,13 @@ class MinestomConnector {
     }
 
     fun shutdown() {
-        MinecraftServer
+        for (player in MinecraftServer.getConnectionManager().onlinePlayers) {
+            player.kick(TextFormat.formatText(
+                "Server {} shut down at {}",
+                instanceData.serverName,
+                instanceData.nodeName
+            ))
+        }
     }
 
     fun loadConfig() {
