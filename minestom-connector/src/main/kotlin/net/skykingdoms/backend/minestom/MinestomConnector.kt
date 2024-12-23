@@ -9,7 +9,6 @@ import net.skykingdoms.api.protocol.server.GameType
 import net.skykingdoms.api.protocol.server.ServerScaleType
 import net.skykingdoms.api.protocol.type.GameMode
 import net.skykingdoms.api.protocol.util.TextFormat
-import net.skykingdoms.backend.base.dependency.Dependency
 import net.skykingdoms.backend.base.language.Language
 import net.skykingdoms.backend.minestom.connection.Connection
 import net.skykingdoms.backend.minestom.connection.LocalClientConnection
@@ -20,12 +19,7 @@ import java.net.InetSocketAddress
 import java.net.SocketAddress
 import java.util.*
 
-class MinestomConnector {
-    companion object {
-        @Dependency
-        val instance: MinestomConnector = MinestomConnector()
-    }
-
+object MinestomConnector {
     lateinit var instanceData: FluentBukkitDataImpl
     private lateinit var connection: LocalClientConnection
     private var config: Configuration? = null;

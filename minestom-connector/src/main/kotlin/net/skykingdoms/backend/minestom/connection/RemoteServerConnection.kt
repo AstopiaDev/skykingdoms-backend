@@ -26,27 +26,27 @@ class RemoteServerConnection(local: AbstractClientChannel?, channel: SocketChann
 
     override fun onServerDisconnect() {
         HeartBeat.callEvent(InstanceInactiveEvent())
-        MinestomConnector.instance.reconnect = true
+        MinestomConnector.reconnect = true
     }
 
     override fun active() {
         HeartBeat.callEvent(InstanceActiveEvent(this))
 
         val flags: EnumSet<Handshake.RequestFlag> = EnumSet.of<Handshake.RequestFlag>(Handshake.RequestFlag.HAS_FLUENT_DATA)
-        if (MinestomConnector.instance.reconnect) {
+        if (MinestomConnector.reconnect) {
             flags.add(Handshake.RequestFlag.IS_RECONNECT)
         }
-        if (MinestomConnector.instance.testFlowId > -1) {
+        if (MinestomConnector.testFlowId > -1) {
             flags.add(Handshake.RequestFlag.IS_TESTFLOW)
         }
 
         sendPacket(Handshake.Request(
             RemoteConnectedType.SERVER,
-            MinestomConnector.instance.secret,
-            MinestomConnector.instance.transactionId,
+            MinestomConnector.secret,
+            MinestomConnector.transactionId,
             flags,
-            MinestomConnector.instance.instanceData,
-            MinestomConnector.instance.testFlowId
+            MinestomConnector.instanceData,
+            MinestomConnector.testFlowId
         ))
     }
 
@@ -66,7 +66,7 @@ class RemoteServerConnection(local: AbstractClientChannel?, channel: SocketChann
             }
 
             HeartBeat.callEvent(ConnectionEstablishedEvent(this))
-            MinestomConnector.instance.reconnect = false
+            MinestomConnector.reconnect = false
         }
     }
 
@@ -76,7 +76,7 @@ class RemoteServerConnection(local: AbstractClientChannel?, channel: SocketChann
 
     override fun process(packet: S04UpdateRemoteData, ctx: ChannelProcessorContext?) {
         val updatedData = packet.serverDataUpdate as FluentBukkitDataImpl
-        val currentData = MinestomConnector.instance.instanceData
+        val currentData = MinestomConnector.instanceData
 
         currentData.serverName = updatedData.serverName
         currentData.nodeName = updatedData.nodeName

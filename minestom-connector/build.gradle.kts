@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "2.0.20"
+    kotlin("jvm") version "2.1.0"
 }
 
 dependencies {
@@ -29,7 +29,7 @@ tasks {
         relocate("com.google.gson", "net.skykingdoms.gson")
         val output = rootProject.ext["output"] as String
         destinationDirectory.set(file("$rootDir/$output"))
-        archiveFileName.set("BukkitConnector.jar")
+        archiveFileName.set("MinestomConnector.jar")
     }
 }
 
