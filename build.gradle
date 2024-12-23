@@ -1,5 +1,5 @@
 plugins {
-    id "com.github.johnrengelman.shadow" version "7.0.0" apply false
+    id "com.gradleup.shadow" version "9.0.0-beta4" apply false
 }
 
 def user = findProperty("repo.skykingdoms.user")
@@ -16,7 +16,7 @@ subprojects {
     apply plugin: "java"
     apply plugin: "java-library"
     apply plugin: "maven-publish"
-    apply plugin: "com.github.johnrengelman.shadow"
+    apply plugin: "com.gradleup.shadow"
 
     repositories {
         mavenCentral()
@@ -106,8 +106,8 @@ subprojects {
     }
 
     dependencies {
-        compileOnly "org.projectlombok:lombok:1.18.30"
-        annotationProcessor "org.projectlombok:lombok:1.18.30"
+        compileOnly 'org.projectlombok:lombok:1.18.36'
+        annotationProcessor 'org.projectlombok:lombok:1.18.36'
 
         implementation 'org.jetbrains:annotations:24.0.1'
     }

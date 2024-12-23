@@ -1,12 +1,10 @@
 package net.skykingdoms.backend.bukkit.boot;
 
-import lombok.SneakyThrows;
 import net.skykingdoms.backend.bukkit.BukkitConnector;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class BukkitConnectorBoot extends JavaPlugin {
 
-    @SneakyThrows
     public BukkitConnectorBoot() {
         BukkitConnector.INSTANCE.construct(this);
     }

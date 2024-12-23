@@ -5,7 +5,6 @@
     <option name="linkedExternalProjectsSettings">
       <GradleProjectSettings>
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
-        <option name="gradleHome" value="$PROJECT_DIR$/../../../../ProgramData/chocolatey/lib/gradle/tools/gradle-8.3" />
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
@@ -17,10 +16,12 @@
             <option value="$PROJECT_DIR$/megamind" />
             <option value="$PROJECT_DIR$/megamind-api" />
             <option value="$PROJECT_DIR$/megamind-modules" />
-            <option value="$PROJECT_DIR$/megamind-modules/luckperms-module" />
-            <option value="$PROJECT_DIR$/megamind-modules/neoprotect-module" />
+            <option value="$PROJECT_DIR$/megamind-modules/discord-module" />
+            <option value="$PROJECT_DIR$/megamind-modules/message-channel-module" />
             <option value="$PROJECT_DIR$/megamind-modules/rest-api-module" />
+            <option value="$PROJECT_DIR$/megamind-modules/tcpshield-module" />
             <option value="$PROJECT_DIR$/megamind-modules/votifier-module" />
+            <option value="$PROJECT_DIR$/minestom-connector" />
             <option value="$PROJECT_DIR$/minimind" />
             <option value="$PROJECT_DIR$/minimind/gamer-mind" />
             <option value="$PROJECT_DIR$/minimind/social-mind" />

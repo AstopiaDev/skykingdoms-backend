@@ -29,3 +29,9 @@ tasks {
         archiveFileName = "BukkitConnector.jar"
     }
 }
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(23)
+    }
+}
