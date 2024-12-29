@@ -42,8 +42,8 @@ class RemoteServerConnection(local: AbstractClientChannel?, channel: SocketChann
 
         sendPacket(Handshake.Request(
             RemoteConnectedType.SERVER,
-            MinestomConnector.secret,
-            MinestomConnector.transactionId,
+            MinestomConnector.serverConfig.secret,
+            MinestomConnector.serverConfig.transactionId,
             flags,
             MinestomConnector.instanceData,
             MinestomConnector.testFlowId
