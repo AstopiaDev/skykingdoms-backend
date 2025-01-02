@@ -27,6 +27,7 @@ class RemoteServerConnection(local: AbstractClientChannel?, channel: SocketChann
     override fun onServerDisconnect() {
         HeartBeat.callEvent(InstanceInactiveEvent())
         MinestomConnector.reconnect = true
+        Logging.IMP.info("Disconnected")
     }
 
     override fun active() {
@@ -57,6 +58,8 @@ class RemoteServerConnection(local: AbstractClientChannel?, channel: SocketChann
         }
 
         upgradeConnection(PacketProtocol.PLAY)
+
+        Logging.IMP.info("[HANDSHAKE] Upgraded connection to PLAY")
 
         Connection.awaitPacket(SecurityToken.Request())?.whenComplete { response, throwable ->
             if (throwable != null) {

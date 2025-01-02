@@ -11,6 +11,7 @@ import net.skykingdoms.api.protocol.util.TextFormat
 import net.skykingdoms.backend.base.language.Language
 import net.skykingdoms.backend.minestom.connection.Connection
 import net.skykingdoms.backend.minestom.connection.LocalClientConnection
+import net.skykingdoms.backend.protocol.exception.ConnectException
 import net.skykingdoms.backend.protocol.type.reconnect.impl.FluentBukkitDataImpl
 import java.io.BufferedReader
 import java.io.File
@@ -34,6 +35,8 @@ object MinestomConnector {
     data class ServerConfig(
         val apiBaseUrl: String,
         val authValue: String,
+        val coordinatorIp: String,
+        val coordinatorPort: Int,
         val secret: String,
         val transactionId: UUID,
         val bukkitHost: String,
@@ -59,8 +62,20 @@ object MinestomConnector {
         downloadAssets()
         processTestFlowIfNeeded()
 
-        Logging.IMP.info("[boot] Executing core bootstrap [...]")
-        Connection.connection(connection)
+        connection = LocalClientConnection(
+            InetSocketAddress(serverConfig.coordinatorIp, serverConfig.coordinatorPort), 2
+        );
+
+        HeartBeat.runSync {
+            try {
+                connection.connectSynchronized()
+                Logging.IMP.info("[connection] Synchronized")
+                Logging.IMP.info("[boot] Executing core bootstrap [...]")
+                Connection.connection(connection)
+            } catch (e: ConnectException) {
+                e.printStackTrace()
+            }
+        }
     }
 
     fun isGameServer() =
@@ -94,6 +109,8 @@ object MinestomConnector {
         return ServerConfig(
             apiBaseUrl = config?.getString("api_url") ?: throw IllegalStateException("API Base URL not found in config"),
             authValue = config?.getString("auth_value") ?: throw IllegalStateException("Auth value not found in config"),
+            coordinatorIp = config?.getString("coordinator_ip") ?: throw IllegalStateException("Coordinator ip not found in config"),
+            coordinatorPort = config?.getInt("coordinator_port") ?: throw IllegalStateException("Coordinator port not found in config"),
             secret = config?.getString("CORD_SECRET") ?: System.getenv("CORD_SECRET") ?: "unknown",
             transactionId = UUID.fromString(config?.getString("CORD_TID") ?: System.getenv("CORD_TID")),
             bukkitHost = config?.getString("BUKKIT_HOST") ?: System.getenv("BUKKIT_HOST"),
@@ -181,7 +198,7 @@ object MinestomConnector {
         name: String?,
         isLobby: Boolean
     ): String {
-        val baseUrl = "${serverConfig.apiBaseUrl}/retrieve?token=token"
+        val baseUrl = "${serverConfig.apiBaseUrl}/retrieve?token=cock"
         return when {
             name != null -> "$baseUrl&name=$name"
             isLobby -> "$baseUrl&name=${gameType?.name}&lobby=true"

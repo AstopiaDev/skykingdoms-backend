@@ -81,7 +81,7 @@ subprojects {
         }
     }
 
-    publishing {
+/*    publishing {
 
         repositories {
             maven {
@@ -103,7 +103,7 @@ subprojects {
                 from components.java
             }
         }
-    }
+    }*/
 
     dependencies {
         compileOnly 'org.projectlombok:lombok:1.18.36'

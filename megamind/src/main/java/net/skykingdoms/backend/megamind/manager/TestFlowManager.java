@@ -228,6 +228,10 @@ public final class TestFlowManager {
         val testFlowsDir = MegamindApp.INSTANCE.directory().resolve("../").resolve("TestFlows");
         val testFlowNames = new HashSet<String>();
 
+        if (!testFlowsDir.toFile().exists()) {
+            return;
+        }
+
         // scanning the directory to get all testflow names
         Files.walkFileTree(testFlowsDir, new SimpleFileVisitor<>() {
             @Override
