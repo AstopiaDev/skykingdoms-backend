@@ -397,7 +397,6 @@ public class MegamindApp extends MegamindAPI {
 /*        commandManager.addCommand(PointsCommand.class);*/
         commandManager.addCommand(FindCommand.class);
         commandManager.addCommand(GlistCommand.class);
-        commandManager.addCommand(LuckPermsTransferCommand.class);
 /*        commandManager.addCommand(ModernCommand.class);
         commandManager.addCommand(ProtocolCommand.class);*/
         commandManager.addCommand(NodeListCommand.class);
