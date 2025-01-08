@@ -406,6 +406,10 @@ public final class PlayerListener {
             return;
         }
 
+        if (!VelocityConnector.INSTANCE.authMeAPI().isLogged(player)) {
+            return;
+        }
+
 /*        if (!event.isCommand() && BungeePunishmentManager.INSTANCE.isMuted(gamer.getGamerId())) {
             gamer.sendMessage(BungeePunishmentManager.INSTANCE.getMuteMessage(gamer));
             event.setCancelled(true);
@@ -422,7 +426,6 @@ public final class PlayerListener {
 */
         val command = message.split("\\s+")[0].toLowerCase();
 
-        // если команда не зарегистрирована, она не дойдёт до баккита
         if (!VelocityCommandCocker.INSTANCE.getCommands().contains(command)) {
             Logging.IMP.info("Command not found. " + command);
             return;
