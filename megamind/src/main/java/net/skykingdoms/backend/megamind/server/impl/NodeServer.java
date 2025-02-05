@@ -19,10 +19,12 @@ public final class NodeServer extends AbstractRemoteConnectable implements INode
 
     // TODO: priority system
     //int priority = 0;
+    String host;
 
     public NodeServer(final @NonNull String name,
-                      final @NonNull RemoteClientConnection connection) {
+                      final @NonNull RemoteClientConnection connection, String host) {
         super(name, connection);
+        this.host = host;
     }
 
 }

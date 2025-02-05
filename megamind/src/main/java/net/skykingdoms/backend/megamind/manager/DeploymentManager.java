@@ -71,7 +71,7 @@ public final class DeploymentManager {
         // TODO: NODES PRIORITY SISTEM
 
         try {
-            val node = NodeManager.INSTANCE.getNodeServerFromAddress("5.9.150.40");
+            val node = NodeManager.INSTANCE.getNodeServerFromAddress("65.109.144.251");
 
             int testFlowPort;
             try {
@@ -133,14 +133,21 @@ public final class DeploymentManager {
                                       final @NonNull Handshake.Request handshake) {
 
         if (handshake.isReconnect()) {
-            rcc.setConnectable(NodeManager.INSTANCE.registerNode(new NodeServer(((FluentNodeDataImpl) handshake.getFluentData()).getNodeName(), rcc)));
+            rcc.setConnectable(NodeManager.INSTANCE.registerNode(new NodeServer(
+                    ((FluentNodeDataImpl) handshake.getFluentData()).getNodeName(),
+                    rcc,
+                    ((FluentNodeDataImpl) handshake.getFluentData()).getHost())));
             return;
         }
 
         val name = bakeNodeName();
         _reserved.add(name); // reserving shit
 
-        val node = NodeManager.INSTANCE.registerNode(new NodeServer(name, rcc));
+        val node = NodeManager.INSTANCE.registerNode(new NodeServer(
+                name,
+                rcc,
+                ((FluentNodeDataImpl) handshake.getFluentData()).getHost()
+        ));
         val currentData = (FluentNodeDataImpl) handshake.getFluentData();
 
         currentData.setNodeName(name);
@@ -298,7 +305,7 @@ public final class DeploymentManager {
                         bukkitFluentData.getGameType(),
                         bukkitFluentData.getServerScaleType(),
                         node,
-                        InetSocketAddress.createUnresolved(bukkitFluentData.getHost(), bukkitFluentData.getPort())
+                        InetSocketAddress.createUnresolved(rcc.getHost(), bukkitFluentData.getPort())
                 )));
 
                 Logging.IMP.info("[Deploy] Reconnected bukkit instance {}", bukkitName);
@@ -485,13 +492,13 @@ public final class DeploymentManager {
                     RemoteConnectedType.PROXY, data
             ));
 
-            val serverConnectionInfos = new java.util.ArrayList<>(ServerManager.INSTANCE.getRegisteredBukkitInstances().stream()
+            val serverConnectionInfos = new ArrayList<>(ServerManager.INSTANCE.getRegisteredBukkitInstances().stream()
                     .map(server -> new ServerConnectionInfo(
                             server.getName(),
                             server.getHost().getHostName(),
                             server.getHost().getPort(),
                             server.getScaleType(),
-                            server.getGameType())).toList());
+                            server.getGameType())).collect(Collectors.toList()));
 
             serverConnectionInfos.addAll(
                     ServerManager.INSTANCE.getPersistentServers().stream().map(
@@ -501,7 +508,7 @@ public final class DeploymentManager {
                                     server.getParentServer().getHost().getPort(),
                                     server.getServerScale(),
                                     server.getGameType()
-                            )).toList()
+                            )).collect(Collectors.toList())
             );
 
             val serverConnectionInfoArray = serverConnectionInfos.toArray(ServerConnectionInfo[]::new);
@@ -554,7 +561,7 @@ public final class DeploymentManager {
                     bukkitDeployRequest.getData().getGameType(),
                     bukkitDeployRequest.getData().getServerScale(),
                     request.getTargetNode(),
-                    InetSocketAddress.createUnresolved(fluentData.getHost(), fluentData.getPort())
+                    InetSocketAddress.createUnresolved(fluentData.getServerScaleType() == ServerScaleType.PERSISTENT ? fluentData.getHost() : rcc.getHost(), fluentData.getPort())
             ));
 
             // yeah
@@ -638,7 +645,7 @@ public final class DeploymentManager {
                     fluentData.getGameType(),
                     fluentData.getServerScaleType(),
                     null,
-                    InetSocketAddress.createUnresolved(fluentData.getHost(), fluentData.getPort())
+                    InetSocketAddress.createUnresolved(fluentData.getServerScaleType() == ServerScaleType.PERSISTENT ? fluentData.getHost() : rcc.getHost(), fluentData.getPort())
             ));
 
             // yeah

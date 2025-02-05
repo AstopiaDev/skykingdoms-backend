@@ -158,11 +158,15 @@ public final class TestFlowManager {
                     if (result == DeploymentResponse.DENIED_BY_NODE
                             || result == DeploymentResponse.DEPLOYMENT_TIMEOUT
                             || result == DeploymentResponse.TRANSACTION_FAILED) {
+                        Logging.IMP.info("[TestFlow/D] Response null, testflow failed");
                         if (responseConsumer != null) {
+                            Logging.IMP.info("[TestFlow/D] Testflow failed");
                             responseConsumer.accept(TestFlowExecutionResponse.TESTFLOW_TRANSACTION_FAILED, null);
                         }
                     } else {
+                        Logging.IMP.info("[TestFlow/D] Response null, testflow success");
                         if (responseConsumer != null) {
+                            Logging.IMP.info("[TestFlow/D] Adding pending testflow");
                             testFlowCallbacks.add(new PendingTestflow(executor, result.transactionId(), testFlowId, test, responseConsumer, mapName, amount));
                         }
                     }
@@ -186,13 +190,17 @@ public final class TestFlowManager {
                 .orElse(null);
 
         if (testflow == null) {
+            Logging.IMP.info("[TestFlow/C] Null testflow ID:" + testFlowId);
             return;
         }
+
+        Logging.IMP.info("[TestFlow/C] Got some shit checks");
 
         val data = testflow.getData().getServerData();
 
         // we await lobby, but got some shit
         if (data.getServerScale() == ServerScaleType.LOBBY && !(pendingServer instanceof LobbyServer)) {
+            Logging.IMP.info("Not instance of lobby");
             return;
         }
 
@@ -219,6 +227,10 @@ public final class TestFlowManager {
 
         val testFlowsDir = MegamindApp.INSTANCE.directory().resolve("../").resolve("TestFlows");
         val testFlowNames = new HashSet<String>();
+
+        if (!testFlowsDir.toFile().exists()) {
+            return;
+        }
 
         // scanning the directory to get all testflow names
         Files.walkFileTree(testFlowsDir, new SimpleFileVisitor<>() {

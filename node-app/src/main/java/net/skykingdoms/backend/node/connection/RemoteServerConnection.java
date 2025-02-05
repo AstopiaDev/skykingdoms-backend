@@ -30,24 +30,28 @@ public final class RemoteServerConnection extends AbstractRemoteServerChannel {
 
     @Override
     public void active() {
-        NodeApp.INSTANCE.reloadNodeData();
+        channel.eventLoop().execute(() -> {
+            NodeApp.INSTANCE.reloadNodeData();
 
-        EnumSet<Handshake.RequestFlag> flags = EnumSet.noneOf(Handshake.RequestFlag.class);
-        if (NodeApp.INSTANCE.reconnecting()) {
-            flags.add(Handshake.RequestFlag.IS_RECONNECT);
-        }
-        flags.add(Handshake.RequestFlag.HAS_FLUENT_DATA);
+            upgradeConnection(PacketProtocol.HANDSHAKE);
 
-        sendPacket(
-                new Handshake.Request(
-                        RemoteConnectedType.NODE,
-                        NodeApp.INSTANCE.nodeConfiguration().getSecret(),
-                        UUID.randomUUID(), // any value for NODE, doesn't matter
-                        flags,
-                        NodeApp.INSTANCE.nodeData(),
-                0
-                )
-        );
+            EnumSet<Handshake.RequestFlag> flags = EnumSet.noneOf(Handshake.RequestFlag.class);
+            if (NodeApp.INSTANCE.reconnecting()) {
+                flags.add(Handshake.RequestFlag.IS_RECONNECT);
+            }
+            flags.add(Handshake.RequestFlag.HAS_FLUENT_DATA);
+
+            sendPacket(
+                    new Handshake.Request(
+                            RemoteConnectedType.NODE,
+                            NodeApp.INSTANCE.nodeConfiguration().getSecret(),
+                            UUID.randomUUID(), // any value for NODE, doesn't matter
+                            flags,
+                            NodeApp.INSTANCE.nodeData(),
+                            0
+                    )
+            );
+        });
     }
 
     @Override
@@ -121,6 +125,8 @@ public final class RemoteServerConnection extends AbstractRemoteServerChannel {
             return;
         }
 
+        Logging.IMP.info("Successfully connected to coordinator");
+
         upgradeConnection(PacketProtocol.PLAY);
     }
 
@@ -128,5 +134,6 @@ public final class RemoteServerConnection extends AbstractRemoteServerChannel {
     public void process(final @NonNull S04UpdateRemoteData packet,
                         final @NonNull ChannelProcessorContext ctx) {
         NodeApp.INSTANCE.nodeData((FluentNodeDataImpl) packet.getServerDataUpdate());
+        Logging.IMP.info(packet.getServerDataUpdate().toString());
     }
 }

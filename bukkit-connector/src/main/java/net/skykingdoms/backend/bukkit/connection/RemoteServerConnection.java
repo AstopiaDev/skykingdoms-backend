@@ -52,6 +52,9 @@ public final class RemoteServerConnection extends AbstractRemoteServerChannel { 
         if (BukkitConnector.INSTANCE.reconnecting()) {
             flags.add(Handshake.RequestFlag.IS_RECONNECT);
         }
+        if (BukkitConnector.INSTANCE.testFlowId() > -1) {
+            flags.add(Handshake.RequestFlag.IS_TESTFLOW);
+        }
         flags.add(Handshake.RequestFlag.HAS_FLUENT_DATA);
 
         sendPacket(new Handshake.Request(

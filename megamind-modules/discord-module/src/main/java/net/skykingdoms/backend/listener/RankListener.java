@@ -13,6 +13,7 @@ import net.skykingdoms.backend.base.permission.UserRank;
 import net.skykingdoms.backend.base.permission.UserRanks;
 import net.skykingdoms.backend.discord.DiscordBot;
 import net.skykingdoms.backend.discord.type.MinecraftGroup;
+import net.skykingdoms.backend.megamind.AsyncExecution;
 import net.skykingdoms.backend.megamind.MegamindApp;
 import net.skykingdoms.backend.megamind.data.gamer.Gamer;
 
@@ -95,47 +96,51 @@ public class RankListener implements Listener {
                 .collect(Collectors.toList());
 
         Guild guild = DiscordBot.INSTANCE.guild();
-        guild.retrieveMemberById(discordId).queue(member -> {
-            if (member == null) {
-                Logging.IMP.info("Invalid member");
-                return;
-            }
-
-            List<Role> roles = new ArrayList<>();
-
-            for (MinecraftGroup minecraftGroup : MinecraftGroup.VALUES) {
-                if (minecraftGroup == MinecraftGroup.LINKED) {
-                    continue;
+        AsyncExecution.INSTANCE.run(() -> {
+            guild.retrieveMemberById(discordId).queue(member -> {
+                if (member == null) {
+                    Logging.IMP.info("Invalid member");
+                    return;
                 }
-                Role role = guild.getRoleById(minecraftGroup.id());
-                if (role == null) {
-                    continue;
-                }
-                if (member.getRoles().contains(role)) {
-                    guild.removeRoleFromMember(member, role).queue();
-                }
-            }
 
-            for (String rank : ranks) {
-                MinecraftGroup group = null;
+                List<Role> roles = new ArrayList<>();
 
                 for (MinecraftGroup minecraftGroup : MinecraftGroup.VALUES) {
-                    if (minecraftGroup.name().equalsIgnoreCase(rank)) {
-                        group = minecraftGroup;
+                    if (minecraftGroup == MinecraftGroup.LINKED) {
+                        continue;
+                    }
+                    Role role = guild.getRoleById(minecraftGroup.id());
+                    if (role == null) {
+                        continue;
+                    }
+                    if (member.getRoles().contains(role)) {
+                        guild.removeRoleFromMember(member, role).complete();
+
                     }
                 }
 
-                if (group == null) {
-                    continue;
+                for (String rank : ranks) {
+                    MinecraftGroup group = null;
+
+                    for (MinecraftGroup minecraftGroup : MinecraftGroup.VALUES) {
+                        if (minecraftGroup.name().equalsIgnoreCase(rank)) {
+                            group = minecraftGroup;
+                        }
+                    }
+
+                    if (group == null) {
+                        continue;
+                    }
+
+                    Role role = guild.getRoleById(group.id());
+                    roles.add(role);
                 }
 
-                Role role = guild.getRoleById(group.id());
-                roles.add(role);
-            }
-
-            for (Role role : roles) {
-                guild.addRoleToMember(member, role).queue();
-            }
+                for (Role role : roles) {
+                    guild.addRoleToMember(member, role).complete();
+                }
+            });
         });
+
     }
 }

@@ -140,20 +140,24 @@ public final class RemoteServerConnection extends AbstractRemoteServerChannel {
 
     @Override
     public void active() {
-        VelocityConnector.INSTANCE.server().getEventManager().fire(new ServerActiveEvent(this));
+        channel.eventLoop().execute(() -> {
+            VelocityConnector.INSTANCE.server().getEventManager().fire(new ServerActiveEvent(this));
 
-        EnumSet<Handshake.RequestFlag> flags = EnumSet.noneOf(Handshake.RequestFlag.class);
-        if (VelocityConnector.INSTANCE.reconnecting()) {
-            flags.add(Handshake.RequestFlag.IS_RECONNECT);
-        }
-        flags.add(Handshake.RequestFlag.HAS_FLUENT_DATA);
+            upgradeConnection(PacketProtocol.HANDSHAKE);
 
-        sendPacket(new Handshake.Request(
-                RemoteConnectedType.PROXY,
-                System.getenv("CORD_SECRET"),
-                UUID.fromString(System.getenv("CORD_TID")),
-                flags,
-                VelocityConnector.INSTANCE.proxyData(), 0));
+            EnumSet<Handshake.RequestFlag> flags = EnumSet.noneOf(Handshake.RequestFlag.class);
+            if (VelocityConnector.INSTANCE.reconnecting()) {
+                flags.add(Handshake.RequestFlag.IS_RECONNECT);
+            }
+            flags.add(Handshake.RequestFlag.HAS_FLUENT_DATA);
+
+            sendPacket(new Handshake.Request(
+                    RemoteConnectedType.PROXY,
+                    System.getenv("CORD_SECRET"),
+                    UUID.fromString(System.getenv("CORD_TID")),
+                    flags,
+                    VelocityConnector.INSTANCE.proxyData(), 0));
+        });
     }
 
 

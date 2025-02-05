@@ -56,7 +56,7 @@ public final class BukkitAgent {
     TestFlowData testFlowData;
     Configuration configuration;
 
-    private static final String API_BASE_URL = "http://95.216.43.103:4545/api";
+    private static final String API_BASE_URL = System.getenv("API_BASE_URL");
     private static final String AUTH_HEADER = "Authorization";
     private static final String AUTH_VALUE = "Basic Zkk3ODAhfiNpZ0g2TyFJdlZgVDMkI34=";
 
@@ -284,7 +284,7 @@ public final class BukkitAgent {
 
         Logging.IMP.info(gameType.name());
 
-        downloadFile(API_BASE_URL + "/retrieve?token=cock&name=" + gameType.name(), "stash.zip");
+        downloadFile(API_BASE_URL + "/retrieve?token=cock&persistent=" + (serverScaleType == ServerScaleType.PERSISTENT ? "true" : "false") + "&name=" + gameType.name(), "stash.zip");
         unzip("stash.zip", Paths.get("."));
 
         Logging.IMP.info("[boot] Fetched stashed assets in " + (System.currentTimeMillis() - epoch));

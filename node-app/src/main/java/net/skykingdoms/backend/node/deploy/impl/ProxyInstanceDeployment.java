@@ -20,12 +20,13 @@ public class ProxyInstanceDeployment extends InstanceDeploymentImpl {
     public String handle(@NonNull IDeployRequest request, @NonNull HostConfig config, int port, @Nullable String testFlowName, int debugPort, int testFlowId) {
         return client.createContainerCmd(DockerImageRegistry.VELOCITY.getRegistry())
                 .withEnv(
+                        "API_BASE_URL=" + "http://megamind:4545/api",
                         "CORD_SECRET=" + NodeApp.INSTANCE.nodeConfiguration().getSecret(),
                         "CORD_TID=" + request.getTransactionId(),
                         "PROXY_HOST=" + "0.0.0.0:" + port,
                         "EXTERNAL_ADDR=" + DeploymentManager.INSTANCE.getExternalHost()
                 )
-                .withHostConfig(config)
+                .withHostConfig(config.withNetworkMode("backend"))
                 .withExposedPorts(ExposedPort.tcp(port))
                 .exec().getId();
     }

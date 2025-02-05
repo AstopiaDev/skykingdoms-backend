@@ -31,7 +31,7 @@ public final class StashEndpoint implements IEndpoint{
         if (request.queryParams("lobby") != null) {
             stashedZip = StashManager.INSTANCE.getLobbyAssets(GameType.valueOf(request.queryParams("name")));
         } else {
-            stashedZip = StashManager.INSTANCE.createZipFile(request.queryParams("name"));
+            stashedZip = StashManager.INSTANCE.createZipFile(request.queryParams("name"), Boolean.parseBoolean(request.queryParams("persistent")));
         }
 
         try {

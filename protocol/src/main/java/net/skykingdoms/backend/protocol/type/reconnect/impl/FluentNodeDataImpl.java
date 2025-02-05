@@ -18,6 +18,7 @@ public final class FluentNodeDataImpl implements FluentData {
     ServerScaleType[] scaleTypes;
     int allocatedRamMB;
     int maxRamMB;
+    String host;
 
     @Override
     public FluentNodeDataImpl serialize(@NonNull ByteBuf out) {
@@ -25,6 +26,7 @@ public final class FluentNodeDataImpl implements FluentData {
         PacketUtils.writeArray(out, scaleTypes, scaleType -> PacketUtils.writeString(out, scaleType.name()));
         out.writeInt(allocatedRamMB);
         out.writeInt(maxRamMB);
+        PacketUtils.writeString(out, host);
         return this;
     }
 
@@ -34,6 +36,7 @@ public final class FluentNodeDataImpl implements FluentData {
         this.scaleTypes = PacketUtils.readArray(in, ServerScaleType[]::new, () -> ServerScaleType.valueOf(PacketUtils.readString(in)));
         this.allocatedRamMB = in.readInt();
         this.maxRamMB = in.readInt();
+        this.host = PacketUtils.readString(in);
         return this;
     }
 }

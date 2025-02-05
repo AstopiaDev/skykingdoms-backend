@@ -25,7 +25,7 @@ public final class StashManager {
     public static final StashManager INSTANCE = new StashManager();
 
     @SneakyThrows
-    public File createZipFile(final @NonNull String data) {
+    public File createZipFile(final @NonNull String data, boolean persistent) {
         val tmp = Files.createTempFile(MegamindApp.INSTANCE.directory().resolve("temp"), data + UUID.randomUUID(), ".zip").toFile();
         try (val fos = new FileOutputStream(tmp);
              val zos = new ZipOutputStream(fos)) {
@@ -38,7 +38,9 @@ public final class StashManager {
 
             Logging.IMP.info(sourcePath.toFile().exists() + " S?");
 
-            Path globalsPath = Paths.get(MegamindApp.INSTANCE.directory()
+            Path globalsPath = persistent ? Paths.get(MegamindApp.INSTANCE.directory()
+                    .resolve("stash/_PERSISTENT_GLOBAL")
+                    .toUri()) : Paths.get(MegamindApp.INSTANCE.directory()
                     .resolve("stash/_GLOBAL")
                     .toUri());
 

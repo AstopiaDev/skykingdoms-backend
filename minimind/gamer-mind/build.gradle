@@ -1,5 +1,0 @@
-tasks {
-    shadowJar {
-        archiveFileName = "GamerMind.jar"
-    }
-}

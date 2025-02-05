@@ -23,6 +23,7 @@ public class BukkitInstanceDeployment extends InstanceDeploymentImpl {
         BukkitDeployRequest bukkitRequest = (BukkitDeployRequest) request;
         val data = bukkitRequest.getData();
         val envVars = Lists.newArrayList(
+                "API_BASE_URL=" + "http://megamind:4545/api",
                 "CORD_SECRET=" + NodeApp.INSTANCE.nodeConfiguration().getSecret(),
                 "CORD_TID=" + request.getTransactionId(),
                 "BUKKIT_HOST=" + "0.0.0.0:" + port,
@@ -42,7 +43,7 @@ public class BukkitInstanceDeployment extends InstanceDeploymentImpl {
         return client.createContainerCmd(data.getGameType().getVersion().image() + "-" + NodeApp.INSTANCE.nodeConfiguration().getNetworkType().getPrefix())
                 .withTty(true)
                 .withEnv(envVars)
-                .withHostConfig(config)
+                .withHostConfig(config.withNetworkMode("backend"))
                 .withExposedPorts(ExposedPort.tcp(port), ExposedPort.tcp(debugPort))
                 .exec().getId();
     }

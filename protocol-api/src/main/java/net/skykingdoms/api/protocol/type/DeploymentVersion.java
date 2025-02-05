@@ -11,8 +11,8 @@ import lombok.experimental.FieldDefaults;
 @RequiredArgsConstructor
 @Getter
 public enum DeploymentVersion {
-    V1_8_8("docker.skykingdoms.net/backend/bukkit:1.8.8"),
-    V1_20_4("docker.skykingdoms.net/backend/bukkit:1.20.4"),
+    V1_8_8("registry.astopia.net/backend/bukkit:1.8.8"),
+    V1_20_4("registry.astopia.net/backend/bukkit:1.20.4"),
     ;
 
     String image;

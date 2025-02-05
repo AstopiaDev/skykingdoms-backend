@@ -9,7 +9,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Iterator;
 
 
-
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public abstract class BossProcessor implements PacketProcessor, Iterable<PacketProcessor> {
 

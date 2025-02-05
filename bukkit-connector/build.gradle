@@ -1,5 +1,5 @@
 dependencies {
-    compileOnly "net.mexish:paper:1.8.8"
+    compileOnly group: 'net.skykingdoms', name: 'spigot', version: '1.8.8-R0.1';
 
     annotationProcessor project(":impl-loader")
 

@@ -52,7 +52,8 @@ public final class NodeManager {
 
     public NodeServer getNodeServerFromAddress(final @NonNull String address) {
         return registeredNodes.stream()
-                .filter(nodeServer -> nodeServer.getConnection().getHost().equalsIgnoreCase(address))
+                .filter(nodeServer -> nodeServer.getConnection().getHost().equalsIgnoreCase(address)
+                        || nodeServer.getHost().equalsIgnoreCase(address))
                 .findFirst()
                 .orElse(null);
     }

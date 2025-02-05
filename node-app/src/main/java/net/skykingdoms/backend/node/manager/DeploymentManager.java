@@ -62,10 +62,9 @@ public enum DeploymentManager {
     DockerClientConfig dockerClientConfig = DefaultDockerClientConfig.createDefaultConfigBuilder()
             .withDockerHost("unix:///var/run/docker.sock")
             .withDockerTlsVerify(false)
-            .withRegistryUsername(System.getProperty("docker.user"))
-            .withRegistryPassword(System.getProperty("docker.pass"))
-            .withRegistryEmail(System.getProperty("docker.mail", "gorenjecalen@gmail.com"))
-            .withRegistryUrl(System.getProperty("docker.registry", "http://127.0.0.1:5000/"))
+            .withRegistryUsername(System.getenv("DOCKER_USER"))
+            .withRegistryPassword(System.getenv("DOCKER_PASS"))
+            .withRegistryUrl(System.getenv("DOCKER_REGISTRY"))
             .build();
 
     DockerHttpClient dockerHttpClient = new ApacheDockerHttpClient.Builder()

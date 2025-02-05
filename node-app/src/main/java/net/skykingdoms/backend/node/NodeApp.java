@@ -66,7 +66,7 @@ public enum NodeApp {
 
     private void loadConfig() {
         reloadConfiguration();
-        networkType = NetworkType.valueOf(System.getProperty("network.type", NetworkType.DEVELOPMENT.name()));
+        networkType = NetworkType.valueOf(System.getenv("NETWORK_TYPE"));
         Logging.IMP.info("Network type for this coordinator instance is: {}", networkType.name());
     }
 
@@ -130,7 +130,7 @@ public enum NodeApp {
                     yamlConfiguration.getString("coordinatorHost"),
                     yamlConfiguration.getInt("coordinatorPort"),
                     yamlConfiguration.getString("coordinatorSecret"),
-                    NetworkType.valueOf(System.getProperty("network.type", NetworkType.DEVELOPMENT.name())),
+                    NetworkType.valueOf(System.getenv("NETWORK_TYPE")),
                     yamlConfiguration.getStringList("scaleTypes").stream()
                             .map(ServerScaleType::valueOf).distinct().toArray(ServerScaleType[]::new)
             );
@@ -144,7 +144,7 @@ public enum NodeApp {
         int maxRamMB = (int) (Runtime.getRuntime().maxMemory() / (1024 * 1024));
 
         if (nodeData == null) {
-            nodeData = new FluentNodeDataImpl("", nodeConfiguration.getScaleTypes(), allocatedRamMB, maxRamMB);
+            nodeData = new FluentNodeDataImpl("", nodeConfiguration.getScaleTypes(), allocatedRamMB, maxRamMB, nodeConfiguration.getLocalBindAddressHost());
         } else {
             nodeData.setScaleTypes(nodeConfiguration.getScaleTypes());
             nodeData.setAllocatedRamMB(allocatedRamMB);

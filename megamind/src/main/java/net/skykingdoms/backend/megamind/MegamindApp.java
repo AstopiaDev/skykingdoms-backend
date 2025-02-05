@@ -74,7 +74,7 @@ public class MegamindApp extends MegamindAPI {
     public static final MegamindApp INSTANCE = new MegamindApp();
     // ----------------------------------------------------------------------
 
-    NetworkType networkType = NetworkType.valueOf(System.getProperty("network.type", NetworkType.DEVELOPMENT.name()));
+    NetworkType networkType = NetworkType.valueOf(System.getenv("NETWORK_TYPE"));
     Map<String, ICommand> commands = CollectionUtil.createConcurrentMap();
     CoreCommandManager commandManager = new CoreCommandManager();
 
