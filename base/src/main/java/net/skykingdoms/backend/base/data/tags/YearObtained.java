@@ -10,6 +10,7 @@ public enum YearObtained {
     Y2022,
     Y2023,
     Y2024,
+    Y2025,
     Y5TH,
     ;
 

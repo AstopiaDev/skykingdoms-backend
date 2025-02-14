@@ -185,10 +185,15 @@ public final class RemoteServerConnection extends AbstractRemoteServerChannel {
 
             val port = info.getServerPort();
 
+            // todo: eerrora ce je srver ze reconnectan pa playerje ne reconnecta pravilno
+
             Logging.IMP.info("Server {} has been registered. S: {} @ T: {} @ A: {}",
                     name, scale, type, ip + ":" + port);
 
             InetSocketAddress address = new InetSocketAddress(ip, port);
+
+            VelocityConnector.INSTANCE.server().getServer(name)
+                    .ifPresent(existingServer -> VelocityConnector.INSTANCE.server().unregisterServer(existingServer.getServerInfo()));
 
             VelocityConnector.INSTANCE.server().registerServer(
                     new ServerInfo(name, address)
